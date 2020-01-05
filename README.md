@@ -10,6 +10,7 @@
 
 **Please note:**
 * You may need to modify the structure of the XML path to match your server, e.g. library ID
+  * Notes on [XML interactions](https://support.plex.tv/articles/201638786-plex-media-server-url-commands/)
 * This is built to display info for 2 libraries, Movies and TV. Modifying for more libraries should be a matter of copy/paste/edit.
 
 # How does it work?
