@@ -1,0 +1,112 @@
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Medialytics</title>
+	<meta name="description" content="Description">
+	<meta name="author" content="drewpeifer">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.lazy.min.js"></script>
+	<script type="text/javascript" src="js/isotope.js"></script>
+	<script type="text/javascript" src="js/xmlToJson.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.11/c3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.12.0/d3.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.11/c3.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/styles.css">
+
+	<!--[if lt IE 9]>
+	<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+</head>
+<body>
+<h1>Media<strong>lytics</strong></h1>
+  <h2>(a basic, free analytics tool for Plex servers)</h2>
+  <i>Disclaimer: This tool is not associated with Plex, and is intended only for private non-commercial use</i>
+  <div class="explanation">
+    <h3>What is Plex?</h3>
+    <p>From the <a href="http://plex.tv" target="_blank">Plex</a> documentation:</p>
+    <blockquote>
+      The Plex Media Server (PMS) is our free software that makes the magic happen behind the scenes.
+      Once you download it onto the device where you store your files (computer or NAS device),
+      it starts scanning and indexing your media. The PMS automatically makes your media look beautiful
+      and intuitively organized in your Plex library, all while getting it ready for streaming.
+    </blockquote>
+    <h3>What is Medialytics then?</h3>
+    <p>
+      This is a free tool for users who maintain a Plex server to gain more information about the content they host.
+      Plex servers generate an XML feed of data that represents your library, such as the metadata for each library entry
+      as well as some information about the libraries themselves. Given your server's IP address and <strong>private Plex
+      token (do not share this value!)</strong>, this script will parse your server's XML feed and render charts, statistics,
+      and a sortable view of the content itself. The layout should work on most mobile browsers, but I haven't optimized that much.
+      You can read more about it on <a href="https://github.com/Drewpeifer/demo/tree/master/medialytics" target="_blank">github</a>.
+    </p>
+    <h3>Why would you make this?</h3>
+    <p>A couple of reasons:</p>
+    <ul>
+      <li>
+        While there are some great tools that analyze the <i>usage</i>
+        of your Plex server, I couldn't find any that analyzed the <i>content</i>
+        on your server.
+      </li>
+      <li>
+        Whenever I introduce Plex to someone, they want to see an example of my content in an easy
+        to browse format. The app(s) for plex are not always the greatest for this, especially if you're
+        using a mobile device.
+      </li>
+      <li>
+        Pulling up this Medialytics page for someone is faster than opening most apps, and there's no possibility
+        of an embarrassing "On Deck" entry being briefly visible (if you worry about that sort of thing).
+      </li>
+    </ul>
+  </div>
+	<div class="charts">
+		<div class="chart bar movies">
+			<h3>Movies By Decade</h3>
+			<div class="movies-by-decade"></div>
+		</div>
+		<div class="chart pie movies">
+			<h3>Movies By Studio (Top 50)</h3>
+			<div class="movies-by-studio"></div>
+		</div>
+		<div class="chart bar tv">
+			<h3>TV Shows By Decade</h3>
+			<div class="shows-by-decade"></div>
+		</div>
+		<div class="chart pie tv">
+			<h3>TV Shows By Studio (Top 50)</h3>
+			<div class="shows-by-studio"></div>
+		</div>
+	</div>
+	<div>
+		<button class="query">View Libraries</button>
+	</div>
+	<div class="alert"></div>
+	<hr />
+	<div class="controls">
+		<span>Filter:</span>
+		<button class="filter" data-filter="movie">
+			<img class="entry-icon" src="img/movie.jpg">
+			Movies
+		</button>
+		<button class="filter" data-filter="show">
+			<img class="entry-icon" src="img/show.jpg">
+			TV
+		</button>
+		<button class="filter" data-filter="entry">All</button>
+		<br />
+		<span>Sort:</span>
+		<button class="sort" data-sort="name">Title</button>
+		<button class="sort" data-sort="dateReleased">Release Year</button>
+		<button class="sort" data-sort="dateAdded">Date Added</button>
+		<button class="sort" data-sort="ratingMPAA">MPAA Rating</button>
+		<button class="sort" data-sort="ratingAudience">Audience Rating</button>
+	</div>
+	<div class="content">
+		<h3></h3><hr /><div class="grid"></div>
+	</div>
+<!-- scripts -->
+	<script type="text/javascript" src="js/scripts.js"></script>
+</body>
+</html>
