@@ -3,7 +3,7 @@
 
 # How do I use it?
 
-* Replace the ip address in `scripts.js` with your server's public IP address
+* Replace the ip address in `scripts.js` with your server's public ip address
 * Replace the instances of `YOUR_TOKEN` with your own plex token ([instructions on locating token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
   * **Do not share this value with anyone!**
 * Drag `index.html` into a browser
@@ -23,7 +23,7 @@ easy to filter and sort. I also convert that feed to JSON for use with the visua
 ![libraries](https://i.imgur.com/I73CQBb.jpg)
 
 # How recent is this data?
-Data is retrieved from Plex in real time. When you load the page, you are making a fresh request to my server.
+Data is retrieved from Plex in real time. When you load the page, you are making a fresh request to the tareted server.
 
 # What is it built with?
 jQuery does most of the work making the AJAX call and parsing the results. The sorting
