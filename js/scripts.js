@@ -51,6 +51,20 @@ function renderMovieCharts(jsonData) {
         releaseDateList.push(this['@attributes'].year);
         // track studio
         studioList.push(this['@attributes'].studio);
+        console.dir(this);
+        if (this.Genre) {
+            if (this.Genre.length > 1) {
+                console.log(this.Genre.length);
+                console.log('positive');
+                $.each(this.Genre, function() {
+                    console.log(this['@attributes'].tag);
+                });
+            } else {
+                console.log(this.Genre['@attributes'].tag);
+            }
+        } else {
+            console.log('no genres');
+        }
     });
 
     // movies by decade chart
@@ -439,6 +453,8 @@ $(function() {
         movieJson = xmlToJson(movieData),
         tvData = $.getPayload(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken),
         tvJson = xmlToJson(tvData);
+        console.log(serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken);
+        console.log(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken);
 
     renderMovieCharts(movieJson);
     renderTVCharts(tvJson);
