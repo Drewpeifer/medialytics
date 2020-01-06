@@ -4,6 +4,9 @@
 // Modify any library information to match your server's XML payload (e.g. libary ID's)
 /////////////
 
+var serverIp = 'YOUR_IP',
+    serverToken = 'YOUR_TOKEN';
+
 // this function is fed a url and retrieves an XML payload
 jQuery.extend({
     getPayload: function(url) {
@@ -274,8 +277,8 @@ function renderGrid() {
     // set count to 0
     count = 0,
     // build URLs
-    serverUrl = 'http://123.456.78.910:12345',
-    token = 'X-Plex-Token=YOUR_TOKEN',
+    serverUrl = serverIp,
+    token = 'X-Plex-Token=' + serverToken,
     baseUrl = serverUrl + '/library/sections/all?' + token,
     moviesUrl = serverUrl + '/library/sections/1/all?' + token,
     showsUrl = serverUrl + '/library/sections/2/all?' + token,
@@ -432,9 +435,9 @@ $('button.sort').each(function() {
 });
 // on load
 $(function() {
-    var movieData = $.getPayload('http://123.456.78.910:12345/library/sections/1/all?X-Plex-Token=YOUR_TOKEN'),
+    var movieData = $.getPayload(serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken),
         movieJson = xmlToJson(movieData),
-        tvData = $.getPayload('http://123.456.78.910:12345/library/sections/2/all?X-Plex-Token=YOUR_TOKEN'),
+        tvData = $.getPayload(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken),
         tvJson = xmlToJson(tvData);
 
     renderMovieCharts(movieJson);
