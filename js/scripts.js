@@ -43,7 +43,10 @@ function renderMovieCharts(jsonData) {
         releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0],
         decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201"],
         decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s"],
-        studioList = [];
+        studioList = [],
+        genres = {},// this stores genre: count, and is then split into the two following arrays
+        genreList = [],
+        genreCounts = [];
 
     // loop through movies and gather important data
     $.each(jsonData.MediaContainer.Video, function() {
@@ -51,21 +54,78 @@ function renderMovieCharts(jsonData) {
         releaseDateList.push(this['@attributes'].year);
         // track studio
         studioList.push(this['@attributes'].studio);
-        console.dir(this);
-        if (this.Genre) {
+        // track genres
+        console.log('scanning: ' + this['@attributes'].title);
+
+        if (this.Genre) {// check if a genre exists for movie
+            console.log('genre(s) exist');
+
             if (this.Genre.length > 1) {
-                console.log(this.Genre.length);
-                console.log('positive');
+                // handle multiple genres
+                console.log('multiple: ' + this.Genre.length);
+
                 $.each(this.Genre, function() {
                     console.log(this['@attributes'].tag);
+
+                    if (genres.hasOwnProperty(this['@attributes'].tag)) {
+                        // if genre exists in the dictionary already,
+                        // find the genre and increment the count
+                        console.log('already exists')
+                        console.dir(genres);
+                        genres[this['@attributes'].tag]++;
+                        console.dir(genres);
+                    } else {
+                        genres[this['@attributes'].tag] = 1;
+                        console.log('genres dict is now ' + Object.keys(genres).length + ' genres long');
+                        console.dir(genres);
+                    }
                 });
+
             } else {
+                console.log('single genre');
                 console.log(this.Genre['@attributes'].tag);
+                // check if genre has been encountered yet
+                if (genres.hasOwnProperty(this['@attributes'].tag)) {
+                    genres[this['@attributes'].tag]++;
+                    console.dir(genres);
+                } else {
+                    genres[this['@attributes'].tag] = 1;
+                    console.log('genres dict is now ' + Object.keys(genres).length + ' genres long');
+                    console.dir(genres);
+                }
             }
         } else {
             console.log('no genres');
         }
     });
+
+    // movies by genre chart
+    // $.each(genreList, function() {
+
+    // });
+    // genreList.unshift("genreList");
+    // c3.generate({
+    //     bindto: '.movies-by-genre',
+    //     x: 'x',
+    //     data: {
+    //         columns: [
+    //             genreCounts
+    //         ],
+    //         type: 'bar'
+    //     },
+    //     axis: {
+    //         x: {
+    //             type: 'category',
+    //             categories: genreList
+    //         }
+    //     },
+    //     legend: {
+    //         hide: true
+    //     },
+    //     color: {
+    //         pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+    //     }
+    // });
 
     // movies by decade chart
     $.each(releaseDateList, function() {
