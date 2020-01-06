@@ -55,77 +55,71 @@ function renderMovieCharts(jsonData) {
         // track studio
         studioList.push(this['@attributes'].studio);
         // track genres
-        console.log('scanning: ' + this['@attributes'].title);
 
-        if (this.Genre) {// check if a genre exists for movie
-            console.log('genre(s) exist');
-
+        if (this.Genre) {
+            // check if a genre exists for movie
             if (this.Genre.length > 1) {
-                // handle multiple genres
-                console.log('multiple: ' + this.Genre.length);
-
+                // handle multiple genres, which is an array of objects
                 $.each(this.Genre, function() {
-                    console.log(this['@attributes'].tag);
-
                     if (genres.hasOwnProperty(this['@attributes'].tag)) {
                         // if genre exists in the dictionary already,
                         // find the genre and increment the count
-                        console.log('already exists')
-                        console.dir(genres);
                         genres[this['@attributes'].tag]++;
-                        console.dir(genres);
                     } else {
                         genres[this['@attributes'].tag] = 1;
-                        console.log('genres dict is now ' + Object.keys(genres).length + ' genres long');
-                        console.dir(genres);
                     }
                 });
-
             } else {
-                console.log('single genre');
-                console.log(this.Genre['@attributes'].tag);
-                // check if genre has been encountered yet
+                // handle single genre which is an object / dictionary
                 if (genres.hasOwnProperty(this['@attributes'].tag)) {
+                    // if genre exists in the dictionary already,
+                    // find the genre and increment the count
                     genres[this['@attributes'].tag]++;
-                    console.dir(genres);
                 } else {
                     genres[this['@attributes'].tag] = 1;
-                    console.log('genres dict is now ' + Object.keys(genres).length + ' genres long');
-                    console.dir(genres);
                 }
             }
         } else {
-            console.log('no genres');
+            // no genres
         }
     });
 
-    // movies by genre chart
-    // $.each(genreList, function() {
+    // remove undefined entry from genres dictionary, I'm choosing not to report on movies without genre
+    delete genres['undefined'];
 
-    // });
-    // genreList.unshift("genreList");
-    // c3.generate({
-    //     bindto: '.movies-by-genre',
-    //     x: 'x',
-    //     data: {
-    //         columns: [
-    //             genreCounts
-    //         ],
-    //         type: 'bar'
-    //     },
-    //     axis: {
-    //         x: {
-    //             type: 'category',
-    //             categories: genreList
-    //         }
-    //     },
-    //     legend: {
-    //         hide: true
-    //     },
-    //     color: {
-    //         pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
-    //     }
-    // });
+    // movies by genre chart
+    for (var property in genres) {
+        // split the genres dictionary into an array of genres and an array of counts
+        if (!genres.hasOwnProperty(property)) {
+            continue;
+        }
+        genreList.push(property);
+        genreCounts.push(genres[property]);
+    }
+
+    genreCounts.unshift("genreCounts");
+    c3.generate({
+        bindto: '.movies-by-genre',
+        x: 'x',
+        data: {
+            columns: [
+                genreCounts
+            ],
+            type: 'bar'
+        },
+        axis: {
+            x: {
+                type: 'category',
+                categories: genreList
+            }
+        },
+        legend: {
+            hide: true
+        },
+        color: {
+            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+        }
+    });
 
     // movies by decade chart
     $.each(releaseDateList, function() {

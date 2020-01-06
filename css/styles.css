@@ -81,6 +81,9 @@ blockquote {
 	background:#111;
 	display:inline-block;
 }
+.chart.full {
+  width: 98%;
+}
 .chart div {
 	margin:5px 10px 5px 0px;
 }
