@@ -1,5 +1,5 @@
 // Instructions:
-// Replace IP address with your public server address,
+// Replace IP address with your public server address, e.g. http://123.456.78.910:12345
 // Replace token with your server token ** KEEP PRIVATE **
 // Modify any library information to match your server's XML payload (e.g. libary ID's)
 /////////////
@@ -368,7 +368,7 @@ function renderGrid() {
             // called whenever an element could not be handled
         },
         onFinishedAll: function() {
-            // called once all elements was handled
+            // called after all elements are handled
         }
     });
     // reveal controls
