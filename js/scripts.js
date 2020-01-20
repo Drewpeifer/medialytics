@@ -43,16 +43,8 @@ jQuery.extend({
 // render statistics panel above charts
 function renderLibraryStats(stats) {
     $.each(stats, function(index, value) {
-        if (index == "TV") {
-            increment = "Shows";
-        } else {
-            increment = index;
-        }
-
-        $('.statistics .data-grid .grid').append('<div class="data-entry" title="' + index + '-stats">' +
-            '<h4 class="title">' + index + '</h4>' +
-            '<p class="count value">' + value + '<strong class="count label"> ' + increment + '</strong></p>' +
-            '</div>');
+        // build an empty stat panel for each library
+        $('.statistics .data-grid .grid').append('<div class="data-entry" title="' + index + '-stats"><h4 class="title">' + index + '</h4></div>');
     });
 }
 
@@ -84,11 +76,13 @@ function renderMovieCharts(jsonData) {
                 totalHours = Math.round(durationSum/60),
                 totalDays = Math.round(durationSum/24/60),
                 displayHours = totalHours - (totalDays*24),
-                displayMins = totalMins - (totalHours*60);
+                displayMins = totalMins - (totalHours*60),
+                increment = "Movies";
 
-            $('div[title="Movies-stats"]').append('<p class="count value">' + totalDays + '<strong class="count label"> Days / </strong> ' +
-                                          displayHours + '<strong class="count label"> Hours / </strong> ' +
-                                          displayMins + '<strong class="count label"> Mins</strong></p>');
+            $('div[title="Movies-stats"]').append('<p class="stat count"><strong>' + movieCount + '</strong> ' + increment + '</p>' +
+                '<p class="stat duration"><strong>' + totalDays + '</strong> Days / <strong>' +
+                displayHours + '</strong> Hours / <strong>' +
+                displayMins + '</strong> Mins</p>');
         }
         // track genres
         if (this.Genre) {
@@ -265,7 +259,8 @@ function renderTVCharts(jsonData) {
         decades = ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s"],
         studioList = [],
         seasonCount = 0,
-        episodeCount = 0;
+        episodeCount = 0,
+        increment = "Shows";
         // TODO: Not tracking TV durations here because Plex doesn't provide them,
         // it just provides the rough episode duration and a count of episodes,
         // rough total duration to be added later
@@ -283,9 +278,9 @@ function renderTVCharts(jsonData) {
         if (i == jsonData.MediaContainer.Directory.length - 1) {
             // if it's the last entry
             // append season / episode count to library stat panel
-
-            $('div[title="TV-stats"]').append('<p class="count value">' + seasonCount + '<strong class="count label"> Seasons / </strong> ' +
-                                          episodeCount + '<strong class="count label"> Episodes</strong></p>');
+            $('div[title="TV-stats"]').append('<p class="stat count"><strong>' + showCount +
+                '</strong> ' + increment + ' / <strong>' + seasonCount + '</strong> Seasons / <strong>' +
+                episodeCount + '</strong> Eps</p>');
         }
     });
 

@@ -137,12 +137,12 @@ blockquote {
 	color:orange;
 	margin:10px auto 0 auto;
 }
-.data-grid .grid .data-entry .count.value,
-.data-grid .grid .data-entry .count.label {
+.data-grid .grid .data-entry .stat {
 	margin:0;
-}
-.data-grid .grid .data-entry .count.label {
 	color:#777;
+}
+.data-grid .grid .data-entry .stat strong {
+	color:#f2f2f2;
 }
 /* alert section */
 .alert {
