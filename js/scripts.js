@@ -5,11 +5,12 @@
 /////////////
 
 var serverIp = 'YOUR_IP',
-    serverToken = 'YOUR_TOKEN';
+    serverToken = 'YOUR_TOKEN',
+    libraryStats = {};
 
 // this function is fed a url and retrieves an XML payload
 jQuery.extend({
-    getPayload: function(url) {
+    getPayload: function(name, url) {
         var payload = null;
         $.ajax({
             url: url,
@@ -26,6 +27,9 @@ jQuery.extend({
             success: function(data) {
                 console.log('ajax success');
                 payload = data;
+                // push an entry to the libraryStats object containing the name of the library
+                // (which is passed as part of the request) and the count of child nodes
+                libraryStats[name] = payload.childNodes[0].children.length;
             },
             error: function(jqXHR, textStatus, errorThrown){
               $('.alert').html('<p>Sorry!</p><p>The server must be down right now, or you\'re behind a firewall, or your browser doesn\'t like unsecured requests.</p>');
@@ -35,6 +39,16 @@ jQuery.extend({
        return payload;
     }
 });
+
+// render statistics panel above charts
+function renderLibraryStats(stats) {
+    $.each(stats, function(index, value) {
+        $('.statistics .data-grid .grid').append('<div class="data-entry">' +
+            '<h4 class="title">' + index + '</h4>' +
+            '<p class="count-value">' + value + '<strong class="count-label">&nbsp; Entries</strong></p>' +
+            '</div>');
+    });
+}
 
 // render movie charts on page load
 function renderMovieCharts(jsonData) {
@@ -467,11 +481,6 @@ function renderGrid() {
     $(window).scroll();
 }
 
-// turns the explanation panel into a drawer
-// (remove this if you remove the explanation)
-$('.drawer-trigger').on('click', function() {
-    $(this).siblings('.drawer').toggle();
-});
 // bind the query buttons
 $('.query').click(renderGrid);
 // filtering
@@ -508,13 +517,14 @@ $('button.sort').each(function() {
 });
 // on load
 $(function() {
-    var movieData = $.getPayload(serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken),
+    var movieData = $.getPayload("Movies", serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken),
         movieJson = xmlToJson(movieData),
-        tvData = $.getPayload(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken),
+        tvData = $.getPayload("TV", serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken),
         tvJson = xmlToJson(tvData);
         console.log(serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken);
         console.log(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken);
 
+    renderLibraryStats(libraryStats);
     renderMovieCharts(movieJson);
     renderTVCharts(tvJson);
     // late addition: prepend library counts to charts

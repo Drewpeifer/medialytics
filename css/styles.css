@@ -51,34 +51,6 @@ blockquote {
   border-left:5px solid #777;
   padding-left:10px;
 }
-/* explanation */
-.drawer-trigger {
-	cursor:pointer;
-}
-.drawer {
-	display:none;
-}
-.explanation {
-  border:#666 1px solid;
-  background:#222;
-  border-radius:5px;
-  text-align:left;
-  padding:10px;
-  margin:10px;
-}
-.explanation h3 {
-	text-decoration:underline;
-}
-.explanation ul {
-  margin:10px 0 10px;
-}
-.explanation ul li {
-  margin:5px 20px;
-}
-.explanation strong {
-  color:pink;
-  letter-spacing:2px;
-}
 /* chart section */
 .charts {
 	font-size:12px;
@@ -107,6 +79,7 @@ blockquote {
 	padding:5px 0;
 	font-weight:100;
 	margin:0;
+	border-radius:5px 5px 0 0;
 }
 .chart .count {
 	font-size:12px;
@@ -138,25 +111,38 @@ blockquote {
 .pie .c3-chart-arc text {
 	fill:#111;
 }
+/* library statistics */
+.statistics {
+	margin: 10px auto;
+}
 /* data grids */
 .data-grid {
 	width:50%;
 	margin:0 auto;
 }
-.grid {
+.data-grid .grid {
 	display:flex;
-}
-.grid .entry {
-	flex:1;
+	margin:0 auto;
 	min-height:100px;
-	width:30%;
+	flex-wrap:wrap;
 }
-.grid .entry .title {
+.data-grid .grid .data-entry {
+	flex:1;
+	flex-basis:30%;
+	min-height:50px;
+}
+.data-grid .grid .data-entry .title {
 	display:block;
+	color:orange;
+	margin:10px auto 0 auto;
 }
-.grid .entry .count-label,
-.grid .entry .count-value {
+.data-grid .grid .data-entry .count-value,
+.data-grid .grid .data-entry .count-label {
 	display:inline-block;
+	margin:0;
+}
+.data-grid .grid .data-entry .count-label {
+	color:#777;
 }
 /* alert section */
 .alert {
