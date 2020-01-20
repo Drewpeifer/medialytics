@@ -1,18 +1,13 @@
 # Medialytics
 ### An SPA that displays the XML output of a Plex server in a nice format
 
-# How do I use it?
+![header](https://i.imgur.com/YMH8yN6.png)
 
-* Replace the ip address in `scripts.js` with your server's public ip address
-* Replace the instances of `YOUR_TOKEN` with your own plex token ([instructions on locating token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
-  * **Do not share this value with anyone!**
-* Drag `index.html` into a browser
-* Edit the HTML and CSS to your liking (e.g. change colors, delete the `<div class="explanation">`)
+![genres](https://i.imgur.com/1aeXIs9.png)
 
-**Please note:**
-* You may need to modify the structure of the XML path to match your server, e.g. library ID
-  * Notes on [XML interactions](https://support.plex.tv/articles/201638786-plex-media-server-url-commands/)
-* This is built to display info for 2 libraries, Movies and TV. Modifying for more libraries should be a matter of copy/paste/edit.
+![visualizations](https://i.imgur.com/9T3tiNQ.png)
+
+![libraries](https://i.imgur.com/I73CQBb.jpg)
 
 # How does it work?
 [Plex](http://www.plex.tv) servers typically contain a sizable library of awesome movies and TV shows. You can
@@ -20,9 +15,18 @@ access the metadata for all that media via an XML feed that the server generates
 This application calls that XML feed, parses it, and displays it in a format that's
 easy to filter and sort. I also convert that feed to JSON for use with the visualizations (charts).
 
-![visualizations](https://i.imgur.com/9T3tiNQ.png)
+# How do I use it?
 
-![libraries](https://i.imgur.com/I73CQBb.jpg)
+* Replace the ip address in `scripts.js` with your server's public ip address
+* Replace the instances of `YOUR_TOKEN` with your own plex token ([instructions on locating token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)) **Do not share this value with anyone!**
+* Drag `index.html` into a browser
+* Edit the HTML, CSS, and JS to your liking
+
+**Please note:**
+
+* You may need to modify the structure of the XML path to match your server, e.g. library ID (Notes on [XML interactions](https://support.plex.tv/articles/201638786-plex-media-server-url-commands/))
+* This is built to display info for 2 libraries, Movies and TV. Modifying for more libraries should be a matter of copy/paste/edit
+* Implementing more charts may be quick or incredibly tedious depending on the data / chart you are working with
 
 # How recent is this data?
 Data is retrieved from Plex in real time. When you load the page, you are making a fresh request to the targeted server.
