@@ -43,9 +43,9 @@ jQuery.extend({
 // render statistics panel above charts
 function renderLibraryStats(stats) {
     $.each(stats, function(index, value) {
-        $('.statistics .data-grid .grid').append('<div class="data-entry">' +
+        $('.statistics .data-grid .grid').append('<div class="data-entry" title="' + index + '-stats">' +
             '<h4 class="title">' + index + '</h4>' +
-            '<p class="count-value">' + value + '<strong class="count-label">&nbsp; Entries</strong></p>' +
+            '<p class="count value">' + value + '<strong class="count label">&nbsp; Entries</strong></p>' +
             '</div>');
     });
 }
@@ -60,16 +60,36 @@ function renderMovieCharts(jsonData) {
         studioList = [],
         genres = {},// this stores genre: count, and is then split into the two following arrays
         genreList = [],
-        genreCounts = [];
+        genreCounts = [],
+        durationSum = 0;
 
     // loop through movies and gather important data
-    $.each(jsonData.MediaContainer.Video, function() {
+    $.each(jsonData.MediaContainer.Video, function(i) {
         // track year
         releaseDateList.push(this['@attributes'].year);
         // track studio
         studioList.push(this['@attributes'].studio);
-        // track genres
+        // track durations
+        durationSum = durationSum + (this['@attributes'].duration/60000);
 
+        if (i == jsonData.MediaContainer.Video.length - 1) {
+            // if it's the last entry
+            // append durations to library stats panel
+            // we want to list:
+            // Days = total days
+            // Hours = total hours - (total days AS hours)
+            // Mins = total mins - (total hours AS mins)
+            var totalMins = Math.round(durationSum),
+                totalHours = Math.round(durationSum/60),
+                totalDays = Math.round(durationSum/24/60),
+                displayHours = totalHours - (totalDays*24),
+                displayMins = totalMins - (totalHours*60);
+
+            $('div[title="Movies-stats"]').append('<p class="count value">' + totalDays + '<strong class="count label">&nbsp; Days, </strong> ' +
+                                          displayHours + '<strong class="count label">&nbsp; Hours, </strong> ' +
+                                          displayMins + '<strong class="count label">&nbsp; Mins</strong></p>');
+        }
+        // track genres
         if (this.Genre) {
             // check if a genre exists for movie
             if (this.Genre.length > 1) {

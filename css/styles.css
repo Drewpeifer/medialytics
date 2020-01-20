@@ -136,12 +136,11 @@ blockquote {
 	color:orange;
 	margin:10px auto 0 auto;
 }
-.data-grid .grid .data-entry .count-value,
-.data-grid .grid .data-entry .count-label {
-	display:inline-block;
+.data-grid .grid .data-entry .count.value,
+.data-grid .grid .data-entry .count.label {
 	margin:0;
 }
-.data-grid .grid .data-entry .count-label {
+.data-grid .grid .data-entry .count.label {
 	color:#777;
 }
 /* alert section */
