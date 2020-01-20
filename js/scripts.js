@@ -74,8 +74,8 @@ function renderMovieCharts(jsonData) {
             // if it's the last entry
             // append durations to library stats panel
             var totalMins = Math.round(durationSum),
-                totalHours = Math.round(durationSum/60),
-                totalDays = Math.round(durationSum/24/60),
+                totalHours = Math.floor(durationSum/60),
+                totalDays = Math.floor(durationSum/24/60),
                 displayHours = totalHours - (totalDays*24),
                 displayMins = totalMins - (totalHours*60);
 
@@ -259,7 +259,8 @@ function renderTVCharts(jsonData) {
         decades = ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s"],
         studioList = [],
         seasonCount = 0,
-        episodeCount = 0,
+        episodeCounts = [],
+        durationList = [],
         increment = "Shows";
         // TODO: Not tracking TV durations here because Plex doesn't provide them,
         // it just provides the rough episode duration and a count of episodes,
@@ -273,14 +274,37 @@ function renderTVCharts(jsonData) {
         studioList.push(this['@attributes'].studio);
         // track number of seasons
         seasonCount = seasonCount + parseInt(this['@attributes'].childCount);
+        // track durations for each series
+        durationList.push(parseInt(Math.round(this['@attributes'].duration/60000)));
         // track number of episodes
-        episodeCount = episodeCount + parseInt(this['@attributes'].leafCount);
+        episodeCounts.push(parseInt(this['@attributes'].leafCount));
         if (i == jsonData.MediaContainer.Directory.length - 1) {
-            // if it's the last entry
-            // append season / episode count to library stat panel
+            // if it's the last entry, perform some calcs and
+            // append count/duration stats to library stat panel
+            seasonDurations = [];
+
+            $.each(durationList, function(i) {
+                // multiply each season's avg ep duration by the number of eps
+                seasonDur = this * episodeCounts[i];
+                seasonDurations.push(seasonDur);
+
+            });
+
+            totalDuration = seasonDurations.reduce(function(acc, val) { return acc + val; }, 0);
+            totalEpisodes = episodeCounts.reduce(function(acc, val) { return acc + val; }, 0);
+
+            var totalMins = Math.round(totalDuration),
+                totalHours = Math.floor(totalDuration/60),
+                totalDays = Math.floor(totalDuration/24/60),
+                displayHours = totalHours - (totalDays*24),
+                displayMins = totalMins - (totalHours*60);
+
             $('div[title="TV-stats"]').append('<p class="stat count"><strong>' + showCount +
                 '</strong> ' + increment + ' / <strong>' + seasonCount + '</strong> Seasons / <strong>' +
-                episodeCount + '</strong> Eps</p>');
+                totalEpisodes + '</strong> Eps</p>' +
+                '<p class="stat duration"><strong>' + totalDays + '</strong> Days / <strong>' +
+                displayHours + '</strong> Hours / <strong>' +
+                displayMins + '</strong> Mins</p>');
         }
     });
 
