@@ -23,9 +23,6 @@ button.active, a {
 button[disabled=disabled] {
 	color:#000;
 }
-strong {
-	color:orange;
-}
 h1 {
   font-size:48px;
   margin:10px 0;
@@ -36,6 +33,10 @@ h2 {
 }
 h3 {
   font-size:24px;
+  margin:10px 0 20px;
+}
+h4 {
+  font-size:20px;
   margin:10px 0 20px;
 }
 strong {

@@ -71,23 +71,18 @@ function renderMovieCharts(jsonData) {
         studioList.push(this['@attributes'].studio);
         // track durations
         durationSum = durationSum + (this['@attributes'].duration/60000);
-
         if (i == jsonData.MediaContainer.Video.length - 1) {
             // if it's the last entry
             // append durations to library stats panel
-            // we want to list:
-            // Days = total days
-            // Hours = total hours - (total days AS hours)
-            // Mins = total mins - (total hours AS mins)
             var totalMins = Math.round(durationSum),
                 totalHours = Math.round(durationSum/60),
                 totalDays = Math.round(durationSum/24/60),
                 displayHours = totalHours - (totalDays*24),
                 displayMins = totalMins - (totalHours*60);
 
-            $('div[title="Movies-stats"]').append('<p class="count value">' + totalDays + '<strong class="count label">&nbsp; Days, </strong> ' +
-                                          displayHours + '<strong class="count label">&nbsp; Hours, </strong> ' +
-                                          displayMins + '<strong class="count label">&nbsp; Mins</strong></p>');
+            $('div[title="Movies-stats"]').append('<p class="count value">' + totalDays + '<strong class="count label"> Days / </strong> ' +
+                                          displayHours + '<strong class="count label"> Hours / </strong> ' +
+                                          displayMins + '<strong class="count label"> Mins</strong></p>');
         }
         // track genres
         if (this.Genre) {
@@ -262,14 +257,28 @@ function renderTVCharts(jsonData) {
         releaseDateCounts = [0, 0, 0, 0, 0, 0],
         decadePrefixes = ["196", "197", "198", "199", "200", "201"],
         decades = ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s"],
-        studioList = [];
+        studioList = [],
+        seasonCount = 0,
+        episodeCount = 0,
+        durationSum = 0;
 
     // loop through TV and gather important data
-    $.each(jsonData.MediaContainer.Directory, function() {
+    $.each(jsonData.MediaContainer.Directory, function(i) {
         // track year
         releaseDateList.push(this['@attributes'].year);
         // track studio
         studioList.push(this['@attributes'].studio);
+        // track number of seasons
+        seasonCount = seasonCount + parseInt(this['@attributes'].childCount);
+        // track number of episodes
+        episodeCount = episodeCount + parseInt(this['@attributes'].leafCount);
+        if (i == jsonData.MediaContainer.Directory.length - 1) {
+            // if it's the last entry
+            // append season / episode count to library stat panel
+
+            $('div[title="TV-stats"]').append('<p class="count value">' + seasonCount + '<strong class="count label"> Seasons / </strong> ' +
+                                          episodeCount + '<strong class="count label"> Episodes</strong></p>');
+        }
     });
 
     // TV Shows by decade chart
