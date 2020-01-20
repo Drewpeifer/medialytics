@@ -467,6 +467,11 @@ function renderGrid() {
     $(window).scroll();
 }
 
+// turns the explanation panel into a drawer
+// (remove this if you remove the explanation)
+$('.drawer-trigger').on('click', function() {
+    $(this).siblings('.drawer').toggle();
+});
 // bind the query buttons
 $('.query').click(renderGrid);
 // filtering

@@ -52,6 +52,12 @@ blockquote {
   padding-left:10px;
 }
 /* explanation */
+.drawer-trigger {
+	cursor: pointer;
+}
+.drawer {
+	display: none;
+}
 .explanation {
   border: #666 1px solid;
   background: #222;

@@ -7,6 +7,7 @@
 * Replace the instances of `YOUR_TOKEN` with your own plex token ([instructions on locating token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
   * **Do not share this value with anyone!**
 * Drag `index.html` into a browser
+* Edit the HTML and CSS to your liking (e.g. change colors, delete the `<div class="explanation">`)
 
 **Please note:**
 * You may need to modify the structure of the XML path to match your server, e.g. library ID
