@@ -429,7 +429,7 @@ function renderGrid() {
     // for each entry in urls, grab XML
     $.each(urls, function(i, url) {
         wrapper = $('.content');
-        payload = $.getPayload(url);
+        payload = $.getPayload(name, url);
         // target the entries within the payload
         target = payload.children[0].children;
         // count items
