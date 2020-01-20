@@ -43,9 +43,15 @@ jQuery.extend({
 // render statistics panel above charts
 function renderLibraryStats(stats) {
     $.each(stats, function(index, value) {
+        if (index == "TV") {
+            increment = "Shows";
+        } else {
+            increment = index;
+        }
+
         $('.statistics .data-grid .grid').append('<div class="data-entry" title="' + index + '-stats">' +
             '<h4 class="title">' + index + '</h4>' +
-            '<p class="count value">' + value + '<strong class="count label">&nbsp; Entries</strong></p>' +
+            '<p class="count value">' + value + '<strong class="count label"> ' + increment + '</strong></p>' +
             '</div>');
     });
 }
@@ -259,8 +265,10 @@ function renderTVCharts(jsonData) {
         decades = ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s"],
         studioList = [],
         seasonCount = 0,
-        episodeCount = 0,
-        durationSum = 0;
+        episodeCount = 0;
+        // TODO: Not tracking TV durations here because Plex doesn't provide them,
+        // it just provides the rough episode duration and a count of episodes,
+        // rough total duration to be added later
 
     // loop through TV and gather important data
     $.each(jsonData.MediaContainer.Directory, function(i) {
