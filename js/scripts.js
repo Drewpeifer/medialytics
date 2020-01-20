@@ -59,7 +59,8 @@ function renderMovieCharts(jsonData) {
         genres = {},// this stores genre: count, and is then split into the two following arrays
         genreList = [],
         genreCounts = [],
-        durationSum = 0;
+        durationSum = 0,
+        increment = "Movies";
 
     // loop through movies and gather important data
     $.each(jsonData.MediaContainer.Video, function(i) {
@@ -76,8 +77,7 @@ function renderMovieCharts(jsonData) {
                 totalHours = Math.round(durationSum/60),
                 totalDays = Math.round(durationSum/24/60),
                 displayHours = totalHours - (totalDays*24),
-                displayMins = totalMins - (totalHours*60),
-                increment = "Movies";
+                displayMins = totalMins - (totalHours*60);
 
             $('div[title="Movies-stats"]').append('<p class="stat count"><strong>' + movieCount + '</strong> ' + increment + '</p>' +
                 '<p class="stat duration"><strong>' + totalDays + '</strong> Days / <strong>' +
