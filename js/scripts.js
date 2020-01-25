@@ -6,7 +6,10 @@
 
 var serverIp = 'YOUR_IP',
     serverToken = 'YOUR_TOKEN',
-    libraryStats = {};
+    libraryStats = {},
+    moviesPayloadUrl = serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken,
+    tvPayloadUrl = serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken,
+    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=20&X-Plex-Token=' + serverToken;
 
 // this function is fed a url and retrieves an XML payload
 jQuery.extend({
@@ -27,9 +30,6 @@ jQuery.extend({
             success: function(data) {
                 console.log('ajax success');
                 payload = data;
-                // push an entry to the libraryStats object containing the name of the library
-                // (which is passed as part of the request) and the count of child nodes
-                libraryStats[name] = payload.childNodes[0].children.length;
             },
             error: function(jqXHR, textStatus, errorThrown){
               $('.alert').html('<p>Sorry!</p><p>The server must be down right now, or you\'re behind a firewall, or your browser doesn\'t like unsecured requests.</p>');
@@ -40,25 +40,15 @@ jQuery.extend({
     }
 });
 
-///////////////////////////////////////
-// render statistics panel on page load
-function renderLibraryStats(stats) {
-    $.each(stats, function(index, value) {
-        // build an empty stat panel for each library
-        $('.statistics .data-grid .grid').append('<div class="data-entry" title="' + index + '-stats"><h4 class="title">' + index + '</h4></div>');
-    });
-}
-
 ///////////////////////////////////////////////////////////////////
 // render recently added list (most recent 20 entries) on page load
-
 function renderRecentlyAdded() {
 
 }
 
 ///////////////////////////////////
 // render movie charts on page load
-function renderMovieCharts(jsonData) {
+function renderMovieData(jsonData) {
     var movieCount = jsonData.MediaContainer.Video.length,
         releaseDateList = [],
         releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -81,17 +71,18 @@ function renderMovieCharts(jsonData) {
         durationSum = durationSum + (this['@attributes'].duration/60000);
         if (i == jsonData.MediaContainer.Video.length - 1) {
             // if it's the last entry
-            // append durations to library stats panel
+            // append stats to library stats panel
             var totalMins = Math.round(durationSum),
                 totalHours = Math.floor(durationSum/60),
                 totalDays = Math.floor(durationSum/24/60),
                 displayHours = totalHours - (totalDays*24),
                 displayMins = totalMins - (totalHours*60);
 
-            $('div[title="Movies-stats"]').append('<p class="stat count"><strong>' + movieCount + '</strong> ' + increment + '</p>' +
+            $('.statistics .data-grid .grid').append('<div class="data-entry" title="Movies-stats"><h4 class="title">Movies</h4>' +
+                '<p class="stat count"><strong>' + movieCount + '</strong> ' + increment + '</p>' +
                 '<p class="stat duration"><strong>' + totalDays + '</strong> Days / <strong>' +
                 displayHours + '</strong> Hours / <strong>' +
-                displayMins + '</strong> Mins</p>');
+                displayMins + '</strong> Mins</p></div>');
         }
         // track genres
         if (this.Genre) {
@@ -308,12 +299,13 @@ function renderTVCharts(jsonData) {
                 displayHours = totalHours - (totalDays*24),
                 displayMins = totalMins - (totalHours*60);
 
-            $('div[title="TV-stats"]').append('<p class="stat count"><strong>' + showCount +
+            $('.statistics .data-grid .grid').append('<div class="data-entry" title="TV-stats"><h4 class="title">TV</h4>' +
+                '<p class="stat count"><strong>' + showCount +
                 '</strong> ' + increment + ' / <strong>' + seasonCount + '</strong> Seasons / <strong>' +
                 totalEpisodes + '</strong> Eps</p>' +
                 '<p class="stat duration"><strong>' + totalDays + '</strong> Days / <strong>' +
                 displayHours + '</strong> Hours / <strong>' +
-                displayMins + '</strong> Mins</p>');
+                displayMins + '</strong> Mins</p></div>');
         }
     });
 
@@ -418,10 +410,10 @@ function renderTVCharts(jsonData) {
     });
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// this function grabs payloads from one or more urls and creates a netflix-like
-// grid, displaying cover art and basic metadata in a sortable, filterable UI
-function renderGrid() {
+////////////////////////////////////////////////////////////////////////////////////
+// Render catalog - this function accepts payloads from one or more urls and creates
+// a grid, displaying cover art and basic metadata in a sortable, filterable UI
+function renderGrid(payloadUrls) {
     var wrapper = $('.content'),
     // set count to 0
     count = 0,
@@ -432,7 +424,7 @@ function renderGrid() {
     moviesUrl = serverUrl + '/library/sections/1/all?' + token,
     showsUrl = serverUrl + '/library/sections/2/all?' + token,
     recentlyAddedUrl = serverUrl + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=20&' + token,
-    urls = [showsUrl,moviesUrl];// hiding recentlyAddedUrl for now
+    urls = payloadUrls;// passed from the query, must be an array (even if a single payload)
 
     // disable query button
     $('.query').attr('disabled', 'disabled');
@@ -543,11 +535,30 @@ function renderGrid() {
     $(window).scroll();
 }
 
+// now that we have declared all the ways to manipulate and retrieve payloads,
+// finally declare what those payloads are and what to do with them
+var catalogPayloads = [moviesPayloadUrl, tvPayloadUrl],// these get rendered in the catalog grid
+    moviesData = $.getPayload("Movies", moviesPayloadUrl),
+    moviesJson = xmlToJson(moviesData),// used for movie chart + statistic data
+    tvData = $.getPayload("TV", tvPayloadUrl),
+    tvJson = xmlToJson(tvData),// used for tv chart + statistic data
+    recentlyAddedData = $.getPayload("Recent", recentlyAddedUrl),
+    recentlyAddedJson = xmlToJson(recentlyAddedData),// used for recently added list
+    statsData = [moviesData, tvData];// these get rendered in the statistics panel
+
+    $.each(statsData, function(index, value) {
+        // push an entry to the libraryStats object containing the name of the library
+        // (which is passed as part of the request) and the count of child nodes
+        libraryStats[name] = this.childNodes[0].children.length;
+    });
+
 // bind the query buttons
-$('.query').click(renderGrid);
+$('.query').on('click', function() {
+    renderGrid(catalogPayloads);
+});
 // filtering
 $('button.filter').each(function() {
-    $(this).click(function() {
+    $(this).on('click', function() {
         if ($(this).hasClass('active')) {
             // do nothing
         } else {
@@ -560,7 +571,7 @@ $('button.filter').each(function() {
 });
 // sorting
 $('button.sort').each(function() {
-    $(this).click(function() {
+    $(this).on('click', function() {
         if ($(this).hasClass('active')) {
             if ($(this).hasClass('reverse-sort')) {
                 $('.grid').isotope({ sortAscending: true });
@@ -579,17 +590,13 @@ $('button.sort').each(function() {
 });
 // on load
 $(function() {
-    var movieData = $.getPayload("Movies", serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken),
-        movieJson = xmlToJson(movieData),
-        tvData = $.getPayload("TV", serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken),
-        tvJson = xmlToJson(tvData);
-        console.log(serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken);
-        console.log(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken);
 
-    renderLibraryStats(libraryStats);
-    renderMovieCharts(movieJson);
+    console.log(serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken);
+    console.log(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken);
+
+    renderMovieData(moviesJson);
     renderTVCharts(tvJson);
     // late addition: prepend library counts to charts
-    $('.movies .c3').prepend('<p class="count">Total: ' + movieJson.MediaContainer.Video.length + '</p>');
+    $('.movies .c3').prepend('<p class="count">Total: ' + moviesJson.MediaContainer.Video.length + '</p>');
     $('.tv .c3').prepend('<p class="count">Total: ' + tvJson.MediaContainer.Directory.length + '</p>');
 });
