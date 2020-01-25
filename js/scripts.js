@@ -42,7 +42,62 @@ jQuery.extend({
 
 ///////////////////////////////////////////////////////////////////
 // render recently added list (most recent 20 entries) on page load
-function renderRecentlyAdded() {
+function renderRecentlyAdded(jsonData) {
+    console.log('recents!');
+    console.dir(jsonData);
+    var recentEntries = jsonData.MediaContainer.Video,
+        grid = $('.recently-added .scroll-grid .grid');
+
+    $.each(recentEntries, function() {
+
+        var entry = this['@attributes'],
+            name = entry.title,
+            sortTitle = entry.titleSort,
+            year = entry.year,
+            img = entry.thumb,
+            type = entry.type,
+            duration = entry.duration,
+            dateAdded = entry.addedAt,
+            ratingMPAA = entry.contentRating,
+            ratingAudience = entry.audienceRating,
+            imgUrl = serverIp + img + '?X-Plex-Token=' + serverToken;
+
+            console.log(imgUrl);
+
+            // build UI for each entry
+            entryInterface = $('<div data-datereleased="' + year + '" ' +
+                                'data-name="' + name + '" ' +
+                                'data-dateadded="' + dateAdded + '" ' +
+                                'data-duration="' + duration + '" ' +
+                                'data-src="' + imgUrl + '" ' +
+                                'class="entry ' + type + ' lazy">' +
+                                '<img class="entry-icon" src="img/' + type + '.jpg">' +
+                                '<p class="name">' + name + ' (' + year + ')</p>' +
+                                '<p class="rating-MPAA">Rated: ' + ratingMPAA + '</p>' +
+                                '<p class="rating-audience">Rotten Tomatoes: ' + ratingAudience + '</p>' +
+                                '</div>');
+            // append it to the target list, set background
+            entryInterface.appendTo(grid);
+
+    });
+
+    $('.scroll-grid .grid .lazy').Lazy({
+            scrollDirection: 'horizontal',
+            effect: 'fadeIn',
+            visibleOnly: true,
+            beforeLoad: function(element) {
+                // called before an elements gets handled
+            },
+            afterLoad: function(element) {
+                // called after an element was successfully handled
+            },
+            onError: function(element) {
+                // called whenever an element could not be handled
+            },
+            onFinishedAll: function() {
+                // called after all elements are handled
+            }
+        });
 
 }
 
@@ -254,7 +309,7 @@ function renderMovieData(jsonData) {
 
 ////////////////////////////////
 // render TV charts on page load
-function renderTVCharts(jsonData) {
+function renderTVData(jsonData) {
     var showCount = jsonData.MediaContainer.Directory.length,
         releaseDateList = [],
         releaseDateCounts = [0, 0, 0, 0, 0, 0],
@@ -418,12 +473,11 @@ function renderGrid(payloadUrls) {
     // set count to 0
     count = 0,
     // build URLs
-    serverUrl = serverIp,
     token = 'X-Plex-Token=' + serverToken,
-    baseUrl = serverUrl + '/library/sections/all?' + token,
-    moviesUrl = serverUrl + '/library/sections/1/all?' + token,
-    showsUrl = serverUrl + '/library/sections/2/all?' + token,
-    recentlyAddedUrl = serverUrl + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=20&' + token,
+    baseUrl = serverIp + '/library/sections/all?' + token,
+    moviesUrl = serverIp + '/library/sections/1/all?' + token,
+    showsUrl = serverIp + '/library/sections/2/all?' + token,
+    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=20&' + token,
     urls = payloadUrls;// passed from the query, must be an array (even if a single payload)
 
     // disable query button
@@ -462,7 +516,7 @@ function renderGrid(payloadUrls) {
             dateAdded = entry.attr('addedAt'),
             ratingMPAA = entry.attr('contentRating'),
             ratingAudience = entry.attr('audienceRating'),
-            imgUrl = serverUrl + img + '?' + token,
+            imgUrl = serverIp + img + '?' + token,
             grid = $('.content .grid');
 
             // build UI for each entry
@@ -490,7 +544,7 @@ function renderGrid(payloadUrls) {
     // or else the background starts loading immediately. So,
     // everything needs to be hidden (.content is set to display:none)
     // while we lazy load images
-    $('.lazy').Lazy({
+    $('.content .lazy').Lazy({
         scrollDirection: 'vertical',
         effect: 'fadeIn',
         visibleOnly: true,
@@ -546,11 +600,11 @@ var catalogPayloads = [moviesPayloadUrl, tvPayloadUrl],// these get rendered in 
     recentlyAddedJson = xmlToJson(recentlyAddedData),// used for recently added list
     statsData = [moviesData, tvData];// these get rendered in the statistics panel
 
-    $.each(statsData, function(index, value) {
-        // push an entry to the libraryStats object containing the name of the library
-        // (which is passed as part of the request) and the count of child nodes
-        libraryStats[name] = this.childNodes[0].children.length;
-    });
+$.each(statsData, function(index, value) {
+    // push an entry to the libraryStats object containing the name of the library
+    // (which is passed as part of the request) and the count of child nodes
+    libraryStats[name] = this.childNodes[0].children.length;
+});
 
 // bind the query buttons
 $('.query').on('click', function() {
@@ -594,8 +648,9 @@ $(function() {
     console.log(serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken);
     console.log(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken);
 
+    renderRecentlyAdded(recentlyAddedJson);
     renderMovieData(moviesJson);
-    renderTVCharts(tvJson);
+    renderTVData(tvJson);
     // late addition: prepend library counts to charts
     $('.movies .c3').prepend('<p class="count">Total: ' + moviesJson.MediaContainer.Video.length + '</p>');
     $('.tv .c3').prepend('<p class="count">Total: ' + tvJson.MediaContainer.Directory.length + '</p>');

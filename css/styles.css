@@ -84,6 +84,21 @@ div.full {
 	margin:0;
 	border-radius:5px 5px 0 0;
 }
+/* recently added */
+.recently-added .scroll-grid {
+	width:80%;
+}
+.recently-added .scroll-grid .grid {
+	max-height:185px;
+	overflow-x:visible;
+	overflow-y:hidden;
+	white-space:nowrap;
+}
+.recently-added .scroll-grid .grid .entry {
+	display:inline-block;
+	white-space:normal;
+}
+/* end recently added */
 .chart .count {
 	font-size:12px;
 }
@@ -215,7 +230,7 @@ hr {
 }
 .grid .entry p.name,
 .grid .entry p.year {
-	display:inline;
+	display:block;
 	font-size:18px;
 }
 .grid .entry:hover p {
