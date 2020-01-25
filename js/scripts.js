@@ -41,12 +41,19 @@ jQuery.extend({
 });
 
 ///////////////////////////////////////
-// render statistics panel on apge load
+// render statistics panel on page load
 function renderLibraryStats(stats) {
     $.each(stats, function(index, value) {
         // build an empty stat panel for each library
         $('.statistics .data-grid .grid').append('<div class="data-entry" title="' + index + '-stats"><h4 class="title">' + index + '</h4></div>');
     });
+}
+
+///////////////////////////////////////////////////////////////////
+// render recently added list (most recent 20 entries) on page load
+
+function renderRecentlyAdded() {
+
 }
 
 ///////////////////////////////////

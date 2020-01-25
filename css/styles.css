@@ -58,13 +58,14 @@ blockquote {
 	color:#f2f2f2;
 }
 .chart,
-.data-grid {
+.data-grid,
+.scroll-grid {
 	width:48%;
 	margin:10px;
 	background:#111;
 	display:inline-block;
 }
-.chart.full {
+div.full {
   width:98%;
 }
 .chart div,
@@ -72,7 +73,8 @@ blockquote {
 	margin:5px 10px 5px 0px;
 }
 .chart h3,
-.data-grid h3  {
+.data-grid h3,
+.scroll-grid h3  {
 	text-align:center;
 	font-size:16px;
 	background:#333;
