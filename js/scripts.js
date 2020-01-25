@@ -40,7 +40,8 @@ jQuery.extend({
     }
 });
 
-// render statistics panel above charts
+///////////////////////////////////////
+// render statistics panel on apge load
 function renderLibraryStats(stats) {
     $.each(stats, function(index, value) {
         // build an empty stat panel for each library
@@ -48,6 +49,7 @@ function renderLibraryStats(stats) {
     });
 }
 
+///////////////////////////////////
 // render movie charts on page load
 function renderMovieCharts(jsonData) {
     var movieCount = jsonData.MediaContainer.Video.length,
@@ -116,6 +118,7 @@ function renderMovieCharts(jsonData) {
     // remove undefined entry from genres dictionary, I'm choosing not to report on movies without genre
     delete genres['undefined'];
 
+    ////////////////////////
     // movies by genre chart
     for (var property in genres) {
         // split the genres dictionary into an array of genres and an array of counts
@@ -125,7 +128,6 @@ function renderMovieCharts(jsonData) {
         genreList.push(property);
         genreCounts.push(genres[property]);
     }
-
     genreCounts.unshift("genreCounts");
     c3.generate({
         bindto: '.movies-by-genre',
@@ -150,6 +152,7 @@ function renderMovieCharts(jsonData) {
         }
     });
 
+    /////////////////////////
     // movies by decade chart
     $.each(releaseDateList, function() {
         // TODO: find a better way to do the following...
@@ -205,6 +208,7 @@ function renderMovieCharts(jsonData) {
         }
     });
 
+    ////////////////////////
     // movies by studio chart
     var studioInstances = {},
         studios = [];
@@ -250,6 +254,7 @@ function renderMovieCharts(jsonData) {
     });
 }
 
+////////////////////////////////
 // render TV charts on page load
 function renderTVCharts(jsonData) {
     var showCount = jsonData.MediaContainer.Directory.length,
@@ -261,10 +266,7 @@ function renderTVCharts(jsonData) {
         seasonCount = 0,
         episodeCounts = [],
         durationList = [],
-        increment = "Shows";
-        // TODO: Not tracking TV durations here because Plex doesn't provide them,
-        // it just provides the rough episode duration and a count of episodes,
-        // rough total duration to be added later
+        increment = "Shows";////////////////////////
 
     // loop through TV and gather important data
     $.each(jsonData.MediaContainer.Directory, function(i) {
@@ -308,6 +310,7 @@ function renderTVCharts(jsonData) {
         }
     });
 
+    ///////////////////////////
     // TV Shows by decade chart
     $.each(releaseDateList, function() {
         // TODO: find a better way to do the following...
@@ -363,6 +366,7 @@ function renderTVCharts(jsonData) {
         }
     });
 
+    ///////////////////////////
     // TV shows by studio chart
     var studioInstances = {},
         studios = [];
@@ -378,7 +382,6 @@ function renderTVCharts(jsonData) {
        }
        studios.push([prop, studioInstances[prop]]);
     }
-
     c3.generate({
         bindto: '.shows-by-studio',
         data: {
@@ -408,8 +411,9 @@ function renderTVCharts(jsonData) {
     });
 }
 
-// this grabs the appropriate payload depending on which input requests it
-// and then populates the UI with entries
+////////////////////////////////////////////////////////////////////////////////
+// this function grabs payloads from one or more urls and creates a netflix-like
+// grid, displaying cover art and basic metadata in a sortable, filterable UI
 function renderGrid() {
     var wrapper = $('.content'),
     // set count to 0
@@ -426,7 +430,8 @@ function renderGrid() {
     // disable query button
     $('.query').attr('disabled', 'disabled');
 
-    // for each entry in urls, grab XML
+    // for each entry in urls, grab XML and build the grid
+    // that displays the **total media in your catalog** (e.g. Movies + TV)
     $.each(urls, function(i, url) {
         wrapper = $('.content');
         payload = $.getPayload(name, url);
@@ -460,12 +465,6 @@ function renderGrid() {
             ratingAudience = entry.attr('audienceRating'),
             imgUrl = serverUrl + img + '?' + token,
             grid = $('.content .grid');
-
-            // again, massage data for recently added entries
-            if (targetType == 'recent') {
-                type = 'recent';
-            } else {
-            };
 
             // build UI for each entry
             entryInterface = $('<div data-datereleased="' + year + '" ' +
