@@ -55,14 +55,20 @@ function renderRecentlyAdded(xmlData) {
         if (nodeName == "Directory") {
             // entry is a show
             var name = entry.attr('parentTitle') + " / " + entry.attr('title'),
-                year = 'no year',
                 img = entry.attr('parentThumb'),
-                type = 'show',
-                duration = 'no dur',
                 dateAdded = entry.attr('addedAt'),
-                ratingMPAA = 'no mpaa',
-                ratingAudience = 'no aud',
                 imgUrl = serverIp + img + '?X-Plex-Token=' + serverToken;
+
+            // build UI for each entry
+            entryInterface = $('<div ' +
+                                'data-name="' + name + '" ' +
+                                'data-dateadded="' + dateAdded + '" ' +
+                                'data-src="' + imgUrl + '" ' +
+                                'style="background-image:url(' + imgUrl + ')" ' +
+                                'class="entry ' + type + '">' +
+                                '<img class="entry-icon" src="img/' + type + '.jpg">' +
+                                '<p class="name">' + name + '</p>' +
+                                '</div>');
         } else {
             // entry is a movie
             var name = entry.attr('title'),
@@ -74,7 +80,6 @@ function renderRecentlyAdded(xmlData) {
                 ratingMPAA = entry.attr('contentRating'),
                 ratingAudience = entry.attr('audienceRating'),
                 imgUrl = serverIp + img + '?X-Plex-Token=' + serverToken;
-        }
 
             // build UI for each entry
             entryInterface = $('<div data-datereleased="' + year + '" ' +
@@ -82,34 +87,18 @@ function renderRecentlyAdded(xmlData) {
                                 'data-dateadded="' + dateAdded + '" ' +
                                 'data-duration="' + duration + '" ' +
                                 'data-src="' + imgUrl + '" ' +
-                                'class="entry ' + type + ' lazy">' +
+                                'style="background-image:url(' + imgUrl + ')" ' +
+                                'class="entry ' + type + '">' +
                                 '<img class="entry-icon" src="img/' + type + '.jpg">' +
                                 '<p class="name">' + name + ' (' + year + ')</p>' +
                                 '<p class="rating-MPAA">Rated: ' + ratingMPAA + '</p>' +
                                 '<p class="rating-audience">Rotten Tomatoes: ' + ratingAudience + '</p>' +
                                 '</div>');
-            // append it to the target list, set background
-            entryInterface.appendTo(grid);
+        }
 
+        // append it to the target list
+        entryInterface.appendTo(grid);
     });
-
-    $('.scroll-grid .grid .lazy').Lazy({
-            scrollDirection: 'horizontal',
-            effect: 'fadeIn',
-            visibleOnly: true,
-            beforeLoad: function(element) {
-                // called before an elements gets handled
-            },
-            afterLoad: function(element) {
-                // called after an element was successfully handled
-            },
-            onError: function(element) {
-                // called whenever an element could not be handled
-            },
-            onFinishedAll: function() {
-                // called after all elements are handled
-            }
-        });
 
 }
 

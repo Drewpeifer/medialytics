@@ -99,7 +99,8 @@ div.full {
 	white-space:normal;
 }
 /* end recently added */
-.chart .count {
+.chart .count,
+.recently-added .count {
 	font-size:12px;
 	height:0px;
 }
