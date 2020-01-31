@@ -101,6 +101,7 @@ div.full {
 /* end recently added */
 .chart .count {
 	font-size:12px;
+	height:0px;
 }
 .c3-axis-x path,
 .c3-axis-x line,
