@@ -42,27 +42,39 @@ jQuery.extend({
 
 ///////////////////////////////////////////////////////////////////
 // render recently added list (most recent 20 entries) on page load
-function renderRecentlyAdded(jsonData) {
-    console.log('recents!');
-    console.dir(jsonData);
-    var recentEntries = jsonData.MediaContainer.Video,
+function renderRecentlyAdded(xmlData) {
+
+    var recentEntries = xmlData.children[0].children,
         grid = $('.recently-added .scroll-grid .grid');
 
     $.each(recentEntries, function() {
 
-        var entry = this['@attributes'],
-            name = entry.title,
-            sortTitle = entry.titleSort,
-            year = entry.year,
-            img = entry.thumb,
-            type = entry.type,
-            duration = entry.duration,
-            dateAdded = entry.addedAt,
-            ratingMPAA = entry.contentRating,
-            ratingAudience = entry.audienceRating,
-            imgUrl = serverIp + img + '?X-Plex-Token=' + serverToken;
+        var entry = $(this),
+            nodeName = this.nodeName;// Video = movie, Directory = show
 
-            console.log(imgUrl);
+        if (nodeName == "Directory") {
+            // entry is a show
+            var name = entry.attr('parentTitle') + " / " + entry.attr('title'),
+                year = 'no year',
+                img = entry.attr('parentThumb'),
+                type = 'show',
+                duration = 'no dur',
+                dateAdded = entry.attr('addedAt'),
+                ratingMPAA = 'no mpaa',
+                ratingAudience = 'no aud',
+                imgUrl = serverIp + img + '?X-Plex-Token=' + serverToken;
+        } else {
+            // entry is a movie
+            var name = entry.attr('title'),
+                year = entry.attr('year'),
+                img = entry.attr('thumb'),
+                type = entry.attr('type'),
+                duration = entry.attr('duration'),
+                dateAdded = entry.attr('addedAt'),
+                ratingMPAA = entry.attr('contentRating'),
+                ratingAudience = entry.attr('audienceRating'),
+                imgUrl = serverIp + img + '?X-Plex-Token=' + serverToken;
+        }
 
             // build UI for each entry
             entryInterface = $('<div data-datereleased="' + year + '" ' +
@@ -599,6 +611,7 @@ var catalogPayloads = [moviesPayloadUrl, tvPayloadUrl],// these get rendered in 
     recentlyAddedData = $.getPayload("Recent", recentlyAddedUrl),
     recentlyAddedJson = xmlToJson(recentlyAddedData),// used for recently added list
     statsData = [moviesData, tvData];// these get rendered in the statistics panel
+    console.dir(recentlyAddedData);
 
 $.each(statsData, function(index, value) {
     // push an entry to the libraryStats object containing the name of the library
@@ -648,7 +661,7 @@ $(function() {
     console.log(serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken);
     console.log(serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken);
 
-    renderRecentlyAdded(recentlyAddedJson);
+    renderRecentlyAdded(recentlyAddedData);
     renderMovieData(moviesJson);
     renderTVData(tvJson);
     // late addition: prepend library counts to charts
