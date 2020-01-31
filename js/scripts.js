@@ -184,6 +184,9 @@ function renderMovieData(jsonData) {
     }
     genreCounts.unshift("genreCounts");
     c3.generate({
+        size: {
+            height: 550
+        },
         bindto: '.movies-by-genre',
         x: 'x',
         data: {
@@ -193,6 +196,7 @@ function renderMovieData(jsonData) {
             type: 'bar'
         },
         axis: {
+            rotated: true,
             x: {
                 type: 'category',
                 categories: genreList
