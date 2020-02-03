@@ -9,7 +9,11 @@ var serverIp = 'YOUR_IP',
     libraryStats = {},
     moviesPayloadUrl = serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken,
     tvPayloadUrl = serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken,
-    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=20&X-Plex-Token=' + serverToken;
+    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=20&X-Plex-Token=' + serverToken,
+    catalogQueryButton = $('.query'),
+    catalogGrid = $('.content .grid'),
+    catalogFilterButton = $('button.filter'),
+    catalogSortButton = $('button.sort');
 
 // this function is fed a url and retrieves an XML payload
 jQuery.extend({
@@ -487,7 +491,7 @@ function renderGrid(payloadUrls) {
     urls = payloadUrls;// passed from the query, must be an array (even if a single payload)
 
     // disable query button
-    $('.query').attr('disabled', 'disabled');
+    catalogQueryButton.attr('disabled', 'disabled');
 
     // for each entry in urls, grab XML and build the grid
     // that displays the **total media in your catalog** (e.g. Movies + TV)
@@ -522,8 +526,7 @@ function renderGrid(payloadUrls) {
             dateAdded = entry.attr('addedAt'),
             ratingMPAA = entry.attr('contentRating'),
             ratingAudience = entry.attr('audienceRating'),
-            imgUrl = serverIp + img + '?' + token,
-            grid = $('.content .grid');
+            imgUrl = serverIp + img + '?' + token;
 
             // build UI for each entry
             entryInterface = $('<div data-datereleased="' + year + '" ' +
@@ -539,7 +542,7 @@ function renderGrid(payloadUrls) {
                                 '<p class="rating-audience">Rotten Tomatoes: ' + ratingAudience + '</p>' +
                                 '</div>');
             // append it to the target list, set background
-            entryInterface.appendTo(grid);
+            entryInterface.appendTo(catalogGrid);
         });
     count = count + i;
     });
@@ -575,7 +578,7 @@ function renderGrid(payloadUrls) {
     // since the .content area was hidden (0 width) when the entries were appended,
     // they all stack on top of each other, and now we need to
     // initialize isotope on grid for a fresh sort, which re-aligns them
-    $('.content .grid').isotope({
+    catalogGrid.isotope({
         itemSelector: 'div.entry',
         layoutMode: 'fitRows',
         getSortData: {
@@ -614,37 +617,37 @@ $.each(statsData, function(index, value) {
 });
 
 // bind the query buttons
-$('.query').on('click', function() {
+catalogQueryButton.on('click', function() {
     renderGrid(catalogPayloads);
 });
 // filtering
-$('button.filter').each(function() {
+catalogFilterButton.each(function() {
     $(this).on('click', function() {
         if ($(this).hasClass('active')) {
             // do nothing
         } else {
-            $('button.filter').removeClass('active');
+            catalogFilterButton.removeClass('active');
             $(this).addClass('active');
-            $('.content .grid').isotope({ filter: '.' + $(this).attr('data-filter') });
+            catalogGrid.isotope({ filter: '.' + $(this).attr('data-filter') });
             console.log('now filtering by ' + $(this).attr('data-filter'));
         }
     });
 });
 // sorting
-$('button.sort').each(function() {
+catalogSortButton.each(function() {
     $(this).on('click', function() {
         if ($(this).hasClass('active')) {
             if ($(this).hasClass('reverse-sort')) {
-                $('.content .grid').isotope({ sortAscending: true });
+                catalogGrid.isotope({ sortAscending: true });
                 $(this).removeClass('reverse-sort');
             } else {
-                $('.content .grid').isotope({ sortAscending: false });
+                catalogGrid.isotope({ sortAscending: false });
                 $(this).addClass('reverse-sort');
             }
         } else {
-            $('button.sort').removeClass('active reverse-sort');
+            catalogSortButton.removeClass('active reverse-sort');
             $(this).addClass('active');
-            $('.content .grid').isotope({ sortBy: $(this).attr('data-sort'), sortAscending: true });
+            catalogGrid.isotope({ sortBy: $(this).attr('data-sort'), sortAscending: true });
         }
         console.log('now sorting by ' + $(this).attr('data-sort'));
     });
