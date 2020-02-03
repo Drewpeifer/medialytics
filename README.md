@@ -1,9 +1,7 @@
 # Medialytics
 ### An SPA that displays the XML output of a Plex server in a nice format
 
-![header](https://i.imgur.com/YMH8yN6.png)
-
-![genres](https://i.imgur.com/1aeXIs9.png)
+![header](https://i.imgur.com/9cXCIbT.png)
 
 ![visualizations](https://i.imgur.com/9T3tiNQ.png)
 
