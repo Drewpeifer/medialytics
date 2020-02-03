@@ -57,6 +57,7 @@ function renderRecentlyAdded(xmlData) {
             var name = entry.attr('parentTitle') + " / " + entry.attr('title'),
                 img = entry.attr('parentThumb'),
                 dateAdded = entry.attr('addedAt'),
+                type = "show",
                 imgUrl = serverIp + img + '?X-Plex-Token=' + serverToken;
 
             // build UI for each entry
