@@ -575,7 +575,7 @@ function renderGrid(payloadUrls) {
     // since the .content area was hidden (0 width) when the entries were appended,
     // they all stack on top of each other, and now we need to
     // initialize isotope on grid for a fresh sort, which re-aligns them
-    $('.grid').isotope({
+    $('.content .grid').isotope({
         itemSelector: 'div.entry',
         layoutMode: 'fitRows',
         getSortData: {
@@ -625,7 +625,7 @@ $('button.filter').each(function() {
         } else {
             $('button.filter').removeClass('active');
             $(this).addClass('active');
-            $('.grid').isotope({ filter: '.' + $(this).attr('data-filter') });
+            $('.content .grid').isotope({ filter: '.' + $(this).attr('data-filter') });
             console.log('now filtering by ' + $(this).attr('data-filter'));
         }
     });
@@ -635,16 +635,16 @@ $('button.sort').each(function() {
     $(this).on('click', function() {
         if ($(this).hasClass('active')) {
             if ($(this).hasClass('reverse-sort')) {
-                $('.grid').isotope({ sortAscending: true });
+                $('.content .grid').isotope({ sortAscending: true });
                 $(this).removeClass('reverse-sort');
             } else {
-                $('.grid').isotope({ sortAscending: false });
+                $('.content .grid').isotope({ sortAscending: false });
                 $(this).addClass('reverse-sort');
             }
         } else {
             $('button.sort').removeClass('active reverse-sort');
             $(this).addClass('active');
-            $('.grid').isotope({ sortBy: $(this).attr('data-sort'), sortAscending: true });
+            $('.content .grid').isotope({ sortBy: $(this).attr('data-sort'), sortAscending: true });
         }
         console.log('now sorting by ' + $(this).attr('data-sort'));
     });
