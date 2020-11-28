@@ -111,6 +111,9 @@ function renderRecentlyAdded(xmlData) {
 // render movie charts on page load
 function renderMovieData(jsonData) {
     var movieCount = jsonData.MediaContainer.Video.length,
+        countries = {},// this stores country: count
+        countryList = [],
+        countryCounts = [],
         releaseDateList = [],
         releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0],
         decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201"],
@@ -172,10 +175,77 @@ function renderMovieData(jsonData) {
         } else {
             // no genres
         }
+        // track countries
+        if (this.Country) {
+            // check if a country exists for movie
+            if (this.Country.length > 1) {
+                // handle multiple countries, which is an array of objects
+                $.each(this.Country, function() {
+                    if (countries.hasOwnProperty(this['@attributes'].tag)) {
+                        // if country exists in the dictionary already,
+                        // find the country and increment the count
+                        countries[this['@attributes'].tag]++;
+                    } else {
+                        countries[this['@attributes'].tag] = 1;
+                    }
+                });
+            } else {
+                // handle single country which is an object / dictionary
+                if (countries.hasOwnProperty(this['@attributes'].tag)) {
+                    // if country exists in the dictionary already,
+                    // find the country and increment the count
+                    countries[this['@attributes'].tag]++;
+                } else {
+                    countries[this['@attributes'].tag] = 1;
+                }
+            }
+        } else {
+            // no countries
+        }
     });
 
     // remove undefined entry from genres dictionary, I'm choosing not to report on movies without genre
     delete genres['undefined'];
+    // same for countries
+    delete countries['undefined'];
+
+    //////////////////////////
+    // movies by country chart
+    for (var property in countries) {
+        // split the countries dictionary into an array of countries and an array of counts
+        if (!countries.hasOwnProperty(property)) {
+            continue;
+        }
+        countryList.push(property);
+        countryCounts.push(countries[property]);
+    }
+    countryCounts.unshift("countryCounts");
+    c3.generate({
+        size: {
+            height: 550
+        },
+        bindto: '.movies-by-country',
+        x: 'x',
+        data: {
+            columns: [
+                countryCounts
+            ],
+            type: 'bar'
+        },
+        axis: {
+            rotated: true,
+            x: {
+                type: 'category',
+                categories: countryList
+            }
+        },
+        legend: {
+            hide: true
+        },
+        color: {
+            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+        }
+    });
 
     ////////////////////////
     // movies by genre chart
