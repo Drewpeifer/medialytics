@@ -222,7 +222,12 @@ function renderMovieData(jsonData) {
         // sort through the releaseDateList,
         // and depending on which decade prefix matches the year value,
         // increment the corresponding releaseDateCount
-        var yearSub = this.substring(0, 3);
+
+        if (typeof this === 'string' || this instanceof String) {
+            var yearSub = this.substring(0, 3);
+        } else {
+            var yearSub = "undefined";
+        }
 
         if (yearSub == decadePrefixes[0]) {
             releaseDateCounts[0]++;
@@ -384,7 +389,7 @@ function renderTVData(jsonData) {
         if (typeof this === 'string' || this instanceof String) {
             var yearSub = this.substring(0, 3);
         } else {
-            yearSub = "undefined";
+            var yearSub = "undefined";
         }
 
         if (yearSub == decadePrefixes[0]) {
