@@ -727,6 +727,22 @@ catalogSortButton.each(function() {
         console.log('now sorting by ' + $(this).attr('data-sort'));
     });
 });
+
+function downloadJson() {
+    console.dir(this);
+    if ($(this).attr('data-title') === 'movies') {
+        var jsonObj = moviesJson;
+    } else if ($(this).attr('data-title') === 'tv') {
+        var jsonObj = tvJson;
+    }
+    var hiddenElement = document.createElement('a');
+
+    hiddenElement.href = 'data:attachment/text,' + encodeURI(JSON.stringify(jsonObj));
+    hiddenElement.target = '_blank';
+    hiddenElement.download = $(this).attr('data-title') + '-json.json';
+    hiddenElement.click();
+}
+
 // on load
 $(function() {
 
@@ -739,4 +755,5 @@ $(function() {
     // late addition: prepend library counts to charts
     $('.movies .c3').prepend('<p class="count">Total: ' + moviesJson.MediaContainer.Video.length + '</p>');
     $('.tv .c3').prepend('<p class="count">Total: ' + tvJson.MediaContainer.Directory.length + '</p>');
+    $('.download').on('click', downloadJson);
 });
