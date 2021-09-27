@@ -313,10 +313,6 @@ function renderMovieData(jsonData) {
     /////////////////////////
     // movies by decade chart
     $.each(releaseDateList, function() {
-        // TODO: find a better way to do the following...
-        // sort through the releaseDateList,
-        // and depending on which decade prefix matches the year value,
-        // increment the corresponding releaseDateCount
 
         if (typeof this === 'string' || this instanceof String) {
             var yearSub = this.substring(0, 3);
@@ -330,28 +326,6 @@ function renderMovieData(jsonData) {
             }
         }
 
-        // if (yearSub == decadePrefixes[0]) {
-        //     releaseDateCounts[0]++;
-        // } else if (yearSub == decadePrefixes[1]) {
-        //     releaseDateCounts[1]++;
-        // } else if (yearSub == decadePrefixes[2]) {
-        //     releaseDateCounts[2]++;
-        // } else if (yearSub == decadePrefixes[3]) {
-        //     releaseDateCounts[3]++;
-        // } else if (yearSub == decadePrefixes[4]) {
-        //     releaseDateCounts[4]++;
-        // } else if (yearSub == decadePrefixes[5]) {
-        //     releaseDateCounts[5]++;
-        // } else if (yearSub == decadePrefixes[6]) {
-        //     releaseDateCounts[6]++;
-        // } else if (yearSub == decadePrefixes[7]) {
-        //     releaseDateCounts[7]++;
-        // } else if (yearSub == decadePrefixes[8]) {
-        //     releaseDateCounts[8]++;
-        // } else {
-        //     // date falls outside range
-        //     console.log('date out of range');
-        // }
     });
     releaseDateCounts.unshift("releaseDateCounts");
     c3.generate({
