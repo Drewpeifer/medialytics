@@ -211,13 +211,22 @@ function renderMovieData(jsonData) {
 
     //////////////////////////
     // movies by country chart
-    for (var property in countries) {
+
+
+    var sortedCountries = [];
+
+    for (var country in countries) {
+        sortedCountries.push([country, countries[country]]);
+    }
+    sortedCountries.sort(function(a, b) {
+        return a[1] - b[1];
+    })
+    sortedCountries = sortedCountries.reverse();
+
+    for (var property in sortedCountries) {
         // split the countries dictionary into an array of countries and an array of counts
-        if (!countries.hasOwnProperty(property)) {
-            continue;
-        }
-        countryList.push(property);
-        countryCounts.push(countries[property]);
+        countryList.push(sortedCountries[property][0]);
+        countryCounts.push(sortedCountries[property][1]);
     }
     if (countryList.length >= 20) {
         // trim to top 20, accounting for placeholder string in chart array
@@ -265,9 +274,6 @@ function renderMovieData(jsonData) {
     sortedGenres = sortedGenres.reverse();
     // split the sorted genres dictionary into an array of genres and an array of counts
     for (var property in sortedGenres) {
-        if (!sortedGenres.hasOwnProperty(property)) {
-            continue;
-        }
         genreList.push(sortedGenres[property][0]);
         genreCounts.push(sortedGenres[property][1]);
     }
