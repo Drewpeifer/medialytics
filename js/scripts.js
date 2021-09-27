@@ -219,6 +219,12 @@ function renderMovieData(jsonData) {
         countryList.push(property);
         countryCounts.push(countries[property]);
     }
+    if (countryList.length >= 20) {
+        // trim to top 20, accounting for placeholder string in chart array
+        countryList.length = 20;
+        countryCounts.length = 20;
+    }
+
     countryCounts.unshift("countryCounts");
     c3.generate({
         size: {
@@ -249,13 +255,26 @@ function renderMovieData(jsonData) {
 
     ////////////////////////
     // movies by genre chart
-    for (var property in genres) {
-        // split the genres dictionary into an array of genres and an array of counts
-        if (!genres.hasOwnProperty(property)) {
+    var sortedGenres = [];
+    for (var genre in genres) {
+        sortedGenres.push([genre, genres[genre]]);
+    }
+    sortedGenres.sort(function(a, b) {
+        return a[1] - b[1];
+    })
+    sortedGenres = sortedGenres.reverse();
+    // split the sorted genres dictionary into an array of genres and an array of counts
+    for (var property in sortedGenres) {
+        if (!sortedGenres.hasOwnProperty(property)) {
             continue;
         }
-        genreList.push(property);
-        genreCounts.push(genres[property]);
+        genreList.push(sortedGenres[property][0]);
+        genreCounts.push(sortedGenres[property][1]);
+    }
+
+    if (genreList.length >= 20) {
+        genreList.length = 20;
+        genreCounts.length = 20;
     }
     genreCounts.unshift("genreCounts");
     c3.generate({
@@ -684,7 +703,6 @@ var catalogPayloads = [moviesPayloadUrl, tvPayloadUrl],// these get rendered in 
     recentlyAddedData = $.getPayload("Recent", recentlyAddedUrl),
     recentlyAddedJson = xmlToJson(recentlyAddedData),// used for recently added list
     statsData = [moviesData, tvData];// these get rendered in the statistics panel
-    console.dir(recentlyAddedData);
 
 $.each(statsData, function(index, value) {
     // push an entry to the libraryStats object containing the name of the library
