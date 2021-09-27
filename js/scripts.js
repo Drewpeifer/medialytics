@@ -1,3 +1,5 @@
+// Medialytics v1.1
+
 // Instructions:
 // Replace IP address with your public server address, e.g. http://123.456.78.910:12345
 // Replace token with your server token ** KEEP PRIVATE **

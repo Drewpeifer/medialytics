@@ -7,6 +7,16 @@
 
 ![libraries](https://i.imgur.com/I73CQBb.jpg)
 
+### 09/27/21 - Version 1.1 Updates
+Several small UI fixes and general improvements have been added, also addressed
+a few edge case errors encountered when the Plex API returns strange results:
+
+- Now ignoring durations for shows that are NaN for library totals
+- Now ignoring 'undefined' TV studios in Shows by Studio chart
+- Now ignoring MediaContainer nodes containing child nodes that are just line breaks (with no other data)
+- Resized movie charts
+- Now sorting movie genre and country charts by count (desc)
+
 # How does it work?
 [Plex](http://www.plex.tv) servers typically contain a sizable library of awesome movies and TV shows. You can
 access the metadata for all that media via an XML feed that the server generates.
