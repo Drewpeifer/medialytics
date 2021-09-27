@@ -115,9 +115,9 @@ function renderMovieData(jsonData) {
         countryList = [],
         countryCounts = [],
         releaseDateList = [],
-        releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201"],
-        decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s"],
+        releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
+        decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
         studioList = [],
         genres = {},// this stores genre: count, and is then split into the two following arrays
         genreList = [],
@@ -299,28 +299,34 @@ function renderMovieData(jsonData) {
             var yearSub = "undefined";
         }
 
-        if (yearSub == decadePrefixes[0]) {
-            releaseDateCounts[0]++;
-        } else if (yearSub == decadePrefixes[1]) {
-            releaseDateCounts[1]++;
-        } else if (yearSub == decadePrefixes[2]) {
-            releaseDateCounts[2]++;
-        } else if (yearSub == decadePrefixes[3]) {
-            releaseDateCounts[3]++;
-        } else if (yearSub == decadePrefixes[4]) {
-            releaseDateCounts[4]++;
-        } else if (yearSub == decadePrefixes[5]) {
-            releaseDateCounts[5]++;
-        } else if (yearSub == decadePrefixes[6]) {
-            releaseDateCounts[6]++;
-        } else if (yearSub == decadePrefixes[7]) {
-            releaseDateCounts[7]++;
-        } else if (yearSub == decadePrefixes[8]) {
-            releaseDateCounts[8]++;
-        } else {
-            // date falls outside range
-            console.log('date out of range');
+        for (var i = 0; i < decadePrefixes.length; i++) {
+            if (yearSub == decadePrefixes[i]) {
+                releaseDateCounts[i]++;
+            }
         }
+
+        // if (yearSub == decadePrefixes[0]) {
+        //     releaseDateCounts[0]++;
+        // } else if (yearSub == decadePrefixes[1]) {
+        //     releaseDateCounts[1]++;
+        // } else if (yearSub == decadePrefixes[2]) {
+        //     releaseDateCounts[2]++;
+        // } else if (yearSub == decadePrefixes[3]) {
+        //     releaseDateCounts[3]++;
+        // } else if (yearSub == decadePrefixes[4]) {
+        //     releaseDateCounts[4]++;
+        // } else if (yearSub == decadePrefixes[5]) {
+        //     releaseDateCounts[5]++;
+        // } else if (yearSub == decadePrefixes[6]) {
+        //     releaseDateCounts[6]++;
+        // } else if (yearSub == decadePrefixes[7]) {
+        //     releaseDateCounts[7]++;
+        // } else if (yearSub == decadePrefixes[8]) {
+        //     releaseDateCounts[8]++;
+        // } else {
+        //     // date falls outside range
+        //     console.log('date out of range');
+        // }
     });
     releaseDateCounts.unshift("releaseDateCounts");
     c3.generate({
@@ -397,9 +403,9 @@ function renderMovieData(jsonData) {
 function renderTVData(jsonData) {
     var showCount = jsonData.MediaContainer.Directory.length,
         releaseDateList = [],
-        releaseDateCounts = [0, 0, 0, 0, 0, 0],
-        decadePrefixes = ["196", "197", "198", "199", "200", "201"],
-        decades = ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s"],
+        releaseDateCounts = [0, 0, 0, 0, 0, 0, 0],
+        decadePrefixes = ["196", "197", "198", "199", "200", "201", "202"],
+        decades = ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
         studioList = [],
         seasonCount = 0,
         episodeCounts = [],
@@ -408,7 +414,6 @@ function renderTVData(jsonData) {
 
     // loop through TV and gather important data
     $.each(jsonData.MediaContainer.Directory, function(i) {
-        console.dir(this);
         if (!this['@attributes']) {
             // only occurs when there's a node in the tree that's just a string (still typeof === Object)
         } else {
@@ -467,23 +472,10 @@ function renderTVData(jsonData) {
             var yearSub = "undefined";
         }
 
-        if (yearSub == decadePrefixes[0]) {
-            releaseDateCounts[0]++;
-        } else if (yearSub == decadePrefixes[1]) {
-            releaseDateCounts[1]++;
-        } else if (yearSub == decadePrefixes[2]) {
-            releaseDateCounts[2]++;
-        } else if (yearSub == decadePrefixes[3]) {
-            releaseDateCounts[3]++;
-        } else if (yearSub == decadePrefixes[4]) {
-            releaseDateCounts[4]++;
-        } else if (yearSub == decadePrefixes[5]) {
-            releaseDateCounts[5]++;
-        } else if (yearSub == decadePrefixes[6]) {
-            releaseDateCounts[6]++;
-        } else {
-            // date falls outside range
-            console.log('date undefined or out of range');
+        for (var i = 0; i < decadePrefixes.length; i++) {
+            if (yearSub == decadePrefixes[i]) {
+                releaseDateCounts[i]++;
+            }
         }
     });
     releaseDateCounts.unshift("releaseDateCounts");
