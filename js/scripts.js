@@ -424,37 +424,41 @@ function renderTVData(jsonData) {
             // track number of seasons
             seasonCount = seasonCount + parseInt(this['@attributes'].childCount);
             // track durations for each series
-            durationList.push(parseInt(Math.round(this['@attributes'].duration/60000)));
-            // track number of episodes
-            episodeCounts.push(parseInt(this['@attributes'].leafCount));
-            if (i == jsonData.MediaContainer.Directory.length - 1) {
-                // if it's the last entry, perform some calcs and
-                // append count/duration stats to library stat panel
-                seasonDurations = [];
+            if (isNaN(this['@attributes'].duration)) {
+                // duration is NaN
+            } else {
+                durationList.push(parseInt(Math.round(this['@attributes'].duration/60000)));
+                // track number of episodes
+                episodeCounts.push(parseInt(this['@attributes'].leafCount));
+                if (i == jsonData.MediaContainer.Directory.length - 1) {
+                    // if it's the last entry, perform some calcs and
+                    // append count/duration stats to library stat panel
+                    seasonDurations = [];
 
-                $.each(durationList, function(i) {
-                    // multiply each season's avg ep duration by the number of eps
-                    seasonDur = this * episodeCounts[i];
-                    seasonDurations.push(seasonDur);
+                    $.each(durationList, function(i) {
+                        // multiply each season's avg ep duration by the number of eps
+                        seasonDur = this * episodeCounts[i];
+                        seasonDurations.push(seasonDur);
 
-                });
+                    });
 
-                totalDuration = seasonDurations.reduce(function(acc, val) { return acc + val; }, 0);
-                totalEpisodes = episodeCounts.reduce(function(acc, val) { return acc + val; }, 0);
+                    totalDuration = seasonDurations.reduce(function(acc, val) { return acc + val; }, 0);
+                    totalEpisodes = episodeCounts.reduce(function(acc, val) { return acc + val; }, 0);
 
-                var totalMins = Math.round(totalDuration),
-                    totalHours = Math.floor(totalDuration/60),
-                    totalDays = Math.floor(totalDuration/24/60),
-                    displayHours = totalHours - (totalDays*24),
-                    displayMins = totalMins - (totalHours*60);
+                    var totalMins = Math.round(totalDuration),
+                        totalHours = Math.floor(totalDuration/60),
+                        totalDays = Math.floor(totalDuration/24/60),
+                        displayHours = totalHours - (totalDays*24),
+                        displayMins = totalMins - (totalHours*60);
 
-                $('.statistics .data-grid .grid').append('<div class="data-entry" title="TV-stats"><h4 class="title">TV</h4>' +
-                    '<p class="stat count"><strong>' + showCount +
-                    '</strong> ' + increment + ' / <strong>' + seasonCount + '</strong> Seasons / <strong>' +
-                    totalEpisodes + '</strong> Eps</p>' +
-                    '<p class="stat duration"><strong>' + totalDays + '</strong> Days / <strong>' +
-                    displayHours + '</strong> Hours / <strong>' +
-                    displayMins + '</strong> Mins</p></div>');
+                    $('.statistics .data-grid .grid').append('<div class="data-entry" title="TV-stats"><h4 class="title">TV</h4>' +
+                        '<p class="stat count"><strong>' + showCount +
+                        '</strong> ' + increment + ' / <strong>' + seasonCount + '</strong> Seasons / <strong>' +
+                        totalEpisodes + '</strong> Eps</p>' +
+                        '<p class="stat duration"><strong>' + totalDays + '</strong> Days / <strong>' +
+                        displayHours + '</strong> Hours / <strong>' +
+                        displayMins + '</strong> Mins</p></div>');
+                }
             }
         }
     });
