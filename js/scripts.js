@@ -518,6 +518,8 @@ function renderTVData(jsonData) {
     for (var i = 0, j = studioList.length; i < j; i++) {
        studioInstances[studioList[i]] = (studioInstances[studioList[i]] || 0) + 1;
     }
+    // remove undefined entries from studioInstances
+    delete studioInstances['undefined'];
     // split dictionary into two arrays
     for (var prop in studioInstances) {
        if (!studioInstances.hasOwnProperty(prop)) {
