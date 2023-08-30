@@ -11,7 +11,8 @@ var serverIp = 'YOUR_IP',
     libraryStats = {},
     moviesPayloadUrl = serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken,
     tvPayloadUrl = serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken,
-    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=20&X-Plex-Token=' + serverToken,
+    recentLimit = 20,
+    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
     catalogQueryButton = $('.query'),
     catalogGrid = $('.content .grid'),
     catalogFilterButton = $('button.filter'),
@@ -49,12 +50,12 @@ jQuery.extend({
 ///////////////////////////////////////////////////////////////////
 // render recently added list (most recent 20 entries) on page load
 function renderRecentlyAdded(xmlData) {
-
     var recentEntries = xmlData.children[0].children,
         grid = $('.recently-added .scroll-grid .grid');
 
-    $.each(recentEntries, function() {
+        $('p.count').text('(' + recentEntries.length + ' most recent entries)');
 
+    $.each(recentEntries, function() {
         var entry = $(this),
             nodeName = this.nodeName;// Video = movie, Directory = show
 
@@ -68,14 +69,14 @@ function renderRecentlyAdded(xmlData) {
 
             // build UI for each entry
             entryInterface = $('<div ' +
-                                'data-name="' + name + '" ' +
-                                'data-dateadded="' + dateAdded + '" ' +
-                                'data-src="' + imgUrl + '" ' +
-                                'style="background-image:url(' + imgUrl + ')" ' +
-                                'class="entry ' + type + '">' +
-                                '<img class="entry-icon" src="img/' + type + '.jpg">' +
-                                '<p class="name">' + name + '</p>' +
-                                '</div>');
+                'data-name="' + name + '" ' +
+                'data-dateadded="' + dateAdded + '" ' +
+                'data-src="' + imgUrl + '" ' +
+                'style="background-image:url(' + imgUrl + ')" ' +
+                'class="entry ' + type + '">' +
+                '<img class="entry-icon" src="img/' + type + '.jpg">' +
+                '<p class="name">' + name + '</p>' +
+                '</div>');
         } else {
             // entry is a movie
             var name = entry.attr('title'),
@@ -90,23 +91,21 @@ function renderRecentlyAdded(xmlData) {
 
             // build UI for each entry
             entryInterface = $('<div data-datereleased="' + year + '" ' +
-                                'data-name="' + name + '" ' +
-                                'data-dateadded="' + dateAdded + '" ' +
-                                'data-duration="' + duration + '" ' +
-                                'data-src="' + imgUrl + '" ' +
-                                'style="background-image:url(' + imgUrl + ')" ' +
-                                'class="entry ' + type + '">' +
-                                '<img class="entry-icon" src="img/' + type + '.jpg">' +
-                                '<p class="name">' + name + ' (' + year + ')</p>' +
-                                '<p class="rating-MPAA">Rated: ' + ratingMPAA + '</p>' +
-                                '<p class="rating-audience">Rotten Tomatoes: ' + ratingAudience + '</p>' +
-                                '</div>');
+                'data-name="' + name + '" ' +
+                'data-dateadded="' + dateAdded + '" ' +
+                'data-duration="' + duration + '" ' +
+                'data-src="' + imgUrl + '" ' +
+                'style="background-image:url(' + imgUrl + ')" ' +
+                'class="entry ' + type + '">' +
+                '<img class="entry-icon" src="img/' + type + '.jpg">' +
+                '<p class="name">' + name + ' (' + year + ')</p>' +
+                '<p class="rating-MPAA">Rated: ' + ratingMPAA + '</p>' +
+                '<p class="rating-audience">Rotten Tomatoes: ' + ratingAudience + '</p>' +
+                '</div>');
         }
-
         // append it to the target list
         entryInterface.appendTo(grid);
     });
-
 }
 
 ///////////////////////////////////
@@ -213,8 +212,6 @@ function renderMovieData(jsonData) {
 
     //////////////////////////
     // movies by country chart
-
-
     var sortedCountries = [];
 
     for (var country in countries) {
@@ -371,7 +368,6 @@ function renderMovieData(jsonData) {
        }
        studios.push([prop, studioInstances[prop]]);
     }
-
     c3.generate({
         bindto: '.movies-by-studio',
         data: {
@@ -565,10 +561,6 @@ function renderGrid(payloadUrls) {
     count = 0,
     // build URLs
     token = 'X-Plex-Token=' + serverToken,
-    baseUrl = serverIp + '/library/sections/all?' + token,
-    moviesUrl = serverIp + '/library/sections/1/all?' + token,
-    showsUrl = serverIp + '/library/sections/2/all?' + token,
-    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=20&' + token,
     urls = payloadUrls;// passed from the query, must be an array (even if a single payload)
 
     // disable query button
