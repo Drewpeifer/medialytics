@@ -71,24 +71,35 @@ const parseMediaPayload = (data) => {
     genres = {},// this stores genre: count, and is then split into the two following arrays
     genreList = [],
     genreCounts = [],
-    durationSum = 0;
+    durationList = [],
+    durationSum = 0,
+    seasonCount = 0,
+    episodeCounts = []
+    totalEpisodes = 0;
 
-    console.log('parsing movie payload...');
+    console.log('parsing media payload...');
     console.log('count = ' + itemCount);
 
 // loop through items and gather important data
 data.data.MediaContainer.Metadata.forEach((item, index) => {
-// $.each(data.MediaContainer.Video, function(i) {
     // track year
     releaseDateList.push(item.year);
     // track studio
     studioList.push(item.studio);
     // track durations
-    durationSum = durationSum + (item.duration/60000);
+    if (isNaN(item.duration)) {
+        // duration is NaN
+    } else if (type === 'show') {
+        durationSum = durationSum + (item.duration/60000 * item.leafCount);
+        // track number of episodes
+        episodeCounts.push(parseInt(item.leafCount));
+    } else {
+        // it's a movie
+        durationSum = durationSum + (item.duration/60000);
+    }
     // track genres
     if (item.Genre) {
         item.Genre.forEach(function(genre) {
-            console.dir(genre);
             if (genres.hasOwnProperty(genre.tag)) {
                 // if genre exists in the dictionary already,
                 // find the genre and increment the count
@@ -116,9 +127,31 @@ data.data.MediaContainer.Metadata.forEach((item, index) => {
         // no countries
     }
 
+    // track TV-specific metrics such as seasons and episodes
+    if (type == 'show') {
+        console.log('its a show');
+        console.log(item.childCount);
+        // track seasons
+        seasonCount = seasonCount + item.childCount;
+        // track episodes
+        episodeCounts.push(item.leafCount);
+    }
+
     if (index == itemCount - 1) {
         // if it's the last entry
         // append stats to library stats panel
+        if (type === 'show') {
+            let seasonDurations = [];
+
+            durationList.forEach((duration, i) => {
+                // multiply each season's avg ep duration by the number of eps
+                let seasonDur = duration * episodeCounts[i];
+                seasonDurations.push(seasonDur);
+            });
+            totalDuration = seasonDurations.reduce(function(acc, val) { return acc + val; }, 0);
+            totalEpisodes = episodeCounts.reduce(function(acc, val) { return acc + val; }, 0);
+        }
+
         var totalMins = Math.round(durationSum),
             totalHours = Math.floor(durationSum/60),
             totalDays = Math.floor(durationSum/24/60),
@@ -136,9 +169,12 @@ data.data.MediaContainer.Metadata.forEach((item, index) => {
             genres: genres,
             countries: countries,
             type: type,
-            increment: type === 'movie'? 'Movies' : 'Shows',
-            totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins"
+            increment: type === 'movie'? 'movies' : 'shows',
+            totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
+            seasonCount: seasonCount,
+            totalEpisodes: totalEpisodes,
         }
+
         console.log('selectedLibraryStats');
         console.dir(app.selectedLibraryStats);
     }
@@ -231,13 +267,20 @@ for (var prop in studioInstances) {
    }
    studios.push([prop, studioInstances[prop]]);
 }
-app.selectedLibrarySummary = `This library contains ${app.selectedLibraryStats.totalItems}
-                            ${app.selectedLibraryStats.increment} from ${Object.keys(countries).length}
-                            countries spanning ${Object.keys(genres).length} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.`;
+
+// set concatenated summary string
+app.selectedLibrarySummary = type === 'movie' ?
+                            // movies
+                            `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()}
+                            ${app.selectedLibraryStats.increment} from ${Object.keys(countries).length.toLocaleString()}
+                            countries spanning ${Object.keys(genres).length.toLocaleString()} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
+                            // tv
+                            `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}
+                            (${app.selectedLibraryStats.seasonCount.toLocaleString()} seasons / ${app.selectedLibraryStats.totalEpisodes.toLocaleString()} episodes)
+                            from ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
+                            The total duration is ${app.selectedLibraryStats.totalDuration}.`
 console.log('final stats:');
 console.log(app.selectedLibraryStats);
-
-
 }
 
 ////////////////
