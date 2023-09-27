@@ -16,19 +16,6 @@ let availableLibraries = [],
     selectedLibrarySummary = "",
     libraryStatsLoading = false;
 
-// card component
-Vue.component('card', {
-    props: ['title', 'content'],
-    template: `<div class="card">
-                <div class="card-header">
-                    <p>{{ title }}</p>
-                </div>
-                <div class="card-body">
-                    {{ content }}
-                </div>
-            </div>`
-});
-
 // gets list of available libraries
 const parseLibraryList = (data) => {
     let libraries = [];
@@ -58,10 +45,10 @@ const getLibraryData = async (libraryKey) => {
         console.log('library stats XML:', response.data);
         if (response.data.MediaContainer.viewGroup == 'movie') {
             console.log('its movies');
-            parseMoviePayload(response);
+            parseMediaPayload(response);
         } else if (response.data.MediaContainer.viewGroup == 'show') {
             console.log('its tv');
-            parseTvPayload(response);
+            parseMediaPayload(response);
         }
         app.libraryStatsLoading = false;
         return response.data.MediaContainer;
@@ -71,9 +58,10 @@ const getLibraryData = async (libraryKey) => {
 }
 
 /////////////////////////////////
-// parse through a movie payload
-const parseMoviePayload = (data) => {
-    let movieCount = data.data.MediaContainer.size,
+// parse through a media payload
+const parseMediaPayload = (data) => {
+    let itemCount = data.data.MediaContainer.size,
+    type = data.data.MediaContainer.viewGroup,
     countries = {},// this stores country: count
     countryList = [],
     countryCounts = [],
@@ -83,24 +71,23 @@ const parseMoviePayload = (data) => {
     genres = {},// this stores genre: count, and is then split into the two following arrays
     genreList = [],
     genreCounts = [],
-    durationSum = 0,
-    increment = "Movies";
+    durationSum = 0;
 
     console.log('parsing movie payload...');
-    console.log('count = ' + movieCount);
+    console.log('count = ' + itemCount);
 
-// loop through movies and gather important data
-data.data.MediaContainer.Metadata.forEach((movie, index) => {
+// loop through items and gather important data
+data.data.MediaContainer.Metadata.forEach((item, index) => {
 // $.each(data.MediaContainer.Video, function(i) {
     // track year
-    releaseDateList.push(movie.year);
+    releaseDateList.push(item.year);
     // track studio
-    studioList.push(movie.studio);
+    studioList.push(item.studio);
     // track durations
-    durationSum = durationSum + (movie.duration/60000);
+    durationSum = durationSum + (item.duration/60000);
     // track genres
-    if (movie.Genre) {
-        movie.Genre.forEach(function(genre) {
+    if (item.Genre) {
+        item.Genre.forEach(function(genre) {
             console.dir(genre);
             if (genres.hasOwnProperty(genre.tag)) {
                 // if genre exists in the dictionary already,
@@ -114,9 +101,9 @@ data.data.MediaContainer.Metadata.forEach((movie, index) => {
         // no genres
     }
     // track countries
-    if (movie.Country) {
+    if (item.Country) {
         // check if a country exists for movie
-        movie.Country.forEach(function(country) {
+        item.Country.forEach(function(country) {
             if (countries.hasOwnProperty(country.tag)) {
                 // if country exists in the dictionary already,
                 // find the country and increment the count
@@ -129,7 +116,7 @@ data.data.MediaContainer.Metadata.forEach((movie, index) => {
         // no countries
     }
 
-    if (index == movieCount - 1) {
+    if (index == itemCount - 1) {
         // if it's the last entry
         // append stats to library stats panel
         var totalMins = Math.round(durationSum),
@@ -140,15 +127,17 @@ data.data.MediaContainer.Metadata.forEach((movie, index) => {
 
         // build the stats object for the selected library
         app.selectedLibraryStats = {
-            "Total Items": movieCount + " " + increment,
+            totalItems: itemCount,
             totalMins: totalMins,
             totalHours: totalHours,
             totalDays: totalDays,
             displayHours: totalHours - (totalDays*24),
             displayMins: totalMins - (totalHours*60),
-            "Genres": genres,
-            "Countries": countries,
-            "Total Duration": totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins"
+            genres: genres,
+            countries: countries,
+            type: type,
+            increment: type === 'movie'? 'Movies' : 'Shows',
+            totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins"
         }
         console.log('selectedLibraryStats');
         console.dir(app.selectedLibraryStats);
@@ -210,7 +199,7 @@ genreCounts.unshift("genreCounts");
 releaseDateList.forEach(function() {
 
     if (typeof this === 'string' || this instanceof String) {
-        var yearSub = movie.substring(0, 3);
+        var yearSub = item.substring(0, 3);
     } else {
         var yearSub = "undefined";
     }
@@ -242,8 +231,9 @@ for (var prop in studioInstances) {
    }
    studios.push([prop, studioInstances[prop]]);
 }
-app.selectedLibrarySummary = `This library contains ${app.selectedLibraryStats["Total Items"]} from ${Object.keys(countries).length}
-                            countries spanning ${Object.keys(genres).length} genres. The total duration is ${app.selectedLibraryStats["Total Duration"]}.`;
+app.selectedLibrarySummary = `This library contains ${app.selectedLibraryStats.totalItems}
+                            ${app.selectedLibraryStats.increment} from ${Object.keys(countries).length}
+                            countries spanning ${Object.keys(genres).length} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.`;
 console.log('final stats:');
 console.log(app.selectedLibraryStats);
 
