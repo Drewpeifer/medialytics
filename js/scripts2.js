@@ -1,14 +1,19 @@
 // CONFIG
-const serverIp = 'YOUR_SERVER_IP',// ex: 'http://12.345.678.90:32400'
-    serverToken = 'YOUR_PLEX_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
+const serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
+    serverToken = 'PLEX_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
     libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
-    moviesPayloadUrl = serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken,
-    tvPayloadUrl = serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken,
+    decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
+    decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
+    // moviesPayloadUrl = serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken,
+    // tvPayloadUrl = serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken,
     recentLimit = 20,
     recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken;
 
+// GLOBAL VARIABLES
 let availableLibraries = [],
-    selectedLibrary = ""
+    selectedLibrary = "",
+    selectedLibraryStats = {},
+    selectedLibrarySummary = "",
     libraryStatsLoading = false;
 
 // card component
@@ -40,13 +45,8 @@ const parseLibraryList = (data) => {
     return libraries;
 }
 
-// called on click of single library, gets statistics for that library
-const getLibraryStats = (libraryKey) => {
-    let libraryStats = {
-        total: 0
-    };
-    // set the app.selectedLibrary to the title of the library that has a key
-    // matching the libraryKey passed in
+// sets selectedLibrary, builds stats, passes all data for that library to a parsing function
+const getLibraryData = async (libraryKey) => {
     app.availableLibraries.forEach((library) => {
         if (library.key == libraryKey) {
             app.selectedLibrary = library.title;
@@ -54,15 +54,203 @@ const getLibraryStats = (libraryKey) => {
         }
     });
     app.libraryStatsLoading = true;
-    axios.get(serverIp + '/library/sections/' + libraryKey + '/all?X-Plex-Token=' + serverToken).then((response) => {
+    let libraryData = await axios.get(serverIp + '/library/sections/' + libraryKey + '/all?X-Plex-Token=' + serverToken).then((response) => {
         console.log('library stats XML:', response.data);
-        libraryStats.total = response.data.MediaContainer.size;
-        console.log('Library stats:', libraryStats);
+        if (response.data.MediaContainer.viewGroup == 'movie') {
+            console.log('its movies');
+            parseMoviePayload(response);
+        } else if (response.data.MediaContainer.viewGroup == 'show') {
+            console.log('its tv');
+            parseTvPayload(response);
+        }
         app.libraryStatsLoading = false;
+        return response.data.MediaContainer;
     });
-    return libraryStats;
+    console.log('libraryData:', libraryData);
+    return libraryData;
 }
 
+/////////////////////////////////
+// parse through a movie payload
+const parseMoviePayload = (data) => {
+    let movieCount = data.data.MediaContainer.size,
+    countries = {},// this stores country: count
+    countryList = [],
+    countryCounts = [],
+    releaseDateList = [],
+    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    studioList = [],
+    genres = {},// this stores genre: count, and is then split into the two following arrays
+    genreList = [],
+    genreCounts = [],
+    durationSum = 0,
+    increment = "Movies";
+
+    console.log('parsing movie payload...');
+    console.log('count = ' + movieCount);
+
+// loop through movies and gather important data
+data.data.MediaContainer.Metadata.forEach((movie, index) => {
+// $.each(data.MediaContainer.Video, function(i) {
+    // track year
+    releaseDateList.push(movie.year);
+    // track studio
+    studioList.push(movie.studio);
+    // track durations
+    durationSum = durationSum + (movie.duration/60000);
+    // track genres
+    if (movie.Genre) {
+        movie.Genre.forEach(function(genre) {
+            console.dir(genre);
+            if (genres.hasOwnProperty(genre.tag)) {
+                // if genre exists in the dictionary already,
+                // find the genre and increment the count
+                genres[genre.tag]++;
+            } else {
+                genres[genre.tag] = 1;
+            }
+        });
+    } else {
+        // no genres
+    }
+    // track countries
+    if (movie.Country) {
+        // check if a country exists for movie
+        movie.Country.forEach(function(country) {
+            if (countries.hasOwnProperty(country.tag)) {
+                // if country exists in the dictionary already,
+                // find the country and increment the count
+                countries[country.tag]++;
+            } else {
+                countries[country.tag] = 1;
+            }
+        });
+    } else {
+        // no countries
+    }
+
+    if (index == movieCount - 1) {
+        // if it's the last entry
+        // append stats to library stats panel
+        var totalMins = Math.round(durationSum),
+            totalHours = Math.floor(durationSum/60),
+            totalDays = Math.floor(durationSum/24/60),
+            displayHours = totalHours - (totalDays*24),
+            displayMins = totalMins - (totalHours*60);
+
+        // build the stats object for the selected library
+        app.selectedLibraryStats = {
+            "Total Items": movieCount + " " + increment,
+            totalMins: totalMins,
+            totalHours: totalHours,
+            totalDays: totalDays,
+            displayHours: totalHours - (totalDays*24),
+            displayMins: totalMins - (totalHours*60),
+            "Genres": genres,
+            "Countries": countries,
+            "Total Duration": totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins"
+        }
+        console.log('selectedLibraryStats');
+        console.dir(app.selectedLibraryStats);
+    }
+});
+
+// remove undefined entry from genres dictionary, I'm choosing not to report on movies without genre
+delete genres['undefined'];
+// same for countries
+delete countries['undefined'];
+
+//////////////////////////
+// movies by country chart
+var sortedCountries = [];
+
+for (var country in countries) {
+    sortedCountries.push([country, countries[country]]);
+}
+sortedCountries.sort(function(a, b) {
+    return b[1] - a[1];
+})
+
+for (var property in sortedCountries) {
+    // split the countries dictionary into an array of countries and an array of counts
+    countryList.push(sortedCountries[property][0]);
+    countryCounts.push(sortedCountries[property][1]);
+}
+// if (countryList.length >= 20) {
+//     // trim to top 20, accounting for placeholder string in chart array
+//     countryList.length = 20;
+//     countryCounts.length = 20;
+// }
+
+countryCounts.unshift("countryCounts");
+
+////////////////////////
+// movies by genre chart
+var sortedGenres = [];
+for (var genre in genres) {
+    sortedGenres.push([genre, genres[genre]]);
+}
+sortedGenres.sort(function(a, b) {
+    return b[1] - a[1];
+})
+// split the sorted genres dictionary into an array of genres and an array of counts
+for (var property in sortedGenres) {
+    genreList.push(sortedGenres[property][0]);
+    genreCounts.push(sortedGenres[property][1]);
+}
+
+if (genreList.length >= 20) {
+    genreList.length = 20;
+    genreCounts.length = 20;
+}
+genreCounts.unshift("genreCounts");
+
+/////////////////////////
+// movies by decade chart
+releaseDateList.forEach(function() {
+
+    if (typeof this === 'string' || this instanceof String) {
+        var yearSub = movie.substring(0, 3);
+    } else {
+        var yearSub = "undefined";
+    }
+
+    for (var i = 0; i < decadePrefixes.length; i++) {
+        if (yearSub == decadePrefixes[i]) {
+            releaseDateCounts[i]++;
+        }
+    }
+
+});
+releaseDateCounts.unshift("releaseDateCounts");
+
+////////////////////////
+// movies by studio chart
+var studioInstances = {},
+    studios = [];
+// count how many times each studio occurs in studioList,
+// and build a dictionary from results
+for (var i = 0, j = studioList.length; i < j; i++) {
+   studioInstances[studioList[i]] = (studioInstances[studioList[i]] || 0) + 1;
+}
+// remove undefined entries from studioInstances
+delete studioInstances['undefined'];
+// split dictionary into two arrays
+for (var prop in studioInstances) {
+   if (!studioInstances.hasOwnProperty(prop)) {
+      continue;
+   }
+   studios.push([prop, studioInstances[prop]]);
+}
+app.selectedLibrarySummary = `This library contains ${app.selectedLibraryStats["Total Items"]} from ${Object.keys(countries).length}
+                            countries spanning ${Object.keys(genres).length} genres. The total duration is ${app.selectedLibraryStats["Total Duration"]}.`;
+console.log('final stats:');
+console.log(app.selectedLibraryStats);
+
+
+}
+
+////////////////
 // Vue instance
 const app = new Vue({
     el: '#app',
@@ -70,7 +258,9 @@ const app = new Vue({
         serverIp: serverIp,
         availableLibraries: availableLibraries,
         libraryStatsLoading: libraryStatsLoading,
-        selectedLibrary: selectedLibrary
+        selectedLibrary: selectedLibrary,
+        selectedLibraryStats: selectedLibraryStats,
+        selectedLibrarySummary: selectedLibrarySummary
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -79,4 +269,4 @@ const app = new Vue({
             console.log('Available libraries:', app.availableLibraries);
           })
     }
-  });
+});

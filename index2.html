@@ -27,18 +27,26 @@
                     <p>Available Libraries</p>
                 </div>
                 <div class="content">
-                    <p>LibraryName(key)</p>
+                    <p>LibraryName (key)</p>
                     <div class="row">
                         <div v-for="library in availableLibraries" v-bind:key="library.key">                            
-                            <p><a href="javascript:void(0);" v-on:click="getLibraryStats(library.key)">{{ library.title }}</a> ({{ library.key }})</p>
+                            <p><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a> ({{ library.key }})</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <div v-if="libraryStatsLoading" class="loader"></div>
             <div class="card" v-if="selectedLibrary.length > 0">
                 <div class="header">
                     <p>Statistics for {{ selectedLibrary }}</p>
+                </div>
+                <div v-if="libraryStatsLoading" class="loader"></div>
+                <div class="content" v-if="!libraryStatsLoading">
+                    <p>{{ selectedLibrarySummary }}</p>
+                    <!-- <div class="row"
+                        v-for="(value, key, index) in selectedLibraryStats"
+                        v-bind:key="index">
+                        <p>{{ key }} : {{ value }}</p>
+                    </div> -->
                 </div>
             </div>
         </div>
