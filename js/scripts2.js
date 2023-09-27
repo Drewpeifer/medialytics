@@ -73,7 +73,7 @@ const parseMediaPayload = (data) => {
     genreCounts = [],
     durationList = [],
     durationSum = 0,
-    seasonCount = 0,
+    seasonSum = 0,
     episodeCounts = []
     totalEpisodes = 0;
 
@@ -90,6 +90,9 @@ data.data.MediaContainer.Metadata.forEach((item, index) => {
     if (isNaN(item.duration)) {
         // duration is NaN
     } else if (type === 'show') {
+        // track seasons
+        seasonSum = seasonSum + item.childCount;
+        // multiply the avg episode length by the number of episodes to approximate total duration
         durationSum = durationSum + (item.duration/60000 * item.leafCount);
         // track number of episodes
         episodeCounts.push(parseInt(item.leafCount));
@@ -127,16 +130,6 @@ data.data.MediaContainer.Metadata.forEach((item, index) => {
         // no countries
     }
 
-    // track TV-specific metrics such as seasons and episodes
-    if (type == 'show') {
-        console.log('its a show');
-        console.log(item.childCount);
-        // track seasons
-        seasonCount = seasonCount + item.childCount;
-        // track episodes
-        episodeCounts.push(item.leafCount);
-    }
-
     if (index == itemCount - 1) {
         // if it's the last entry
         // append stats to library stats panel
@@ -171,7 +164,7 @@ data.data.MediaContainer.Metadata.forEach((item, index) => {
             type: type,
             increment: type === 'movie'? 'movies' : 'shows',
             totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
-            seasonCount: seasonCount,
+            seasonSum: seasonSum,
             totalEpisodes: totalEpisodes,
         }
 
@@ -276,7 +269,7 @@ app.selectedLibrarySummary = type === 'movie' ?
                             countries spanning ${Object.keys(genres).length.toLocaleString()} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
                             // tv
                             `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}
-                            (${app.selectedLibraryStats.seasonCount.toLocaleString()} seasons / ${app.selectedLibraryStats.totalEpisodes.toLocaleString()} episodes)
+                            (${app.selectedLibraryStats.seasonSum.toLocaleString()} seasons / ${app.selectedLibraryStats.totalEpisodes.toLocaleString()} episodes)
                             from ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
                             The total duration is ${app.selectedLibraryStats.totalDuration}.`
 console.log('final stats:');
