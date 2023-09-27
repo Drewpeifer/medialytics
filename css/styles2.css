@@ -12,8 +12,14 @@ html, body {
 }
 
 /* text */
-h1 strong {
+h1 strong, .orange, a {
     color: orange;
+}
+.header h3 {
+    font-style: italic;
+}
+.header {
+    margin-bottom:10px;
 }
 
 /* cards */
@@ -24,13 +30,43 @@ h1 strong {
     padding: 5px;
 }
 .card .header {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
     margin: 0 0 10px 0;
 }
 .card .content {
     background: #222;
-    font-size: 18px;
+    font-size: 16px;
     margin: 10px 0 0 0;
     padding: 5px;
+    display: flex;
+    flex-direction: column;
+}
+.card .content .row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    margin-top: 5px;
+}
+
+/* sweet loading spinner from css-tricks */
+.loader {
+    width: 40px;/* the size */
+    padding: 5px;/* the border thickness */
+    background: orange;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    --_m: 
+      conic-gradient(#0000,#000),
+      linear-gradient(#000 0 0) content-box;
+    -webkit-mask: var(--_m);
+            mask: var(--_m);
+    -webkit-mask-composite: source-out;
+            mask-composite: subtract;
+    box-sizing: border-box;
+    animation: load 1s linear infinite;
+    margin: 5px auto
+}
+@keyframes load {
+to{transform: rotate(1turn)}
 }
