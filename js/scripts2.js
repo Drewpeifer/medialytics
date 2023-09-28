@@ -201,6 +201,38 @@ const parseMediaPayload = (data) => {
     // }
     
     countryCounts.unshift("countryCounts");
+    if (countryList.length >= 20) {
+        // trim to top 20, accounting for placeholder string in chart array
+        countryList.length = 20;
+        countryCounts.length = 20;
+    }
+    // render country chart
+    c3.generate({
+        size: {
+            height: 550
+        },
+        bindto: '.items-by-country',
+        x: 'x',
+        data: {
+            columns: [
+                countryCounts
+            ],
+            type: 'bar'
+        },
+        axis: {
+            rotated: true,
+            x: {
+                type: 'category',
+                categories: countryList
+            }
+        },
+        legend: {
+            hide: true
+        },
+        color: {
+            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+        }
+    });
     
     ////////////////////////
     // movies by genre chart
@@ -222,15 +254,17 @@ const parseMediaPayload = (data) => {
         genreCounts.length = 20;
     }
     genreCounts.unshift("genreCounts");
-    console.log('about to build chart');
-    console.dir(genreCounts);
-    console.dir(genreList);
+    if (genreList.length >= 20) {
+        // trim to top 20
+        genreList.length = 20;
+        genreCounts.length = 20;
+    }
     // render genre chart
     c3.generate({
         size: {
             height: 550
         },
-        bindto: '.movies-by-genre',
+        bindto: '.items-by-genre',
         x: 'x',
         data: {
             columns: [
@@ -270,6 +304,28 @@ const parseMediaPayload = (data) => {
         }
     });
     releaseDateCounts.unshift("releaseDateCounts");
+    c3.generate({
+        bindto: '.items-by-decade',
+        x: 'x',
+        data: {
+            columns: [
+                releaseDateCounts
+            ],
+            type: 'bar'
+        },
+        axis: {
+            x: {
+                type: 'category',
+                categories: decades
+            }
+        },
+        legend: {
+            hide: true
+        },
+        color: {
+            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+        }
+    });
 
     ////////////////////////
     // movies by studio chart
@@ -289,6 +345,33 @@ const parseMediaPayload = (data) => {
         }
         studios.push([prop, studioInstances[prop]]);
     }
+    c3.generate({
+        bindto: '.items-by-studio',
+        data: {
+            columns: studios.slice(0, 50),
+            type : 'pie'
+        },
+        pie: {
+            label: {
+                format: function (value, ratio, id) {
+                    return value;
+                }
+            }
+        },
+        color: {
+            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+        },
+        legend: {
+            hide: true
+        },
+        tooltip: {
+            format: {
+                value: function (value, ratio, id) {
+                    return id + ' : ' + value;
+                }
+            }
+        }
+    });
 
     // set concatenated summary string
     app.selectedLibrarySummary = type === 'movie' ?

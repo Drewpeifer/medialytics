@@ -28,6 +28,7 @@ h1 strong, .orange, a {
     border-radius: 5px;
     margin: 20px;
     padding: 5px;
+    flex-grow: 2;
 }
 .card .header {
     font-size: 20px;
@@ -49,6 +50,16 @@ h1 strong, .orange, a {
     margin-top: 5px;
 }
 
+/* layout */
+.library-info .row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+.half {
+    width:48%;
+}
+
 /* charts */
 .chart {
 	font-size:12px;
@@ -58,10 +69,7 @@ h1 strong, .orange, a {
 }
 .chart svg {
     position: relative;
-    left: -1%;
-}
-.full {
-    width:98%;
+    left: -1%;/* QAD temp fix for eggregious left-padding d3 adds to SVG */
 }
 .c3-axis-x path,
 .c3-axis-x line,

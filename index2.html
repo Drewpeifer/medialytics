@@ -38,28 +38,73 @@
                 </div>
             </div>
             <div class="library-info" v-if="selectedLibrary.length > 0">
-                <div class="card">
-                    <div class="header">
-                        <p>Statistics for {{ selectedLibrary }}</p>
-                    </div>
-                    <div v-if="libraryStatsLoading" class="loader"></div>
-                    <div class="content" v-if="!libraryStatsLoading">
-                        <p>{{ selectedLibrarySummary }}</p>
-                        <!-- <div class="row"
-                            v-for="(value, key, index) in selectedLibraryStats"
-                            v-bind:key="index">
-                            <p>{{ key }} : {{ value }}</p>
-                        </div> -->
+                <div class="row">
+                    <div class="card">
+                        <div class="header">
+                            <p>Statistics for {{ selectedLibrary }}</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content" v-if="!libraryStatsLoading">
+                            <p>{{ selectedLibrarySummary }}</p>
+                            <!-- <div class="row"
+                                v-for="(value, key, index) in selectedLibraryStats"
+                                v-bind:key="index">
+                                <p>{{ key }} : {{ value }}</p>
+                            </div> -->
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="header">
-                        <p>{{ selectedLibraryStats.increment }} by Genre</p>
+                <!-- items by genre chart -->
+                <div class="row">
+                    <div class="card">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }} per Genre (Top 20)</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content"><!-- don't hide via v-if, must be visible for d3 to render -->
+                            <div class="row">
+                                <div class="chart items-by-genre"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div v-if="libraryStatsLoading" class="loader"></div>
-                    <div class="content"><!-- don't hide via v-if, must be visible for d3 to render -->
-                        <div class="row">
-                            <div class="chart movies-by-genre"></div>
+                </div>
+                <div class="row">
+                    <!-- items by country chart -->
+                    <div class="card">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }} per Country (Top 20)</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <div class="chart items-by-country"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- items by decade chart -->
+                    <div class="card half">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }} per Decade</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <div class="chart items-by-decade"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- items by studio chart -->
+                    <div class="card half">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }} per Studio</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <div class="chart items-by-studio"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
