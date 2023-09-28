@@ -142,10 +142,10 @@ const parseMediaPayload = (data) => {
             }
             
             var totalMins = Math.round(durationSum),
-            totalHours = Math.floor(durationSum/60),
-            totalDays = Math.floor(durationSum/24/60),
-            displayHours = totalHours - (totalDays*24),
-            displayMins = totalMins - (totalHours*60);
+                totalHours = Math.floor(durationSum/60),
+                totalDays = Math.floor(durationSum/24/60),
+                displayHours = totalHours - (totalDays*24),
+                displayMins = totalMins - (totalHours*60);
             
             // build the stats object for the selected library
             app.selectedLibraryStats = {
@@ -169,6 +169,10 @@ const parseMediaPayload = (data) => {
         }
     });
     
+    //////////////////////////
+    // after basic parsing is complete, manipulate data to make
+    // it logical and palatable for d3/c3 charting library
+
     // remove undefined entry from genres dictionary, I'm choosing not to report on movies without genre
     delete genres['undefined'];
     // same for countries
@@ -222,7 +226,6 @@ const parseMediaPayload = (data) => {
     /////////////////////////
     // movies by decade chart
     releaseDateList.forEach(function() {
-
         if (typeof this === 'string' || this instanceof String) {
             var yearSub = item.substring(0, 3);
         } else {
@@ -234,7 +237,6 @@ const parseMediaPayload = (data) => {
                 releaseDateCounts[i]++;
             }
         }
-
     });
     releaseDateCounts.unshift("releaseDateCounts");
 
@@ -259,17 +261,17 @@ const parseMediaPayload = (data) => {
 
     // set concatenated summary string
     app.selectedLibrarySummary = type === 'movie' ?
-    // movies
-    `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()}
-    ${app.selectedLibraryStats.increment} from ${Object.keys(countries).length.toLocaleString()}
-    countries spanning ${Object.keys(genres).length.toLocaleString()} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
-    // tv
-    `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}
-    (${app.selectedLibraryStats.seasonSum.toLocaleString()} seasons / ${app.selectedLibraryStats.episodeSum.toLocaleString()} episodes)
-    from ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
-    The total duration is ${app.selectedLibraryStats.totalDuration}.`
-    console.log('final stats:');
-    console.log(app.selectedLibraryStats);
+        // movies
+        `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()}
+        ${app.selectedLibraryStats.increment} from ${Object.keys(countries).length.toLocaleString()}
+        countries spanning ${Object.keys(genres).length.toLocaleString()} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
+        // tv
+        `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}
+        (${app.selectedLibraryStats.seasonSum.toLocaleString()} seasons / ${app.selectedLibraryStats.episodeSum.toLocaleString()} episodes)
+        from ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
+        The total duration is ${app.selectedLibraryStats.totalDuration}.`
+        console.log('final stats:');
+        console.log(app.selectedLibraryStats);
 }
 
 ////////////////
