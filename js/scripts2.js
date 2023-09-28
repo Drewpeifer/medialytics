@@ -63,6 +63,8 @@ const parseMediaPayload = (data) => {
     countryCounts = [],
     releaseDateList = [],
     releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
+    decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
     studioList = [],
     genres = {},// this stores genre: count, and is then split into the two following arrays
     genreList = [],
@@ -290,12 +292,8 @@ const parseMediaPayload = (data) => {
     
     /////////////////////////
     // movies by decade chart
-    releaseDateList.forEach(function() {
-        if (typeof this === 'string' || this instanceof String) {
-            var yearSub = item.substring(0, 3);
-        } else {
-            var yearSub = "undefined";
-        }
+    releaseDateList.forEach((date) => {
+        var yearSub = date ? date.toString().substring(0, 3) : "undefined";
 
         for (var i = 0; i < decadePrefixes.length; i++) {
             if (yearSub == decadePrefixes[i]) {

@@ -23,16 +23,16 @@
             <h3 class="orange">This tool is not associated with Plex, and is intended only for private and non-commercial use</h3>
         </div>
         <div id="app">
-            <p>Targeted Server is:</p>
+            <p>Targeted Server:</p>
             <p class="orange">{{ serverIp }}</p>
-            <div class="card">
+            <div class="card library-list">
                 <div class="header">
                     <p>Available Libraries</p>
                 </div>
                 <div class="content">
                     <div class="row">
                         <div v-for="library in availableLibraries" v-bind:key="library.key">                            
-                            <p><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a></p>
+                            <p :class="{selected : selectedLibrary === library.title }"><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a></p>
                         </div>
                     </div>
                 </div>
