@@ -222,6 +222,37 @@ const parseMediaPayload = (data) => {
         genreCounts.length = 20;
     }
     genreCounts.unshift("genreCounts");
+    console.log('about to build chart');
+    console.dir(genreCounts);
+    console.dir(genreList);
+    // render genre chart
+    c3.generate({
+        size: {
+            height: 550
+        },
+        bindto: '.movies-by-genre',
+        x: 'x',
+        data: {
+            columns: [
+                genreCounts
+            ],
+            type: 'bar'
+        },
+        axis: {
+            rotated: true,
+            x: {
+                type: 'category',
+                categories: genreList
+            }
+        },
+        legend: {
+            hide: true
+        },
+        color: {
+            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+        }
+    });
+
     
     /////////////////////////
     // movies by decade chart

@@ -49,6 +49,52 @@ h1 strong, .orange, a {
     margin-top: 5px;
 }
 
+/* charts */
+.chart {
+	font-size:12px;
+	color:#f2f2f2;
+	margin:10px;
+	display:inline-block;
+}
+.chart svg {
+    position: relative;
+    left: -1%;
+}
+.full {
+    width:98%;
+}
+.c3-axis-x path,
+.c3-axis-x line,
+.c3-axis-y path,
+.c3-axis-y line,
+.c3-axis-x .tick,
+.c3-axis-y .tick,
+.c3-legend-item text {
+	stroke:#f2f2f2;
+	color:#f2f2f2;
+	font-size:12px;
+}
+.c3-axis .domain {
+    fill: none;
+}
+.c3-tooltip {
+	color:#f2f2f2;
+    background:#333;
+    border:1px solid #f2f2f2;
+    border-radius: 5px;
+    padding:5px;
+}
+.c3-tooltip tbody tr td.name {
+	display:none;
+}
+/* pie chart */
+.pie .c3-chart-arc path {
+	stroke:#111;
+}
+.pie .c3-chart-arc text {
+	fill:#111;
+}
+
 /* sweet loading spinner from css-tricks */
 .loader {
     width: 40px;/* the size */
