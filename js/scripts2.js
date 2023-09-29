@@ -129,8 +129,8 @@ const parseMediaPayload = (data) => {
         }
         
         if (index == itemCount - 1) {
-            // if it's the last entry
-            // append stats to library stats panel
+            //////////////////////////
+            // if it's the last entry, calculate stats and prepare data for charts
             if (type === 'show') {
                 let seasonDurations = [];
                 
@@ -143,76 +143,161 @@ const parseMediaPayload = (data) => {
                 episodeSum = episodeCounts.reduce(function(acc, val) { return acc + val; }, 0);
             }
             
-            var totalMins = Math.round(durationSum),
+            let totalMins = Math.round(durationSum),
                 totalHours = Math.floor(durationSum/60),
                 totalDays = Math.floor(durationSum/24/60),
                 displayHours = totalHours - (totalDays*24),
                 displayMins = totalMins - (totalHours*60);
+
+            let rawDateCounts = [];
+            console.log('rawDateCounts');
+            console.dir(rawDateCounts);
+            // remove placeholder entries from releaseDateCounts
+            releaseDateCounts.forEach((count) => {
+                console.log('count', count);
+                console.dir(count);
+                if (typeof count === 'number') {
+                    rawDateCounts.push(count);
+                }
+            });
+
+            // find the index of the highest value in releaseDateCounts
+            let maxIndex = rawDateCounts.indexOf(Math.max(...rawDateCounts));
+            // find the decade corresponding to the highest value
+            let topDecade = decades[maxIndex];
+
+            //////////////////////////
+            // after basic parsing is complete, manipulate data to make
+            // it logical and palatable for d3/c3 charting library
+
+            // remove undefined entry from genres dictionary, I'm choosing not to report on items without genre
+            delete genres['undefined'];
+            // same for countries
+            delete countries['undefined'];
             
+            //////////////////////////
+            // items by country chart
+            let sortedCountries = [];
+
+            for (country in countries) {
+                sortedCountries.push([country, countries[country]]);
+            }
+            sortedCountries.sort(function(a, b) {
+                return b[1] - a[1];
+            })
+
+            for (property in sortedCountries) {
+                // split the countries dictionary into an array of countries and an array of counts
+                countryList.push(sortedCountries[property][0]);
+                countryCounts.push(sortedCountries[property][1]);
+            }
+
+            countryCounts.unshift("countryCounts");
+            if (countryList.length >= 20) {
+                // trim to top 20, accounting for placeholder string in chart array
+                countryList.length = 20;
+                countryCounts.length = 20;
+            }
+
+            ////////////////////////
+            // items by genre chart
+            var sortedGenres = [];
+            for (var genre in genres) {
+                sortedGenres.push([genre, genres[genre]]);
+            }
+            sortedGenres.sort(function(a, b) {
+                return b[1] - a[1];
+            })
+            // split the sorted genres dictionary into an array of genres and an array of counts
+            for (var property in sortedGenres) {
+                genreList.push(sortedGenres[property][0]);
+                genreCounts.push(sortedGenres[property][1]);
+            }
+
+            genreCounts.unshift("genreCounts");
+            if (genreList.length >= 20) {
+                // trim to top 20
+                genreList.length = 20;
+                genreCounts.length = 20;
+            }
+
+            /////////////////////////
+            // items by decade chart
+            releaseDateList.forEach((date) => {
+                var yearSub = date ? date.toString().substring(0, 3) : "undefined";
+
+                for (var i = 0; i < decadePrefixes.length; i++) {
+                    if (yearSub == decadePrefixes[i]) {
+                        releaseDateCounts[i]++;
+                    }
+                }
+            });
+            releaseDateCounts.unshift("releaseDateCounts");
+
+            ////////////////////////
+            // items by studio chart
+            let studioInstances = {},
+            studios = [];
+            // count how many times each studio occurs in studioList,
+            // and build a dictionary from results
+            for (let i = 0, j = studioList.length; i < j; i++) {
+                studioInstances[studioList[i]] = (studioInstances[studioList[i]] || 0) + 1;
+            }
+            // remove undefined entries from studioInstances
+            delete studioInstances['undefined'];
+            // split dictionary into two arrays
+            for (prop in studioInstances) {
+                if (!studioInstances.hasOwnProperty(prop)) {
+                    continue;
+                }
+                studios.push([prop, studioInstances[prop]]);
+            }
+
             // build the stats object for the selected library
             app.selectedLibraryStats = {
                 totalItems: itemCount,
-                totalMins: totalMins,
-                totalHours: totalHours,
                 totalDays: totalDays,
                 displayHours: totalHours - (totalDays*24),
                 displayMins: totalMins - (totalHours*60),
-                genres: genres,
-                countries: countries,
+                topGenre: Object.keys(genres)[0],
+                topGenreCount: genres[Object.keys(genres)[0]].toLocaleString(),
+                topCountry: Object.keys(countries)[0],
+                topCountryCount: countries[Object.keys(countries)[0]].toLocaleString(),
+                topDecade: decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
+                topDecadeCount: Math.max(...rawDateCounts).toLocaleString(),
                 type: type,
                 increment: type === 'movie'? 'movies' : 'shows',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
                 seasonSum: seasonSum,
                 episodeSum: episodeSum,
             }
-            
+
+            // set concatenated summary string
+            app.selectedLibrarySummary = type === 'movie' ?
+                // movies
+                `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()}
+                ${app.selectedLibraryStats.increment} from ${Object.keys(countries).length.toLocaleString()}
+                countries spanning ${Object.keys(genres).length.toLocaleString()} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
+                // tv
+                `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}
+                (${app.selectedLibraryStats.seasonSum.toLocaleString()} seasons / ${app.selectedLibraryStats.episodeSum.toLocaleString()} episodes)
+                from ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
+                The total duration is ${app.selectedLibraryStats.totalDuration}.`
+                console.log('final stats:');
+                console.log(app.selectedLibraryStats);
+
             console.log('selectedLibraryStats');
             console.dir(app.selectedLibraryStats);
+            // render charts
+            renderCharts(countryCounts, countryList, genreCounts, genreList, releaseDateCounts, decades, studios);
         }
     });
-    
-    //////////////////////////
-    // after basic parsing is complete, manipulate data to make
-    // it logical and palatable for d3/c3 charting library
 
-    // remove undefined entry from genres dictionary, I'm choosing not to report on movies without genre
-    delete genres['undefined'];
-    // same for countries
-    delete countries['undefined'];
-    
-    //////////////////////////
-    // movies by country chart
-    var sortedCountries = [];
-    
-    for (var country in countries) {
-        sortedCountries.push([country, countries[country]]);
-    }
-    sortedCountries.sort(function(a, b) {
-        return b[1] - a[1];
-    })
-    
-    for (var property in sortedCountries) {
-        // split the countries dictionary into an array of countries and an array of counts
-        countryList.push(sortedCountries[property][0]);
-        countryCounts.push(sortedCountries[property][1]);
-    }
-    // if (countryList.length >= 20) {
-    //     // trim to top 20, accounting for placeholder string in chart array
-    //     countryList.length = 20;
-    //     countryCounts.length = 20;
-    // }
-    
-    countryCounts.unshift("countryCounts");
-    if (countryList.length >= 20) {
-        // trim to top 20, accounting for placeholder string in chart array
-        countryList.length = 20;
-        countryCounts.length = 20;
-    }
-    // render country chart
+}
+
+const renderCharts = (countryCounts, countryList, genreCounts, genreList, releaseDateCounts, decades, studios) => {
+    // render charts
     c3.generate({
-        size: {
-            height: 550
-        },
         bindto: '.items-by-country',
         x: 'x',
         data: {
@@ -235,37 +320,7 @@ const parseMediaPayload = (data) => {
             pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
         }
     });
-    
-    ////////////////////////
-    // movies by genre chart
-    var sortedGenres = [];
-    for (var genre in genres) {
-        sortedGenres.push([genre, genres[genre]]);
-    }
-    sortedGenres.sort(function(a, b) {
-        return b[1] - a[1];
-    })
-    // split the sorted genres dictionary into an array of genres and an array of counts
-    for (var property in sortedGenres) {
-        genreList.push(sortedGenres[property][0]);
-        genreCounts.push(sortedGenres[property][1]);
-    }
-    
-    if (genreList.length >= 20) {
-        genreList.length = 20;
-        genreCounts.length = 20;
-    }
-    genreCounts.unshift("genreCounts");
-    if (genreList.length >= 20) {
-        // trim to top 20
-        genreList.length = 20;
-        genreCounts.length = 20;
-    }
-    // render genre chart
     c3.generate({
-        size: {
-            height: 550
-        },
         bindto: '.items-by-genre',
         x: 'x',
         data: {
@@ -288,20 +343,6 @@ const parseMediaPayload = (data) => {
             pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
         }
     });
-
-    
-    /////////////////////////
-    // movies by decade chart
-    releaseDateList.forEach((date) => {
-        var yearSub = date ? date.toString().substring(0, 3) : "undefined";
-
-        for (var i = 0; i < decadePrefixes.length; i++) {
-            if (yearSub == decadePrefixes[i]) {
-                releaseDateCounts[i]++;
-            }
-        }
-    });
-    releaseDateCounts.unshift("releaseDateCounts");
     c3.generate({
         bindto: '.items-by-decade',
         x: 'x',
@@ -324,25 +365,6 @@ const parseMediaPayload = (data) => {
             pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
         }
     });
-
-    ////////////////////////
-    // movies by studio chart
-    var studioInstances = {},
-    studios = [];
-    // count how many times each studio occurs in studioList,
-    // and build a dictionary from results
-    for (var i = 0, j = studioList.length; i < j; i++) {
-        studioInstances[studioList[i]] = (studioInstances[studioList[i]] || 0) + 1;
-    }
-    // remove undefined entries from studioInstances
-    delete studioInstances['undefined'];
-    // split dictionary into two arrays
-    for (var prop in studioInstances) {
-        if (!studioInstances.hasOwnProperty(prop)) {
-            continue;
-        }
-        studios.push([prop, studioInstances[prop]]);
-    }
     c3.generate({
         bindto: '.items-by-studio',
         data: {
@@ -370,20 +392,6 @@ const parseMediaPayload = (data) => {
             }
         }
     });
-
-    // set concatenated summary string
-    app.selectedLibrarySummary = type === 'movie' ?
-        // movies
-        `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()}
-        ${app.selectedLibraryStats.increment} from ${Object.keys(countries).length.toLocaleString()}
-        countries spanning ${Object.keys(genres).length.toLocaleString()} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
-        // tv
-        `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}
-        (${app.selectedLibraryStats.seasonSum.toLocaleString()} seasons / ${app.selectedLibraryStats.episodeSum.toLocaleString()} episodes)
-        from ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
-        The total duration is ${app.selectedLibraryStats.totalDuration}.`
-        console.log('final stats:');
-        console.log(app.selectedLibraryStats);
 }
 
 ////////////////

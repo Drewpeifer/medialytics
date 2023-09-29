@@ -18,9 +18,6 @@ h1 strong, .orange, a {
 .header h3 {
     font-style: italic;
 }
-.header {
-    margin-bottom:10px;
-}
 .library-list p {
     padding: 5px;
 }
@@ -42,22 +39,22 @@ h1 strong, .orange, a {
 .card .header {
     font-size: 20px;
     font-weight: bold;
-    margin: 0 0 10px 0;
     text-transform: capitalize;
 }
 .card .content {
     background: #222;
     font-size: 16px;
-    margin: 10px 0 0 0;
+    margin: 5px 0 0 0;
     padding: 5px;
     display: flex;
     flex-direction: column;
+    border-radius: 0 0 5px 5px;
 }
 .card .content .row {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
-    margin-top: 5px;
+    margin: 10px;
 }
 
 /* layout */

@@ -45,12 +45,14 @@
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content" v-if="!libraryStatsLoading">
-                            <p>{{ selectedLibrarySummary }}</p>
-                            <!-- <div class="row"
-                                v-for="(value, key, index) in selectedLibraryStats"
-                                v-bind:key="index">
-                                <p>{{ key }} : {{ value }}</p>
-                            </div> -->
+                            <div class="row">
+                                <p>{{ selectedLibrarySummary }}</p>
+                            </div>
+                            <div class="row">
+                                <p>Top Genre: {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
+                                <p>Top Country: {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
+                                <p>Top Decade: {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
+                            </div>
                         </div>
                     </div>
                 </div>
