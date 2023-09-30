@@ -1,20 +1,40 @@
 // CONFIG
 const serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
-serverToken = 'PLEX_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
-libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
-decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
-decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
-// moviesPayloadUrl = serverIp + '/library/sections/1/all?X-Plex-Token=' + serverToken,
-// tvPayloadUrl = serverIp + '/library/sections/2/all?X-Plex-Token=' + serverToken,
-recentLimit = 20,
-recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken;
+    ////// WARNING
+    // Never share the following token with anyone! Do not host this on a public server with the token in place!
+    // Keep it secret, keep it safe! If compromised, generate a new one: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
+    serverToken = 'PLEX-TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
+    libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
+    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
+    recentLimit = 20,
+    // below are the limits for displaying data in the charts, e.g. "Top X Countries"
+    countryLimit = 20,
+    genreLimit = 20,
+    studioLimit = 20,
+    decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
+    decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"];
 
 // GLOBAL VARIABLES
 let availableLibraries = [],
-selectedLibrary = "",
-selectedLibraryStats = {},
-selectedLibrarySummary = "",
-libraryStatsLoading = false;
+    selectedLibrary = "",
+    selectedLibraryStats = {},
+    selectedLibrarySummary = "",
+    libraryStatsLoading = false,
+    countries = {},// this stores country: count, and is then split into the two following arrays
+    countryList = [],
+    countryCounts = [],
+    releaseDateList = [],
+    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    studioInstances = [],
+    sortedStudios = [],
+    genres = {},// this stores genre: count, and is then split into the two following arrays
+    genreList = [],
+    genreCounts = [],
+    durationList = [],
+    durationSum = 0,
+    seasonSum = 0,
+    episodeCounts = []
+    episodeSum = 0;
 
 /////////////////////////////////
 // gets list of available libraries
