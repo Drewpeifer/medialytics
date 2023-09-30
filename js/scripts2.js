@@ -5,8 +5,8 @@ const serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
     // Keep it secret, keep it safe! If compromised, generate a new one: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
     serverToken = 'PLEX-TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
     libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
-    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
     recentLimit = 20,
+    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
     // below are the limits for displaying data in the charts, e.g. "Top X Countries"
     countryLimit = 20,
     genreLimit = 20,
