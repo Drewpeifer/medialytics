@@ -63,8 +63,11 @@ h1 strong, .orange, a {
     flex-direction: row;
     justify-content: space-evenly;
 }
+.full {
+    min-width: 98%;
+}
 .half {
-    width:48%;
+    width: 48%;
 }
 
 /* charts */
@@ -73,6 +76,9 @@ h1 strong, .orange, a {
 	color:#f2f2f2;
 	margin:10px;
 	display:inline-block;
+}
+.full .chart {
+    min-height:450px;
 }
 .chart svg {
     position: relative;

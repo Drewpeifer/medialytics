@@ -57,23 +57,23 @@ const getLibraryData = async (libraryKey) => {
 // parse through a media payload
 const parseMediaPayload = (data) => {
     let itemCount = data.data.MediaContainer.size,
-    type = data.data.MediaContainer.viewGroup,
-    countries = {},// this stores country: count
-    countryList = [],
-    countryCounts = [],
-    releaseDateList = [],
-    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
-    decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
-    studioList = [],
-    genres = {},// this stores genre: count, and is then split into the two following arrays
-    genreList = [],
-    genreCounts = [],
-    durationList = [],
-    durationSum = 0,
-    seasonSum = 0,
-    episodeCounts = []
-    episodeSum = 0;
+        type = data.data.MediaContainer.viewGroup,
+        countries = {},// this stores country: count, and is then split into the two following arrays
+        countryList = [],
+        countryCounts = [],
+        releaseDateList = [],
+        releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
+        decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
+        studioList = [],
+        genres = {},// this stores genre: count, and is then split into the two following arrays
+        genreList = [],
+        genreCounts = [],
+        durationList = [],
+        durationSum = 0,
+        seasonSum = 0,
+        episodeCounts = []
+        episodeSum = 0;
     
     console.log('parsing media payload...');
     console.log('count = ' + itemCount);
@@ -149,49 +149,26 @@ const parseMediaPayload = (data) => {
                 displayHours = totalHours - (totalDays*24),
                 displayMins = totalMins - (totalHours*60);
 
-            let rawDateCounts = [];
-            console.log('rawDateCounts');
-            console.dir(rawDateCounts);
-            // remove placeholder entries from releaseDateCounts
-            releaseDateCounts.forEach((count) => {
-                console.log('count', count);
-                console.dir(count);
-                if (typeof count === 'number') {
-                    rawDateCounts.push(count);
-                }
-            });
-
-            // find the index of the highest value in releaseDateCounts
-            let maxIndex = rawDateCounts.indexOf(Math.max(...rawDateCounts));
-            // find the decade corresponding to the highest value
-            let topDecade = decades[maxIndex];
-
             //////////////////////////
             // after basic parsing is complete, manipulate data to make
             // it logical and palatable for d3/c3 charting library
-
-            // remove undefined entry from genres dictionary, I'm choosing not to report on items without genre
-            delete genres['undefined'];
-            // same for countries
-            delete countries['undefined'];
             
             //////////////////////////
             // items by country chart
             let sortedCountries = [];
-
+            // choosing not to report on undefined entries
+            delete countries['undefined'];
             for (country in countries) {
                 sortedCountries.push([country, countries[country]]);
             }
             sortedCountries.sort(function(a, b) {
                 return b[1] - a[1];
             })
-
             for (property in sortedCountries) {
                 // split the countries dictionary into an array of countries and an array of counts
                 countryList.push(sortedCountries[property][0]);
                 countryCounts.push(sortedCountries[property][1]);
             }
-
             countryCounts.unshift("countryCounts");
             if (countryList.length >= 20) {
                 // trim to top 20, accounting for placeholder string in chart array
@@ -201,15 +178,17 @@ const parseMediaPayload = (data) => {
 
             ////////////////////////
             // items by genre chart
-            var sortedGenres = [];
-            for (var genre in genres) {
+            let sortedGenres = [];
+            // choosing not to report on undefined entries
+            delete genres['undefined'];
+            for (genre in genres) {
                 sortedGenres.push([genre, genres[genre]]);
             }
             sortedGenres.sort(function(a, b) {
                 return b[1] - a[1];
             })
             // split the sorted genres dictionary into an array of genres and an array of counts
-            for (var property in sortedGenres) {
+            for (property in sortedGenres) {
                 genreList.push(sortedGenres[property][0]);
                 genreCounts.push(sortedGenres[property][1]);
             }
@@ -223,15 +202,26 @@ const parseMediaPayload = (data) => {
 
             /////////////////////////
             // items by decade chart
-            releaseDateList.forEach((date) => {
-                var yearSub = date ? date.toString().substring(0, 3) : "undefined";
-
-                for (var i = 0; i < decadePrefixes.length; i++) {
-                    if (yearSub == decadePrefixes[i]) {
-                        releaseDateCounts[i]++;
+            // remove undefined entries from releaseDateList
+            releaseDateList.forEach((year) => {
+                if (typeof year !== 'number' || isNaN(year)) {
+                    releaseDateList.pop(year);
+                } else {
+                    // compare each year to the decadePrefixes array, and if the first 3 chars of the year match the decade prefix,
+                    // increment the corresponding index in releaseDateCounts
+                    let yearSub = year.toString().substring(0, 3);
+                    for (let i = 0; i < decadePrefixes.length; i++) {
+                        if (yearSub == decadePrefixes[i]) {
+                            releaseDateCounts[i]++;
+                        }
                     }
                 }
             });
+
+            console.log('releaseDateCounts is:');
+            console.dir(releaseDateCounts);
+            let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
+                topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
             releaseDateCounts.unshift("releaseDateCounts");
 
             ////////////////////////
@@ -259,12 +249,12 @@ const parseMediaPayload = (data) => {
                 totalDays: totalDays,
                 displayHours: totalHours - (totalDays*24),
                 displayMins: totalMins - (totalHours*60),
-                topGenre: Object.keys(genres)[0],
-                topGenreCount: genres[Object.keys(genres)[0]].toLocaleString(),
-                topCountry: Object.keys(countries)[0],
-                topCountryCount: countries[Object.keys(countries)[0]].toLocaleString(),
-                topDecade: decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
-                topDecadeCount: Math.max(...rawDateCounts).toLocaleString(),
+                topGenre: genreList[0],
+                topGenreCount: genreCounts[1].toLocaleString(),
+                topCountry: countryList[0],
+                topCountryCount: countryCounts[1].toLocaleString(),
+                topDecade: topDecade,
+                topDecadeCount: topDecadeCount,
                 type: type,
                 increment: type === 'movie'? 'movies' : 'shows',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
