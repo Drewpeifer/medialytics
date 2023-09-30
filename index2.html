@@ -52,6 +52,7 @@
                                 <p>Top Genre: {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
                                 <p>Top Country: {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
                                 <p>Top Decade: {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
+                                <p>Top Studio: {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
                             </div>
                         </div>
                     </div>
@@ -60,7 +61,7 @@
                 <div class="row">
                     <div class="card full">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }} per Genre (Top 20)</p>
+                            <p>{{ selectedLibraryStats.increment }} per Genre (Top {{ selectedLibraryStats.genreLimit }})</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content"><!-- don't hide via v-if, must be visible for d3 to render -->
@@ -74,7 +75,7 @@
                     <!-- items by country chart -->
                     <div class="card full">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }} per Country (Top 20)</p>
+                            <p>{{ selectedLibraryStats.increment }} per Country (Top {{ selectedLibraryStats.countryLimit }})</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
@@ -100,7 +101,7 @@
                     <!-- items by studio chart -->
                     <div class="card half">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }} per Studio</p>
+                            <p>{{ selectedLibraryStats.increment }} per Studio (Top {{ selectedLibraryStats.studioLimit }})</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">

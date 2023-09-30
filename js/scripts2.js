@@ -22,7 +22,9 @@ const parseLibraryList = (data) => {
     let libraries = [];
     data.MediaContainer.Directory.forEach((library) => {
         // restrict to only movie and tv show libraries
-        if (library.type != 'movie' && library.type != 'show') { return; } else {
+        if (library.type != 'movie' && library.type != 'show') {
+            return;
+        } else {
             libraries.push({
                 title: library.title,
                 key: library.key
@@ -57,23 +59,7 @@ const getLibraryData = async (libraryKey) => {
 // parse through a media payload
 const parseMediaPayload = (data) => {
     let itemCount = data.data.MediaContainer.size,
-        type = data.data.MediaContainer.viewGroup,
-        countries = {},// this stores country: count, and is then split into the two following arrays
-        countryList = [],
-        countryCounts = [],
-        releaseDateList = [],
-        releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
-        decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
-        studioList = [],
-        genres = {},// this stores genre: count, and is then split into the two following arrays
-        genreList = [],
-        genreCounts = [],
-        durationList = [],
-        durationSum = 0,
-        seasonSum = 0,
-        episodeCounts = []
-        episodeSum = 0;
+        type = data.data.MediaContainer.viewGroup;
     
     console.log('parsing media payload...');
     console.log('count = ' + itemCount);
@@ -83,7 +69,7 @@ const parseMediaPayload = (data) => {
         // track year
         releaseDateList.push(item.year);
         // track studio
-        studioList.push(item.studio);
+        studioInstances.push(item.studio);
         // track durations
         if (isNaN(item.duration)) {
             // duration is NaN
@@ -151,7 +137,8 @@ const parseMediaPayload = (data) => {
 
             //////////////////////////
             // after basic parsing is complete, manipulate data to make
-            // it logical and palatable for d3/c3 charting library
+            // it logical and palatable for d3/c3 charting library.
+            // Bar charts want 2 arrays of values, while pie charts want a dictionary / object
             
             //////////////////////////
             // items by country chart
@@ -170,11 +157,6 @@ const parseMediaPayload = (data) => {
                 countryCounts.push(sortedCountries[property][1]);
             }
             countryCounts.unshift("countryCounts");
-            if (countryList.length >= 20) {
-                // trim to top 20, accounting for placeholder string in chart array
-                countryList.length = 20;
-                countryCounts.length = 20;
-            }
 
             ////////////////////////
             // items by genre chart
@@ -194,11 +176,6 @@ const parseMediaPayload = (data) => {
             }
 
             genreCounts.unshift("genreCounts");
-            if (genreList.length >= 20) {
-                // trim to top 20
-                genreList.length = 20;
-                genreCounts.length = 20;
-            }
 
             /////////////////////////
             // items by decade chart
@@ -226,22 +203,29 @@ const parseMediaPayload = (data) => {
 
             ////////////////////////
             // items by studio chart
-            let studioInstances = {},
-            studios = [];
-            // count how many times each studio occurs in studioList,
-            // and build a dictionary from results
-            for (let i = 0, j = studioList.length; i < j; i++) {
-                studioInstances[studioList[i]] = (studioInstances[studioList[i]] || 0) + 1;
-            }
-            // remove undefined entries from studioInstances
-            delete studioInstances['undefined'];
-            // split dictionary into two arrays
-            for (prop in studioInstances) {
-                if (!studioInstances.hasOwnProperty(prop)) {
-                    continue;
+            let studios = {};
+            // build a dictionary of studios and their counts
+            studioInstances.forEach((studio) => {
+                if (studios.hasOwnProperty(studio)) {
+                    studios[studio]++;
+                } else {
+                    studios[studio] = 1;
                 }
-                studios.push([prop, studioInstances[prop]]);
+            });
+
+            // remove undefined entries from studioInstances
+            delete studios['undefined'];
+            // sort the studios dictionary by count
+            for (studio in studios) {
+                sortedStudios.push([studio, studios[studio]]);
             }
+            sortedStudios.sort(function(a, b) {
+                return b[1] - a[1];
+            });
+            console.log('sortedStudios:');
+            console.dir(sortedStudios);
+            // trim the sorted studios to the predefined limit
+            sortedStudios = sortedStudios.slice(0, studioLimit);
 
             // build the stats object for the selected library
             app.selectedLibraryStats = {
@@ -255,23 +239,31 @@ const parseMediaPayload = (data) => {
                 topCountryCount: countryCounts[1].toLocaleString(),
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
+                sortedStudios: sortedStudios,
+                topStudio: sortedStudios[0][0],
+                topStudioCount: sortedStudios[0][1].toLocaleString(),
                 type: type,
                 increment: type === 'movie'? 'movies' : 'shows',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
                 seasonSum: seasonSum,
                 episodeSum: episodeSum,
+                studioLimit: studioLimit,
+                countryLimit: countryLimit,
+                genreLimit: genreLimit
             }
 
             // set concatenated summary string
             app.selectedLibrarySummary = type === 'movie' ?
                 // movies
                 `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()}
-                ${app.selectedLibraryStats.increment} from ${Object.keys(countries).length.toLocaleString()}
-                countries spanning ${Object.keys(genres).length.toLocaleString()} genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
+                ${app.selectedLibraryStats.increment} produced by ${app.selectedLibraryStats.sortedStudios.length.toLocaleString()} studios
+                across ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()}
+                genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
                 // tv
-                `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}
+                `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment} produced by
+                ${app.selectedLibraryStats.sortedStudios.length.toLocaleString()} studios across
                 (${app.selectedLibraryStats.seasonSum.toLocaleString()} seasons / ${app.selectedLibraryStats.episodeSum.toLocaleString()} episodes)
-                from ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
+                ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
                 The total duration is ${app.selectedLibraryStats.totalDuration}.`
                 console.log('final stats:');
                 console.log(app.selectedLibraryStats);
@@ -279,20 +271,20 @@ const parseMediaPayload = (data) => {
             console.log('selectedLibraryStats');
             console.dir(app.selectedLibraryStats);
             // render charts
-            renderCharts(countryCounts, countryList, genreCounts, genreList, releaseDateCounts, decades, studios);
+            renderCharts();
         }
     });
 
 }
 
-const renderCharts = (countryCounts, countryList, genreCounts, genreList, releaseDateCounts, decades, studios) => {
+const renderCharts = () => {
     // render charts
     c3.generate({
         bindto: '.items-by-country',
         x: 'x',
         data: {
             columns: [
-                countryCounts
+                countryCounts.slice(0, countryLimit)
             ],
             type: 'bar'
         },
@@ -300,7 +292,7 @@ const renderCharts = (countryCounts, countryList, genreCounts, genreList, releas
             rotated: true,
             x: {
                 type: 'category',
-                categories: countryList
+                categories: countryList.slice(0, countryLimit)
             }
         },
         legend: {
@@ -315,7 +307,7 @@ const renderCharts = (countryCounts, countryList, genreCounts, genreList, releas
         x: 'x',
         data: {
             columns: [
-                genreCounts
+                genreCounts.slice(0, genreLimit)
             ],
             type: 'bar'
         },
@@ -323,7 +315,7 @@ const renderCharts = (countryCounts, countryList, genreCounts, genreList, releas
             rotated: true,
             x: {
                 type: 'category',
-                categories: genreList
+                categories: genreList.slice(0, genreLimit)
             }
         },
         legend: {
@@ -358,7 +350,8 @@ const renderCharts = (countryCounts, countryList, genreCounts, genreList, releas
     c3.generate({
         bindto: '.items-by-studio',
         data: {
-            columns: studios.slice(0, 50),
+            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
+            columns: sortedStudios,
             type : 'pie'
         },
         pie: {
