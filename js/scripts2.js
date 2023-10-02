@@ -1,9 +1,8 @@
-// CONFIG
-const serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
-    ////// WARNING
-    // Never share the following token with anyone! Do not host this on a public server with the token in place!
-    // Keep it secret, keep it safe! If compromised, generate a new one: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
-    serverToken = 'PLEX-TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
+////// WARNING
+// Never share the following token with anyone! Do not host this on a public server with the token in place!
+// Keep it secret, keep it safe! If compromised, generate a new one: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
+const serverToken = 'SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
+    serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
     libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
     recentLimit = 20,
     recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
@@ -53,7 +52,6 @@ const parseLibraryList = (data) => {
             });
         }
     });
-    console.log('libraries:', libraries);
     return libraries;
 }
 
@@ -63,36 +61,33 @@ const getLibraryData = async (libraryKey) => {
     app.availableLibraries.forEach((library) => {
         if (library.key == libraryKey) {
             app.selectedLibrary = library.title;
-            console.log('selected = ' + app.selectedLibrary);
         }
     });
-
     app.libraryStatsLoading = true;
     let libraryData = await axios.get(serverIp + '/library/sections/' + libraryKey + '/all?X-Plex-Token=' + serverToken).then((response) => {
-        console.log('library stats XML:', response.data);
         parseMediaPayload(response);
         app.libraryStatsLoading = false;
         return response.data.MediaContainer;
     });
-    console.log('libraryData:', libraryData);
     return libraryData;
 }
 
+/////////////////////////////////
 // reset library stats
 const resetLibraryStats = () => {
-    selectedLibrarySummary = "",// plain text summary of stat highlights
-    countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
+    selectedLibrarySummary = "",
+    countries = {},
     countryList = [],
     countryCounts = [],
-    releaseDateList = [],// stores each instance of a release date
-    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
+    releaseDateList = [],
+    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     studioInstances = [],
     sortedStudios = [],
-    genres = {},// this stores genre: count, and is then split into the two following arrays
+    genres = {},
     genreList = [],
     genreCounts = [],
-    durationList = [],// stores each instance of a duration, for movies it is the duration of the movie, for shows it is the avg duration of an episode
-    durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
+    durationList = [],
+    durationSum = 0,
     seasonSum = 0,
     episodeCounts = []
     episodeSum = 0;
@@ -103,9 +98,6 @@ const resetLibraryStats = () => {
 const parseMediaPayload = (data) => {
     let itemCount = data.data.MediaContainer.size,
         type = data.data.MediaContainer.viewGroup;
-    
-    console.log('parsing media payload...');
-    console.log('count = ' + itemCount);
     
     // loop through items and gather important data
     data.data.MediaContainer.Metadata.forEach((item, index) => {
@@ -157,20 +149,16 @@ const parseMediaPayload = (data) => {
             // no countries
         }
         
+        //////////////////////////
+        // if it's the last entry in the library, calculate stats and prepare data for charts
+        // (bar charts want 2 arrays of values, while pie charts want a dictionary)
         if (index == itemCount - 1) {
-            //////////////////////////
-            // if it's the last entry, calculate stats and prepare data for charts
             let totalMins = Math.round(durationSum),
                 totalHours = Math.floor(durationSum/60),
                 totalDays = Math.floor(durationSum/24/60),
                 displayHours = totalHours - (totalDays*24),
                 displayMins = totalMins - (totalHours*60);
 
-            //////////////////////////
-            // after basic parsing is complete, manipulate data to make
-            // it logical and palatable for d3/c3 charting library.
-            // Bar charts want 2 arrays of values, while pie charts want a dictionary / object
-            
             //////////////////////////
             // items by country chart
             let sortedCountries = [];
@@ -226,11 +214,8 @@ const parseMediaPayload = (data) => {
                 }
             });
 
-            console.log('releaseDateCounts is:');
-            console.dir(releaseDateCounts);
             let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
                 topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
-            releaseDateCounts.unshift("releaseDateCounts");
 
             ////////////////////////
             // items by studio chart
@@ -253,8 +238,7 @@ const parseMediaPayload = (data) => {
             sortedStudios.sort(function(a, b) {
                 return b[1] - a[1];
             });
-            console.log('sortedStudios:');
-            console.dir(sortedStudios);
+
             // trim the sorted studios to the predefined limit
             sortedStudios = sortedStudios.slice(0, studioLimit);
 
@@ -299,8 +283,6 @@ const parseMediaPayload = (data) => {
                 ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
                 The total duration is ${app.selectedLibraryStats.totalDuration}.`
 
-            console.log('selectedLibraryStats');
-            console.dir(app.selectedLibraryStats);
             // render charts
             renderCharts();
         }
@@ -422,9 +404,7 @@ const app = new Vue({
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
-            console.log('library list XML:', response.data);
             app.availableLibraries = parseLibraryList(response.data);
-            console.log('Available libraries:', app.availableLibraries);
         })
     }
 });
