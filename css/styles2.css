@@ -12,11 +12,16 @@ html, body {
 }
 
 /* text */
+h1 {
+    margin: 10px 0;
+}
 h1 strong, .orange, a {
     color: orange;
 }
 .header h3 {
+    font-size: 14px;
     font-style: italic;
+    margin: 5px 0 10px 0;
 }
 .library-list p {
     padding: 5px;

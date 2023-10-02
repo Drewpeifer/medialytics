@@ -6,7 +6,7 @@
     <title>Medialytics 2.0</title>
     <!-- import vue -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
-    <!-- import axios / vue-axios for API calls -->
+    <!-- import axios for API calls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
     <!-- import d3 /c3 for visualizations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
@@ -23,8 +23,8 @@
             <h3 class="orange">This tool is not associated with Plex, and is intended only for private and non-commercial use</h3>
         </div>
         <div id="app">
-            <p>Targeted Server:</p>
-            <p class="orange">{{ serverIp }}</p>
+            <h3>Targeted Server:</p>
+            <h3 class="orange"><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></h3>
             <div class="card library-list">
                 <div class="header">
                     <p>Available Libraries</p>
