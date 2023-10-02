@@ -69,6 +69,7 @@ const getLibraryData = async (libraryKey) => {
         app.libraryStatsLoading = false;
         return response.data.MediaContainer;
     });
+    resetLibraryStats();
     return libraryData;
 }
 
