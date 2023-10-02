@@ -11,27 +11,29 @@ const serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
     countryLimit = 20,
     genreLimit = 20,
     studioLimit = 20,
-    decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],
-    decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"];
+    // below are the decade arrays used for the items by decade chart, any data outside of these decades will
+    // be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
+    decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
+    decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"];// used for UI/chart display
 
 // GLOBAL VARIABLES
-let availableLibraries = [],
-    selectedLibrary = "",
-    selectedLibraryStats = {},
-    selectedLibrarySummary = "",
-    libraryStatsLoading = false,
-    countries = {},// this stores country: count, and is then split into the two following arrays
+let availableLibraries = [],// the list of libraries returned by your server
+    selectedLibrary = "",// the library currently selected by the user
+    selectedLibraryStats = {},// a large object containing all the stats for the selected library
+    selectedLibrarySummary = "",// plain text summary of stat highlights
+    libraryStatsLoading = false,// used to trigger loading animations
+    countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
     countryList = [],
     countryCounts = [],
-    releaseDateList = [],
-    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    releaseDateList = [],// stores each instance of a release date
+    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
     studioInstances = [],
     sortedStudios = [],
     genres = {},// this stores genre: count, and is then split into the two following arrays
     genreList = [],
     genreCounts = [],
-    durationList = [],
-    durationSum = 0,
+    durationList = [],// stores each instance of a duration, for movies it is the duration of the movie, for shows it is the avg duration of an episode
+    durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
     seasonSum = 0,
     episodeCounts = []
     episodeSum = 0;
@@ -64,6 +66,7 @@ const getLibraryData = async (libraryKey) => {
             console.log('selected = ' + app.selectedLibrary);
         }
     });
+
     app.libraryStatsLoading = true;
     let libraryData = await axios.get(serverIp + '/library/sections/' + libraryKey + '/all?X-Plex-Token=' + serverToken).then((response) => {
         console.log('library stats XML:', response.data);
@@ -73,6 +76,26 @@ const getLibraryData = async (libraryKey) => {
     });
     console.log('libraryData:', libraryData);
     return libraryData;
+}
+
+// reset library stats
+const resetLibraryStats = () => {
+    selectedLibrarySummary = "",// plain text summary of stat highlights
+    countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
+    countryList = [],
+    countryCounts = [],
+    releaseDateList = [],// stores each instance of a release date
+    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
+    studioInstances = [],
+    sortedStudios = [],
+    genres = {},// this stores genre: count, and is then split into the two following arrays
+    genreList = [],
+    genreCounts = [],
+    durationList = [],// stores each instance of a duration, for movies it is the duration of the movie, for shows it is the avg duration of an episode
+    durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
+    seasonSum = 0,
+    episodeCounts = []
+    episodeSum = 0;
 }
 
 /////////////////////////////////
@@ -99,7 +122,7 @@ const parseMediaPayload = (data) => {
             // multiply the avg episode length by the number of episodes to approximate total duration
             durationSum = durationSum + (item.duration/60000 * item.leafCount);
             // track number of episodes
-            episodeCounts.push(parseInt(item.leafCount));
+            episodeSum = episodeSum + parseInt(item.leafCount);
         } else {
             // it's a movie
             durationSum = durationSum + (item.duration/60000);
@@ -137,18 +160,6 @@ const parseMediaPayload = (data) => {
         if (index == itemCount - 1) {
             //////////////////////////
             // if it's the last entry, calculate stats and prepare data for charts
-            if (type === 'show') {
-                let seasonDurations = [];
-                
-                durationList.forEach((duration, i) => {
-                    // multiply each season's avg ep duration by the number of eps
-                    let seasonDur = duration * episodeCounts[i];
-                    seasonDurations.push(seasonDur);
-                });
-                totalDuration = seasonDurations.reduce(function(acc, val) { return acc + val; }, 0);
-                episodeSum = episodeCounts.reduce(function(acc, val) { return acc + val; }, 0);
-            }
-            
             let totalMins = Math.round(durationSum),
                 totalHours = Math.floor(durationSum/60),
                 totalDays = Math.floor(durationSum/24/60),
@@ -247,6 +258,8 @@ const parseMediaPayload = (data) => {
             // trim the sorted studios to the predefined limit
             sortedStudios = sortedStudios.slice(0, studioLimit);
 
+            // reset all selectedLibraryStats
+            app.selectedLibraryStats = {};
             // build the stats object for the selected library
             app.selectedLibraryStats = {
                 totalItems: itemCount,
@@ -259,7 +272,7 @@ const parseMediaPayload = (data) => {
                 topCountryCount: countryCounts[1].toLocaleString(),
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
-                sortedStudios: sortedStudios,
+                studios: studios,
                 topStudio: sortedStudios[0][0],
                 topStudioCount: sortedStudios[0][1].toLocaleString(),
                 type: type,
@@ -276,17 +289,15 @@ const parseMediaPayload = (data) => {
             app.selectedLibrarySummary = type === 'movie' ?
                 // movies
                 `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()}
-                ${app.selectedLibraryStats.increment} produced by ${app.selectedLibraryStats.sortedStudios.length.toLocaleString()} studios
+                ${app.selectedLibraryStats.increment} produced by ${ Object.keys(app.selectedLibraryStats.studios).length.toLocaleString()} studios
                 across ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()}
                 genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
                 // tv
-                `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment} produced by
-                ${app.selectedLibraryStats.sortedStudios.length.toLocaleString()} studios across
+                `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}
                 (${app.selectedLibraryStats.seasonSum.toLocaleString()} seasons / ${app.selectedLibraryStats.episodeSum.toLocaleString()} episodes)
+                produced by ${Object.keys(app.selectedLibraryStats.studios).length.toLocaleString()} studios across
                 ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
                 The total duration is ${app.selectedLibraryStats.totalDuration}.`
-                console.log('final stats:');
-                console.log(app.selectedLibraryStats);
 
             console.log('selectedLibraryStats');
             console.dir(app.selectedLibraryStats);
