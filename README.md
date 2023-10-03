@@ -24,8 +24,8 @@ runs in the browser and generates statistics specifically about the content of y
 as the content within each library. Medialytics parses that XML feed and performs calculations on the content to
 aggregate and display statistics.
 
-When the page loads, a single API call is made to your server to detect available libraries.
-After selecting a library, a call will be made to the corresponding endpoint that returns that library's data. **The larger the library, the
+When the page loads, two API calls are made to your server: one returns available libraries, the other returns a list of recently added media.
+After selecting an available library, a call will be made to the corresponding endpoint that returns that library's data. **The larger the library, the
 longer this call may take**. The response is then parsed, stats are aggregated, and (depending on the library type) the UI displays relevant data and charts.
 
 **Please note, currently Medialytics only supports Movie and TV libraries (audio, image, etc. have been excluded) but you may customize the code to your liking.**
@@ -47,10 +47,10 @@ to do so safely (at your own risk).
 # Getting Started
 Clone the repository to a local directory on your computer, or download the repository as a zip file and extract the contents. Open the contents in a text editor and do the following:
 
-* At the top of `scripts.js`, set the `serverIp` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
-* At the top of `scripts.js`, set the `serverToken` variable equal to your **PRIVATE** plex token ([instructions on locating token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)) **Do not share this value with anyone!** If compromised, generate a new one (instructions in previous link).
-* Drag `index.html` into a browser
-* You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
+1. At the top of `scripts.js`, set the `serverIp` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
+1. At the top of `scripts.js`, set the `serverToken` variable equal to your **PRIVATE** plex token. **Do not share this value with anyone!** If compromised, generate a new one ([instructions on locating and generating a token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
+1. Drag `index.html` into a browser
+1. You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
 
 If you know HTML/CSS/JS you can edit the code to your liking. All the application logic and parsing is done in `scripts.js`, styling is in `styles.css`, and the page elements are
 in `index.html`.
