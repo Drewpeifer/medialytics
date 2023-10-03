@@ -1,8 +1,18 @@
 # Medialytics [2.0]
 ### A free analytics tool for Plex server content
 
+--------
+### 2.0 update
+* rebuilt with Vue
+* several optimizations to parsing and aggregation logic
+* removed library view (wasn't particularly useful)
+* streamlined setup process, added library detection instead of manual entry
+* displaying some new statistics
+
+--------
+# What is Medialytics?
 Plex itself, as well as other tools, generate statistics regarding your server activity (most watched, most active, etc.)
-but do not report much on the nature of your media content itself. Medialytics is a small client-side app that
+but they don't report much on the nature of your media content itself. Medialytics is a small client-side app that
 runs in the browser and generates statistics specifically about the content of your server, e.g. top production studio across a libary.
 
 ![header](https://i.imgur.com/hddiF85.png)
