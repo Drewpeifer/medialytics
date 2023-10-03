@@ -238,9 +238,9 @@ const parseMediaPayload = (data) => {
             /////////////////////////
             // items by decade chart
             // remove undefined entries from releaseDateList
-            releaseDateList.forEach((year) => {
+            releaseDateList.forEach((year, i) => {
                 if (typeof year !== 'number' || isNaN(year)) {
-                    releaseDateList.pop(year);
+                    releaseDateList.splice(i, 1);
                 } else {
                     // compare each year to the decadePrefixes array, and if the first 3 chars of the year match the decade prefix,
                     // increment the corresponding index in releaseDateCounts
@@ -253,7 +253,7 @@ const parseMediaPayload = (data) => {
                 }
             });
 
-            let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
+            let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts)) - 1],
             topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
 
             ////////////////////////
@@ -317,16 +317,9 @@ const parseMediaPayload = (data) => {
             // set concatenated summary string
             app.selectedLibrarySummary = type === 'movie' ?
             // movies
-            `This library contains ${app.selectedLibraryStats.totalItems}
-            ${app.selectedLibraryStats.increment}s produced by ${ Object.keys(app.selectedLibraryStats.studios).length.toLocaleString()} studios
-            across ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()}
-            genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :
+            `The total duration is ${app.selectedLibraryStats.totalDuration}.` :
             // tv
-            `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()} ${app.selectedLibraryStats.increment}s
-            (${app.selectedLibraryStats.seasonSum.toLocaleString()} seasons / ${app.selectedLibraryStats.episodeSum.toLocaleString()} episodes)
-            produced by ${Object.keys(app.selectedLibraryStats.studios).length.toLocaleString()} studios across
-            ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()} genres.
-            The total duration is ${app.selectedLibraryStats.totalDuration}.`
+            `The total duration is ${app.selectedLibraryStats.totalDuration}.`
 
             // render charts
             renderCharts();

@@ -81,7 +81,7 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content" v-if="!libraryStatsLoading">
                             <div class="row">
-                                <p>{{ selectedLibrarySummary }}</p>
+                                <p><strong>Total Library Size / Duration:</strong> {{ selectedLibraryStats.totalItems }} {{ selectedLibraryStats.increment }}s / {{ selectedLibraryStats.totalDuration }}</p>
                             </div>
                             <div class="row">
                                 <p><strong># of Genres:</strong> {{ selectedLibraryStats.totalGenreCount }}</p>
