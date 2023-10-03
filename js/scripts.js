@@ -16,8 +16,10 @@ const serverToken = 'YOUR_SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
     decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"];// used for UI/chart display
 
 // GLOBAL VARIABLES
-let availableLibraries = [],// the list of libraries returned by your server
+let debugMode = true,// set to true to enable console logging
+    availableLibraries = [],// the list of libraries returned by your server
     selectedLibrary = "",// the library currently selected by the user
+    selectedLibraryKey = "",// the key of the library currently selected by the user
     selectedLibraryStats = {},// a large object containing all the stats for the selected library
     selectedLibrarySummary = "",// plain text summary of stat highlights
     libraryStatsLoading = false,// used to trigger loading animations
@@ -32,7 +34,6 @@ let availableLibraries = [],// the list of libraries returned by your server
     genres = {},// this stores genre: count, and is then split into the two following arrays
     genreList = [],
     genreCounts = [],
-    durationList = [],// stores each instance of a duration, for movies it is the duration of the movie, for shows it is the avg duration of an episode
     durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
     seasonSum = 0,
     episodeCounts = []
@@ -71,6 +72,7 @@ const getLibraryData = async (libraryKey) => {
     app.availableLibraries.forEach((library) => {
         if (library.key == libraryKey) {
             app.selectedLibrary = library.title;
+            app.selectedLibraryKey = library.key;
         }
     });
     app.libraryStatsLoading = true;
@@ -97,7 +99,6 @@ const resetLibraryStats = () => {
     genres = {},
     genreList = [],
     genreCounts = [],
-    durationList = [],
     durationSum = 0,
     seasonSum = 0,
     episodeCounts = []
@@ -296,6 +297,13 @@ const parseMediaPayload = (data) => {
 
             // render charts
             renderCharts();
+
+            // if debug mode is enabled, log data into the console:
+            if (debugMode) {
+                console.log('Library Selected: ', app.selectedLibrary);
+                console.log('Total Items: ', itemCount);
+                console.log('Library XML: ' + serverIp + '/library/sections/' + app.selectedLibraryKey + '/all?X-Plex-Token=' + serverToken);
+            }
         }
     });
 
@@ -406,11 +414,13 @@ const renderCharts = () => {
 const app = new Vue({
     el: '#app',
     data: {
+        debugMode: debugMode,
         serverIp: serverIp,
         serverToken: serverToken,
         availableLibraries: availableLibraries,
         libraryStatsLoading: libraryStatsLoading,
         selectedLibrary: selectedLibrary,
+        selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
         selectedLibrarySummary: selectedLibrarySummary,
         recentlyAdded: recentlyAdded,
@@ -418,6 +428,14 @@ const app = new Vue({
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
             app.availableLibraries = parseLibraryList(response.data);
+            // if debug mode is enabled, log data into the console:
+            if (debugMode) {
+                console.log('*** DEBUG MODE ENABLED ***');
+                console.log('Welcome to Medialytics!');
+                console.log('Server IP: ', serverIp);
+                console.log('Server Token: ', serverToken);
+                console.log('Available Libraries: ', app.availableLibraries);
+            }
         }).then(() => {
             getRecentlyAdded().then((data) => {
                 app.recentlyAdded = data;

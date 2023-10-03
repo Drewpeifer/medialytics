@@ -28,6 +28,9 @@
 					Credentials unset. Please edit scripts.js to set your server IP and token.
 				</h3>
 			</div>
+			<div class="warning" v-if="debugMode">
+				<p>Debug mode enabled, open developer tools (F12) for more info</p>
+			</div>
             <h3>Targeted Server:</p>
             <h3 class="orange"><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></h3>
             <div class="card recently-added">

@@ -65,6 +65,7 @@ If your libraries do not automatically load after following the instructions abo
 1. Confirm that you have entered the correct values for your (public) `serverIp` and (very **private**) `serverToken` at the top of the `medialytics/js/scripts.js` file.
 1. Confirm that your public IP (found in Plex web Settings > Remote Access) is correct and resolves in a local browser
 1. Confirm that you are using the correct / most current plex token ([related documentation](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
+1. Near the top of `scripts.js`, set the `debugMode` variable equal to `true`. Now return to the browser, refresh the page, and there should be a message saying that debug mode is enabled. Press F12 or ctrl+click to open the developer tools for your browser, and navigate to the console. You should see information printed about your server's available libraries, and if you select a library in the UI more info will be displayed in the console.
 
 ### How recent is this data?
 Data is retrieved from Plex in real time. When you load the page or select a library, you are making a fresh request to the targeted server each time.
