@@ -62,8 +62,6 @@ const getRecentlyAdded = async () => {
     let recentlyAdded = await axios.get(recentlyAddedUrl).then((response) => {
         return response.data.MediaContainer.Metadata;
     });
-    console.log('recently added:');
-    console.dir(recentlyAdded);
     return recentlyAdded;
 }
 
