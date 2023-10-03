@@ -81,27 +81,34 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content" v-if="!libraryStatsLoading">
                             <div class="row">
-                                <p><strong>Total Library Size / Duration:</strong> {{ selectedLibraryStats.totalItems }} {{ selectedLibraryStats.increment }}s / {{ selectedLibraryStats.totalDuration }}</p>
+                                <p v-if="selectedLibraryStats.increment == 'movie'"><strong>Library Size:</strong> {{ selectedLibraryStats.totalItems.toLocaleString() }} movies</p>
+                                <p v-else>
+                                    <strong>Library Size:</strong>
+                                    {{ selectedLibraryStats.totalItems.toLocaleString() }} shows /
+                                    {{ selectedLibraryStats.seasonSum.toLocaleString() }} seasons /
+                                    {{ selectedLibraryStats.episodeSum.toLocaleString() }} episodes
+                                </p>
+                                <p><strong>Library Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
                             </div>
                             <div class="row">
-                                <p><strong># of Genres:</strong> {{ selectedLibraryStats.totalGenreCount }}</p>
-                                <p><strong># of Countries:</strong> {{ selectedLibraryStats.totalCountryCount }}</p>
-                                <p><strong># of Studios:</strong> {{ selectedLibraryStats.totalStudioCount }}</p>
+                                <p><strong># of Genres:</strong> {{ selectedLibraryStats.totalGenreCount.toLocaleString() }}</p>
+                                <p><strong># of Countries:</strong> {{ selectedLibraryStats.totalCountryCount.toLocaleString() }}</p>
+                                <p><strong># of Studios:</strong> {{ selectedLibraryStats.totalStudioCount.toLocaleString() }}</p>
                             </div>
                             <div class="row">
-                                <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
-                                <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
-                                <p><strong>Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
+                                <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount.toLocaleString() }})</p>
+                                <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount.toLocaleString() }})</p>
+                                <p><strong>Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount.toLocaleString() }})</p>
                             </div>
                             <div class="row">
-                                <p><strong>Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
+                                <p><strong>Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount.toLocaleString() }})</p>
                                 <p v-if="selectedLibraryStats.increment === 'movie'">
                                     <strong>Longest {{ selectedLibraryStats.increment }}:</strong>
                                     {{ selectedLibraryStats.longestTitle }} ({{ Math.floor(selectedLibraryStats.longestDuration / 60000) }} mins)
                                 </p>
                                 <p v-else>
                                     <strong>Longest {{ selectedLibraryStats.increment }}:</strong>
-                                    {{ selectedLibraryStats.longestTitle }} ({{ selectedLibraryStats.longestDuration }} episodes)
+                                    {{ selectedLibraryStats.longestTitle }} ({{ selectedLibraryStats.longestDuration.toLocaleString() }} episodes)
                                 </p>
                                 <p><strong>Oldest {{ selectedLibraryStats.increment }}:</strong> {{ selectedLibraryStats.oldestTitle }}</p>
                             </div>
