@@ -16,7 +16,7 @@ const serverToken = 'YOUR_SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
     decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"];// used for UI/chart display
 
 // GLOBAL VARIABLES
-let debugMode = true,// set to true to enable console logging
+let debugMode = false,// set to true to enable console logging
     availableLibraries = [],// the list of libraries returned by your server
     selectedLibrary = "",// the library currently selected by the user
     selectedLibraryKey = "",// the key of the library currently selected by the user
