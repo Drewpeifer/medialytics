@@ -13,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.20/c3.min.js"></script>
     <!-- fonts and styling -->
 	<link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
-	<link rel="stylesheet" href="css/styles2.css">
+	<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="wrapper">
@@ -23,6 +23,11 @@
             <h3 class="orange">This tool is not associated with Plex, and is intended only for private and non-commercial use</h3>
         </div>
         <div id="app">
+			<div class="warning" v-if="serverIp === 'YOUR_SERVER_IP' || serverToken === 'YOUR_SERVER_TOKEN'">
+				<h3>
+					Credentials unset. Please edit scripts.js to set your server IP and token.
+				</h3>
+			</div>
             <h3>Targeted Server:</p>
             <h3 class="orange"><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></h3>
             <div class="card recently-added">
@@ -140,7 +145,7 @@
                 </div>
             </div>
         </div>
-    <script type="text/javascript" src="js/scripts2.js"></script>
+    <script type="text/javascript" src="js/scripts.js"></script>
     </div>
 </body>
 </html>

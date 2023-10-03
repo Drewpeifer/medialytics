@@ -23,6 +23,9 @@ h1 strong, .orange, a {
     font-style: italic;
     margin: 5px 0 10px 0;
 }
+.warning {
+	color: red;
+}
 .library-list p {
     padding: 5px;
 }
