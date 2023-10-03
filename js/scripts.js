@@ -285,20 +285,23 @@ const parseMediaPayload = (data) => {
             app.selectedLibraryStats = {};
             // build the stats object for the selected library
             app.selectedLibraryStats = {
-                totalItems: itemCount,
+                totalItems: itemCount.toLocaleString(),
                 totalDays: totalDays,
                 displayHours: totalHours - (totalDays*24),
                 displayMins: totalMins - (totalHours*60),
                 topGenre: genreList[0],
                 topGenreCount: genreCounts[1].toLocaleString(),
+                totalGenreCount: Object.keys(genres).length.toLocaleString(),
                 topCountry: countryList[0],
                 topCountryCount: countryCounts[1].toLocaleString(),
+                totalCountryCount: Object.keys(countries).length.toLocaleString(),
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
                 studios: studios,
                 topStudio: sortedStudios[0][0],
                 topStudioCount: sortedStudios[0][1].toLocaleString(),
+                totalStudioCount: Object.keys(studios).length.toLocaleString(),
                 type: type,
                 increment: type === 'movie'? 'movie' : 'show',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
@@ -314,7 +317,7 @@ const parseMediaPayload = (data) => {
             // set concatenated summary string
             app.selectedLibrarySummary = type === 'movie' ?
             // movies
-            `This library contains ${app.selectedLibraryStats.totalItems.toLocaleString()}
+            `This library contains ${app.selectedLibraryStats.totalItems}
             ${app.selectedLibraryStats.increment}s produced by ${ Object.keys(app.selectedLibraryStats.studios).length.toLocaleString()} studios
             across ${Object.keys(countries).length.toLocaleString()} countries spanning ${Object.keys(genres).length.toLocaleString()}
             genres. The total duration is ${app.selectedLibraryStats.totalDuration}.` :

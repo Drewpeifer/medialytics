@@ -20,7 +20,7 @@
         <div class="header">
             <h1>Media<strong>lytics</strong> [2.0]</h1>
             <h2>A free analytics tool for Plex servers</h2>
-            <h3 class="orange">This tool is not associated with Plex, and is intended only for private and non-commercial use</h3>
+            <h3>This tool is not associated with Plex, and is intended only for private and non-commercial use</h3>
         </div>
         <div id="app">
             <div class="warning" v-if="serverIp === 'YOUR_SERVER_IP' || serverToken === 'YOUR_SERVER_TOKEN'">
@@ -31,135 +31,140 @@
             <div class="warning" v-if="debugMode">
                 <p>Debug mode enabled, open developer tools (F12) for more info</p>
             </div>
-            <h3>Targeted Server:</p>
-                <h3 class="orange"><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></h3>
-                <div class="card recently-added">
-                    <div class="header">
-                        <p>Recently Added</p>
+            <h2>Targeted Server:</h2>
+            <h3><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></h3>
+            <div class="card recently-added">
+                <div class="header">
+                    <p>Recently Added</p>
+                </div>
+                <div class="content">
+                    <div class="row">
+                        <div class="entry" v-for="item in recentlyAdded" v-bind:key="item.key">
+                            <template v-if="item.type === 'movie'">
+                                <img v-bind:src="serverIp + item.thumb + '?X-Plex-Token=' + serverToken"
+                                v-bind:alt="item.title" />
+                                <div class="info">
+                                    <p class="title">{{ item.title }}</p>
+                                    <p class="year">({{ item.year }})</p>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <img v-bind:src="serverIp + item.parentThumb + '?X-Plex-Token=' + serverToken"
+                                v-bind:alt="item.parentTitle" />
+                                <div class="info">
+                                    <p class="title">{{ item.parentTitle }} / {{ item.title }}</p>
+                                    <p class="year">({{ item.parentYear }})</p>
+                                </div>
+                            </template>
+                        </div>
                     </div>
-                    <div class="content">
-                        <div class="row">
-                            <div class="entry" v-for="item in recentlyAdded" v-bind:key="item.key">
-                                <template v-if="item.type === 'movie'">
-                                    <img v-bind:src="serverIp + item.thumb + '?X-Plex-Token=' + serverToken"
-                                    v-bind:alt="item.title" />
-                                    <div class="info">
-                                        <p class="title">{{ item.title }}</p>
-                                        <p class="year">({{ item.year }})</p>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <img v-bind:src="serverIp + item.parentThumb + '?X-Plex-Token=' + serverToken"
-                                    v-bind:alt="item.parentTitle" />
-                                    <div class="info">
-                                        <p class="title">{{ item.parentTitle }} / {{ item.title }}</p>
-                                        <p class="year">({{ item.parentYear }})</p>
-                                    </div>
-                                </template>
+                </div>
+            </div>
+            <div class="card library-list">
+                <div class="header">
+                    <p>Available Libraries</p>
+                </div>
+                <div class="content">
+                    <div class="row">
+                        <div v-for="library in availableLibraries" v-bind:key="library.key">                            
+                            <p :class="{  selected : selectedLibrary === library.title }"><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="library-info" v-if="selectedLibrary.length > 0">
+                <div class="row">
+                    <div class="card library-stats">
+                        <div class="header">
+                            <p>Statistics for {{ selectedLibrary }}</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content" v-if="!libraryStatsLoading">
+                            <div class="row">
+                                <p>{{ selectedLibrarySummary }}</p>
+                            </div>
+                            <div class="row">
+                                <p><strong># of Genres:</strong> {{ selectedLibraryStats.totalGenreCount }}</p>
+                                <p><strong># of Countries:</strong> {{ selectedLibraryStats.totalCountryCount }}</p>
+                                <p><strong># of Studios:</strong> {{ selectedLibraryStats.totalStudioCount }}</p>
+                            </div>
+                            <div class="row">
+                                <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
+                                <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
+                                <p><strong>Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
+                            </div>
+                            <div class="row">
+                                <p><strong>Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
+                                <p v-if="selectedLibraryStats.increment === 'movie'">
+                                    <strong>Longest {{ selectedLibraryStats.increment }}:</strong>
+                                    {{ selectedLibraryStats.longestTitle }} ({{ Math.floor(selectedLibraryStats.longestDuration / 60000) }} mins)
+                                </p>
+                                <p v-else>
+                                    <strong>Longest {{ selectedLibraryStats.increment }}:</strong>
+                                    {{ selectedLibraryStats.longestTitle }} ({{ selectedLibraryStats.longestDuration }} episodes)
+                                </p>
+                                <p><strong>Oldest {{ selectedLibraryStats.increment }}:</strong> {{ selectedLibraryStats.oldestTitle }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card library-list">
-                    <div class="header">
-                        <p>Available Libraries</p>
-                    </div>
-                    <div class="content">
-                        <div class="row">
-                            <div v-for="library in availableLibraries" v-bind:key="library.key">                            
-                                <p :class="{  selected : selectedLibrary === library.title }"><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a></p>
+                <!-- items by genre chart -->
+                <div class="row">
+                    <div class="card full">
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div v-else class="header">
+                            <p>{{ selectedLibraryStats.increment }}s per Genre (Top {{ selectedLibraryStats.genreLimit }})</p>
+                        </div>
+                        <div class="content"><!-- don't hide via v-if, must be visible for d3 to render -->
+                            <div class="row">
+                                <div class="chart items-by-genre"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="library-info" v-if="selectedLibrary.length > 0">
-                    <div class="row">
-                        <div class="card">
-                            <div class="header">
-                                <p>Statistics for {{ selectedLibrary }}</p>
-                            </div>
-                            <div v-if="libraryStatsLoading" class="loader"></div>
-                            <div class="content" v-if="!libraryStatsLoading">
-                                <div class="row">
-                                    <p>{{ selectedLibrarySummary }}</p>
-                                </div>
-                                <div class="row stats">
-                                    <p><strong class="orange">Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
-                                    <p><strong class="orange">Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
-                                    <p><strong class="orange">Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
-                                </div>
-                                <div class="row stats">
-                                    <p><strong class="orange">Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
-                                    <p v-if="selectedLibraryStats.increment === 'movie'">
-                                        <strong class="orange">Longest {{ selectedLibraryStats.increment }}:</strong>
-                                        {{ selectedLibraryStats.longestTitle }} ({{ Math.floor(selectedLibraryStats.longestDuration / 60000) }} mins)
-                                    </p>
-                                    <p v-else>
-                                        <strong class="orange">Longest {{ selectedLibraryStats.increment }}:</strong>
-                                        {{ selectedLibraryStats.longestTitle }} ({{ selectedLibraryStats.longestDuration }} episodes)
-                                    </p>
-                                    <p><strong class="orange">Oldest {{ selectedLibraryStats.increment }}:</strong> {{ selectedLibraryStats.oldestTitle }}</p>
-                                </div>
+                <div class="row">
+                    <!-- items by country chart -->
+                    <div class="card full">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }}s per Country (Top {{ selectedLibraryStats.countryLimit }})</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <div class="chart items-by-country"></div>
                             </div>
                         </div>
                     </div>
-                    <!-- items by genre chart -->
-                    <div class="row">
-                        <div class="card full">
-                            <div class="header">
-                                <p>{{ selectedLibraryStats.increment }}s per Genre (Top {{ selectedLibraryStats.genreLimit }})</p>
-                            </div>
-                            <div v-if="libraryStatsLoading" class="loader"></div>
-                            <div class="content"><!-- don't hide via v-if, must be visible for d3 to render -->
-                                <div class="row">
-                                    <div class="chart items-by-genre"></div>
-                                </div>
+                </div>
+                <div class="row">
+                    <!-- items by decade chart -->
+                    <div class="card half">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }}s per Decade</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <div class="chart items-by-decade"></div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <!-- items by country chart -->
-                        <div class="card full">
-                            <div class="header">
-                                <p>{{ selectedLibraryStats.increment }}s per Country (Top {{ selectedLibraryStats.countryLimit }})</p>
-                            </div>
-                            <div v-if="libraryStatsLoading" class="loader"></div>
-                            <div class="content">
-                                <div class="row">
-                                    <div class="chart items-by-country"></div>
-                                </div>
-                            </div>
+                    <!-- items by studio chart -->
+                    <div class="card half">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }}s per Studio (Top {{ selectedLibraryStats.studioLimit }})</p>
                         </div>
-                    </div>
-                    <div class="row">
-                        <!-- items by decade chart -->
-                        <div class="card half">
-                            <div class="header">
-                                <p>{{ selectedLibraryStats.increment }}s per Decade</p>
-                            </div>
-                            <div v-if="libraryStatsLoading" class="loader"></div>
-                            <div class="content">
-                                <div class="row">
-                                    <div class="chart items-by-decade"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- items by studio chart -->
-                        <div class="card half">
-                            <div class="header">
-                                <p>{{ selectedLibraryStats.increment }}s per Studio (Top {{ selectedLibraryStats.studioLimit }})</p>
-                            </div>
-                            <div v-if="libraryStatsLoading" class="loader"></div>
-                            <div class="content">
-                                <div class="row">
-                                    <div class="chart items-by-studio"></div>
-                                </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <div class="chart items-by-studio"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <script type="text/javascript" src="js/scripts.js"></script>
         </div>
-    </body>
-    </html>
+        <script type="text/javascript" src="js/scripts.js"></script>
+    </div>
+</body>
+</html>
