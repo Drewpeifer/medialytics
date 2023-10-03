@@ -1,19 +1,20 @@
 # Medialytics [2.0]
+### A free analytics tool for Plex server content
 
 Plex itself, as well as other tools, generate statistics regarding your server activity (most watched, most active, etc.)
 but do not report much on the nature of your media content itself. Medialytics is a small client-side app that
 runs in the browser and generates statistics specifically about the content of your server, e.g. top production studio across a libary.
 
-![header](https://i.imgur.com/9cXCIbT.png)
+![header](https://i.imgur.com/hddiF85.png)
 
-![visualizations](https://i.imgur.com/9T3tiNQ.png)
-
-![libraries](https://i.imgur.com/I73CQBb.jpg)
+![visualizations](https://i.imgur.com/8vz5tL6.png)
 
 ## How does it work?
-[Plex](http://www.plex.tv) servers generate an XML feed that displays the libraries associated with a server, as well
+[Plex](http://www.plex.tv) servers generate an XML feed that returns a list of libraries associated with a server, as well
 as the content within each library. Medialytics parses that XML feed and performs calculations on the content to
-aggregate and display statistics. When the page loads, a single API call is made to your server to detect available libraries.
+aggregate and display statistics.
+
+When the page loads, a single API call is made to your server to detect available libraries.
 After selecting a library, a call will be made to the corresponding endpoint that returns that library's data. **The larger the library, the
 longer this call may take**. The response is then parsed, stats are aggregated, and (depending on the library type) the UI displays relevant data and charts.
 
@@ -31,18 +32,20 @@ there is no "read-only" option.
 I am not liable for any damages or inconvenience caused by the improper sharing of your token, **it is your responsibility to ensure it is never shared with anyone**.
 Additionally, **you should not host your copy of Medialytics anywhere that is publicly accessible**, as the token itself is sent as part of the API request. Medialytics
 is only recommended for local usage at this time (just drag the html file into your browser, no server needed), but you are welcome to host it securely if you have the knowledge base
-to do so safely, at your own risk.
+to do so safely (at your own risk).
 
-# How do I use it?
-To get started, clone the repository to a local directory on your computer, or download the repository as a zip file and extract the contents.
-The below section describes how to connect to your Plex server in a few simple steps. If you're a developer, feel free to edit the HTML/CSS/JS to your liking.
-**Anyone is welcome to fork / contribute / utilize for non-commercial purposes.** 
+# Getting Started
+Clone the repository to a local directory on your computer, or download the repository as a zip file and extract the contents. Open the contents in a text editor and do the following:
 
-## Getting Started
 * At the top of `scripts.js`, set the `serverIp` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
 * At the top of `scripts.js`, set the `serverToken` variable equal to your **PRIVATE** plex token ([instructions on locating token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)) **Do not share this value with anyone!** If compromised, generate a new one (instructions in previous link).
 * Drag `index.html` into a browser
 * You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
+
+If you know HTML/CSS/JS you can edit the code to your liking. All the application logic and parsing is done in `scripts.js`, styling is in `styles.css`, and the page elements are
+in `index.html`.
+
+**Anyone is welcome to fork / contribute / utilize for non-commercial purposes.** Credit for use elsewhere is appreciated but not required.
 
 ## Troubleshooting / FAQ
 *Medialytics is not designed for libraries with non-video content (e.g. music, photos, or audiobook functionality is untested). Only Movie and TV libraries will be parsed by default.*
