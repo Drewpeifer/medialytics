@@ -18,6 +18,13 @@ h1 {
 h1 strong, .orange, a {
     color: orange;
 }
+.stats p {
+    margin: 5px 25px;
+}
+.stats p strong {
+    display: block;
+    white-space: nowrap;
+}
 h3 {
     font-size: 14px;
     margin: 5px 0 10px 0;
@@ -69,6 +76,10 @@ h3 {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
+}
+.row.stats p {
+    flex-grow: 2;
+    min-width: 30%;
 }
 .full {
     min-width: 98%;

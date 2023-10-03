@@ -67,7 +67,7 @@
                     <div class="content">
                         <div class="row">
                             <div v-for="library in availableLibraries" v-bind:key="library.key">                            
-                                <p :class="{selected : selectedLibrary === library.title }"><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a></p>
+                                <p :class="{  selected : selectedLibrary === library.title }"><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a></p>
                             </div>
                         </div>
                     </div>
@@ -83,20 +83,22 @@
                                 <div class="row">
                                     <p>{{ selectedLibrarySummary }}</p>
                                 </div>
-                                <div class="row">
-                                    <p>Top Genre: {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
-                                    <p>Top Country: {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
-                                    <p>Top Decade: {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
-                                    <p>Top Studio: {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
-                                    <p>Oldest Item: {{ selectedLibraryStats.oldestTitle }}</p>
+                                <div class="row stats">
+                                    <p><strong class="orange">Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
+                                    <p><strong class="orange">Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
+                                    <p><strong class="orange">Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
+                                </div>
+                                <div class="row stats">
+                                    <p><strong class="orange">Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
                                     <p v-if="selectedLibraryStats.increment === 'movie'">
-                                        Longest {{ selectedLibraryStats.increment }}:
+                                        <strong class="orange">Longest {{ selectedLibraryStats.increment }}:</strong>
                                         {{ selectedLibraryStats.longestTitle }} ({{ Math.floor(selectedLibraryStats.longestDuration / 60000) }} mins)
                                     </p>
                                     <p v-else>
-                                        Longest {{ selectedLibraryStats.increment }}:
+                                        <strong class="orange">Longest {{ selectedLibraryStats.increment }}:</strong>
                                         {{ selectedLibraryStats.longestTitle }} ({{ selectedLibraryStats.longestDuration }} episodes)
                                     </p>
+                                    <p><strong class="orange">Oldest {{ selectedLibraryStats.increment }}:</strong> {{ selectedLibraryStats.oldestTitle }}</p>
                                 </div>
                             </div>
                         </div>
