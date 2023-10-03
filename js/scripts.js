@@ -13,11 +13,10 @@ recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Conta
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
 // be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
 decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
-decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"];// used for UI/chart display
+decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],// used for UI/chart display
+debugMode = false;// set to true to enable console logging
 
-// GLOBAL VARIABLES
-let debugMode = false,// set to true to enable console logging
-availableLibraries = [],// the list of libraries returned by your server
+let availableLibraries = [],// the list of libraries returned by your server
 selectedLibrary = "",// the library currently selected by the user
 selectedLibraryKey = "",// the key of the library currently selected by the user
 selectedLibraryStats = {},// a large object containing all the stats for the selected library
@@ -238,23 +237,29 @@ const parseMediaPayload = (data) => {
             /////////////////////////
             // items by decade chart
             // remove undefined entries from releaseDateList
-            releaseDateList.forEach((year, i) => {
+            releaseDateList.forEach((year, index) => {
                 if (typeof year !== 'number' || isNaN(year)) {
-                    releaseDateList.splice(i, 1);
+                    releaseDateList.splice(index, 1);
                 } else {
                     // compare each year to the decadePrefixes array, and if the first 3 chars of the year match the decade prefix,
                     // increment the corresponding index in releaseDateCounts
                     let yearSub = year.toString().substring(0, 3);
+                    console.log('yearSub: ', yearSub);
+                    console.log('decadePrefixes: ', decadePrefixes);
                     for (let i = 0; i < decadePrefixes.length; i++) {
                         if (yearSub == decadePrefixes[i]) {
+                            console.log('found a match!');
+                            console.log(yearSub + ' == ' + decadePrefixes[i]);
                             releaseDateCounts[i]++;
                         }
                     }
                 }
             });
 
-            let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts)) - 1],
-            topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
+            let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
+                topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
+
+            releaseDateCounts.unshift("releaseDateCounts");
 
             ////////////////////////
             // items by studio chart
