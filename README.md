@@ -15,9 +15,9 @@ Plex itself, as well as other tools, generate statistics regarding your server a
 but they don't report much on the nature of your media content itself. Medialytics is a small client-side app that
 runs in the browser and generates statistics specifically about the content of your server, e.g. top production studio across a libary.
 
-![header](https://i.imgur.com/hddiF85.png)
+![header](https://i.imgur.com/qSRyhUG.png)
 
-![visualizations](https://i.imgur.com/8vz5tL6.png)
+![visualizations](https://i.imgur.com/i7D0g0s.png)
 
 ## How does it work?
 [Plex](http://www.plex.tv) servers generate an XML feed that returns a list of libraries associated with a server, as well

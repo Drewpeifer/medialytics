@@ -4,12 +4,12 @@
 const serverToken = 'SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
     serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
     libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
-    recentLimit = 20,
-    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
-    // below are the limits for displaying data in the charts, e.g. "Top X Countries"
+    // below are the limits for displaying data in the charts, e.g. "Top X Countries", and the recently added list
     countryLimit = 20,
     genreLimit = 20,
     studioLimit = 20,
+    recentLimit = 10,
+    recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
     // below are the decade arrays used for the items by decade chart, any data outside of these decades will
     // be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
     decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
@@ -21,6 +21,7 @@ let availableLibraries = [],// the list of libraries returned by your server
     selectedLibraryStats = {},// a large object containing all the stats for the selected library
     selectedLibrarySummary = "",// plain text summary of stat highlights
     libraryStatsLoading = false,// used to trigger loading animations
+    recentlyAdded = [],// the list of recently added items returned by your server
     countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
     countryList = [],
     countryCounts = [],
@@ -53,6 +54,17 @@ const parseLibraryList = (data) => {
         }
     });
     return libraries;
+}
+
+/////////////////////////////////
+// generate recently added list (for the entire server)
+const getRecentlyAdded = async () => {
+    let recentlyAdded = await axios.get(recentlyAddedUrl).then((response) => {
+        return response.data.MediaContainer.Metadata;
+    });
+    console.log('recently added:');
+    console.dir(recentlyAdded);
+    return recentlyAdded;
 }
 
 /////////////////////////////////
@@ -397,15 +409,21 @@ const app = new Vue({
     el: '#app',
     data: {
         serverIp: serverIp,
+        serverToken: serverToken,
         availableLibraries: availableLibraries,
         libraryStatsLoading: libraryStatsLoading,
         selectedLibrary: selectedLibrary,
         selectedLibraryStats: selectedLibraryStats,
-        selectedLibrarySummary: selectedLibrarySummary
+        selectedLibrarySummary: selectedLibrarySummary,
+        recentlyAdded: recentlyAdded,
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
             app.availableLibraries = parseLibraryList(response.data);
-        })
+        }).then(() => {
+            getRecentlyAdded().then((data) => {
+                app.recentlyAdded = data;
+            });
+        });
     }
 });
