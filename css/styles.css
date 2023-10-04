@@ -68,7 +68,7 @@ h3 {
 .card .content .row {
     display: flex;
     flex-direction: row;
-    justify-content: space-evenly;
+    justify-content: space-around;
     margin: 10px;
 }
 
