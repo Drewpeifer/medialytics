@@ -500,9 +500,6 @@ const renderCharts = () => {
         color: {
             pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
         },
-        legend: {
-            hide: true
-        },
         tooltip: {
             format: {
                 value: function (value, ratio, id) {
@@ -528,9 +525,6 @@ const renderCharts = () => {
         color: {
             pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
         },
-        legend: {
-            hide: true
-        },
         tooltip: {
             format: {
                 value: function (value, ratio, id) {
@@ -555,9 +549,6 @@ const renderCharts = () => {
         },
         color: {
             pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
-        },
-        legend: {
-            hide: true
         },
         tooltip: {
             format: {
