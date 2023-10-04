@@ -8,6 +8,8 @@ libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
 countryLimit = 20,
 genreLimit = 20,
 studioLimit = 20,
+directorLimit = 20,
+actorLimit = 20,
 recentLimit = 10,
 recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
@@ -30,8 +32,12 @@ releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
 oldestTitle = "",// the oldest title in the library
 oldestReleaseDate = "",// the oldest release date in the library
-studioInstances = [],
+studioInstances = [],// arrays of type fooInstances and sortedFoo are used to generate the pie charts
 sortedStudios = [],
+directorInstances = [],
+sortedDirectors = [],
+actorInstances = [],
+sortedActors = [],
 genres = {},// this stores genre: count, and is then split into the two following arrays
 genreList = [],
 genreCounts = [],
@@ -84,6 +90,8 @@ const getLibraryData = async (libraryKey) => {
         app.libraryStatsLoading = false;
         return response.data.MediaContainer;
     });
+    // uncomment the following line to print the raw xml in the console
+    // console.log('Library Data: ', libraryData);
     resetLibraryStats();
     return libraryData;
 }
@@ -101,6 +109,10 @@ const resetLibraryStats = () => {
     oldestReleaseDate = "",
     studioInstances = [],
     sortedStudios = [],
+    directorInstances = [],
+    sortedDirectors = [],
+    actorInstances = [],
+    sortedActors = [],
     genres = {},
     genreList = [],
     genreCounts = [],
@@ -186,6 +198,24 @@ const parseMediaPayload = (data) => {
         } else {
             // no countries
         }
+
+        // track directors
+        if (item.Director) {
+            item.Director.forEach((director) => {
+                directorInstances.push(director.tag);
+            });
+        } else {
+            // no directors
+        }
+
+        // track actors
+        if (item.Role) {
+            item.Role.forEach((actor) => {
+                actorInstances.push(actor.tag);
+            });
+        } else {
+            // no actors
+        }
         
         //////////////////////////
         // if it's the last entry in the library, calculate stats and prepare data for charts
@@ -244,12 +274,8 @@ const parseMediaPayload = (data) => {
                     // compare each year to the decadePrefixes array, and if the first 3 chars of the year match the decade prefix,
                     // increment the corresponding index in releaseDateCounts
                     let yearSub = year.toString().substring(0, 3);
-                    console.log('yearSub: ', yearSub);
-                    console.log('decadePrefixes: ', decadePrefixes);
                     for (let i = 0; i < decadePrefixes.length; i++) {
                         if (yearSub == decadePrefixes[i]) {
-                            console.log('found a match!');
-                            console.log(yearSub + ' == ' + decadePrefixes[i]);
                             releaseDateCounts[i]++;
                         }
                     }
@@ -272,7 +298,6 @@ const parseMediaPayload = (data) => {
                     studios[studio] = 1;
                 }
             });
-
             // remove undefined entries from studioInstances
             delete studios['undefined'];
             // sort the studios dictionary by count
@@ -282,9 +307,54 @@ const parseMediaPayload = (data) => {
             sortedStudios.sort(function(a, b) {
                 return b[1] - a[1];
             });
-
             // trim the sorted studios to the predefined limit
             sortedStudios = sortedStudios.slice(0, studioLimit);
+
+            ////////////////////////
+            // items by director chart
+            let directors = {};
+            // build a dictionary of directors and their counts
+            directorInstances.forEach((director) => {
+                if (directors.hasOwnProperty(director)) {
+                    directors[director]++;
+                } else {
+                    directors[director] = 1;
+                }
+            });
+            // remove undefined entries from directorInstances
+            delete directors['undefined'];
+            // sort the directors dictionary by count
+            for (director in directors) {
+                sortedDirectors.push([director, directors[director]]);
+            }
+            sortedDirectors.sort(function(a, b) {
+                return b[1] - a[1];
+            });
+            // trim the sorted directors to the predefined limit
+            sortedDirectors = sortedDirectors.slice(0, directorLimit);
+
+            ////////////////////////
+            // items by actor chart
+            let actors = {};
+            // build a dictionary of actors and their counts
+            actorInstances.forEach((actor) => {
+                if (actors.hasOwnProperty(actor)) {
+                    actors[actor]++;
+                } else {
+                    actors[actor] = 1;
+                }
+            });
+            // remove undefined entries from actorInstances
+            delete actors['undefined'];
+            // sort the actors dictionary by count
+            for (actor in actors) {
+                sortedActors.push([actor, actors[actor]]);
+            }
+            sortedActors.sort(function(a, b) {
+                return b[1] - a[1];
+            });
+            // trim the sorted directors to the predefined limit
+            sortedActors = sortedActors.slice(0, directorLimit);
 
             // reset all selectedLibraryStats
             app.selectedLibraryStats = {};
@@ -307,6 +377,10 @@ const parseMediaPayload = (data) => {
                 topStudio: sortedStudios[0][0],
                 topStudioCount: sortedStudios[0][1].toLocaleString(),
                 totalStudioCount: Object.keys(studios).length.toLocaleString(),
+                topDirector: sortedDirectors.length > 0 ? sortedDirectors[0][0] : "",
+                topDirectorCount: sortedDirectors.length > 0 ? sortedDirectors[0][1].toLocaleString() : 0,
+                topActor: sortedActors.length > 0 ? sortedActors[0][0] : "",
+                topActorCount: sortedActors.length > 0 ? sortedActors[0][1].toLocaleString() : 0,
                 type: type,
                 increment: type === 'movie'? 'movie' : 'show',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
@@ -414,6 +488,62 @@ const renderCharts = () => {
         data: {
             // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
             columns: sortedStudios,
+            type : 'pie'
+        },
+        pie: {
+            label: {
+                format: function (value, ratio, id) {
+                    return value;
+                }
+            }
+        },
+        color: {
+            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+        },
+        legend: {
+            hide: true
+        },
+        tooltip: {
+            format: {
+                value: function (value, ratio, id) {
+                    return id + ' : ' + value;
+                }
+            }
+        }
+    });
+    c3.generate({
+        bindto: '.items-by-director',
+        data: {
+            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
+            columns: sortedDirectors,
+            type : 'pie'
+        },
+        pie: {
+            label: {
+                format: function (value, ratio, id) {
+                    return value;
+                }
+            }
+        },
+        color: {
+            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+        },
+        legend: {
+            hide: true
+        },
+        tooltip: {
+            format: {
+                value: function (value, ratio, id) {
+                    return id + ' : ' + value;
+                }
+            }
+        }
+    });
+    c3.generate({
+        bindto: '.items-by-actor',
+        data: {
+            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
+            columns: sortedActors,
             type : 'pie'
         },
         pie: {

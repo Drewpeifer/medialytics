@@ -81,19 +81,24 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content" v-if="!libraryStatsLoading">
                             <div class="row">
-                                <p v-if="selectedLibraryStats.increment == 'movie'"><strong>Library Size:</strong> {{ selectedLibraryStats.totalItems.toLocaleString() }} movies</p>
+                                <p v-if="selectedLibraryStats.increment === 'movie'"><strong>Total Size:</strong> {{ selectedLibraryStats.totalItems.toLocaleString() }} movies</p>
                                 <p v-else>
-                                    <strong>Library Size:</strong>
+                                    <strong>Total Size:</strong>
                                     {{ selectedLibraryStats.totalItems.toLocaleString() }} shows /
                                     {{ selectedLibraryStats.seasonSum.toLocaleString() }} seasons /
                                     {{ selectedLibraryStats.episodeSum.toLocaleString() }} episodes
                                 </p>
-                                <p><strong>Library Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
+                                <p><strong>Total Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
                             </div>
                             <div class="row">
-                                <p><strong># of Genres:</strong> {{ selectedLibraryStats.totalGenreCount.toLocaleString() }}</p>
-                                <p><strong># of Countries:</strong> {{ selectedLibraryStats.totalCountryCount.toLocaleString() }}</p>
-                                <p><strong># of Studios:</strong> {{ selectedLibraryStats.totalStudioCount.toLocaleString() }}</p>
+                                <p v-if="selectedLibraryStats.increment === 'movie'"><strong>Top Director:</strong> {{ selectedLibraryStats.topDirector }} ({{ selectedLibraryStats.topDirectorCount.toLocaleString() }})</p>
+                                <p v-else><strong>Top Director:</strong> (Only available for movie libraries)</p>
+                                <p><strong>Top Actor:</strong> {{ selectedLibraryStats.topActor }} ({{ selectedLibraryStats.topActorCount.toLocaleString() }})</p>
+                            </div>
+                            <div class="row">
+                                <p><strong>Total Genres:</strong> {{ selectedLibraryStats.totalGenreCount.toLocaleString() }}</p>
+                                <p><strong>Total Countries:</strong> {{ selectedLibraryStats.totalCountryCount.toLocaleString() }}</p>
+                                <p><strong>Total Studios:</strong> {{ selectedLibraryStats.totalStudioCount.toLocaleString() }}</p>
                             </div>
                             <div class="row">
                                 <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount.toLocaleString() }})</p>
@@ -165,6 +170,35 @@
                         <div class="content">
                             <div class="row">
                                 <div class="chart items-by-studio"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- items by director chart -->
+                    <div class="card half">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }}s per Director (Top {{ selectedLibraryStats.studioLimit }})</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
+                                    Only available for movie libraries
+                                </div>
+                                <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-director"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- items by actor chart -->
+                    <div class="card half">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.increment }}s per Actor (Top {{ selectedLibraryStats.studioLimit }})</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <div class="chart items-by-actor"></div>
                             </div>
                         </div>
                     </div>

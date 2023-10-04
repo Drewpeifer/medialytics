@@ -79,7 +79,6 @@ h3 {
     justify-content: space-evenly;
 }
 .library-stats .row p {
-    flex-grow: 2;
     min-width: 30%;
 }
 .full {
@@ -188,4 +187,9 @@ h3 {
 }
 @keyframes load {
     to{transform: rotate(1turn)}
+}
+
+/* visibility override since v-if doesn't work with svg */
+.hidden {
+    display: none;
 }
