@@ -79,7 +79,7 @@ h3 {
     justify-content: space-evenly;
 }
 .library-stats .row p {
-    min-width: 30%;
+    min-width: 25%;
 }
 .full {
     min-width: 98%;

@@ -91,22 +91,6 @@
                                 <p><strong>Total Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
                             </div>
                             <div class="row">
-                                <p v-if="selectedLibraryStats.increment === 'movie'"><strong>Top Director:</strong> {{ selectedLibraryStats.topDirector }} ({{ selectedLibraryStats.topDirectorCount.toLocaleString() }})</p>
-                                <p v-else><strong>Top Director:</strong> (Only available for movie libraries)</p>
-                                <p><strong>Top Actor:</strong> {{ selectedLibraryStats.topActor }} ({{ selectedLibraryStats.topActorCount.toLocaleString() }})</p>
-                            </div>
-                            <div class="row">
-                                <p><strong>Total Genres:</strong> {{ selectedLibraryStats.totalGenreCount.toLocaleString() }}</p>
-                                <p><strong>Total Countries:</strong> {{ selectedLibraryStats.totalCountryCount.toLocaleString() }}</p>
-                                <p><strong>Total Studios:</strong> {{ selectedLibraryStats.totalStudioCount.toLocaleString() }}</p>
-                            </div>
-                            <div class="row">
-                                <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount.toLocaleString() }})</p>
-                                <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount.toLocaleString() }})</p>
-                                <p><strong>Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount.toLocaleString() }})</p>
-                            </div>
-                            <div class="row">
-                                <p><strong>Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount.toLocaleString() }})</p>
                                 <p v-if="selectedLibraryStats.increment === 'movie'">
                                     <strong>Longest {{ selectedLibraryStats.increment }}:</strong>
                                     {{ selectedLibraryStats.longestTitle }} ({{ Math.floor(selectedLibraryStats.longestDuration / 60000) }} mins)
@@ -127,7 +111,11 @@
                         <div v-else class="header">
                             <p>{{ selectedLibraryStats.increment }}s per Genre (Top {{ selectedLibraryStats.genreLimit }})</p>
                         </div>
-                        <div class="content"><!-- don't hide via v-if, must be visible for d3 to render -->
+                        <div class="content">
+                            <div class="row">
+                                <p><strong>Total Genres:</strong> {{ selectedLibraryStats.totalGenreCount }}</p>
+                                <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
+                            </div>
                             <div class="row">
                                 <div class="chart items-by-genre"></div>
                             </div>
@@ -143,6 +131,10 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
                             <div class="row">
+                                <p><strong>Total Countries:</strong> {{ selectedLibraryStats.totalCountryCount }}</p>
+                                <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
+                            </div>
+                            <div class="row">
                                 <div class="chart items-by-country"></div>
                             </div>
                         </div>
@@ -157,6 +149,9 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
                             <div class="row">
+                                <p><strong>Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
+                            </div>
+                            <div class="row">
                                 <div class="chart items-by-decade"></div>
                             </div>
                         </div>
@@ -168,6 +163,10 @@
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
+                            <div class="row">
+                                <p><strong>Total Studios:</strong> {{ selectedLibraryStats.totalStudioCount }}</p>
+                                <p><strong>Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
+                            </div>
                             <div class="row">
                                 <div class="chart items-by-studio"></div>
                             </div>
@@ -183,6 +182,9 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
                             <div class="row">
+                                <p v-if="selectedLibraryStats.increment === 'movie'"><strong>Top Director:</strong> {{ selectedLibraryStats.topDirector }} ({{ selectedLibraryStats.topDirectorCount }})</p>
+                            </div>
+                            <div class="row">
                                 <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
                                     Only available for movie libraries
                                 </div>
@@ -197,6 +199,9 @@
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
+                            <div class="row">
+                                <p><strong>Top Actor:</strong> {{ selectedLibraryStats.topActor }} ({{ selectedLibraryStats.topActorCount }})</p>
+                            </div>
                             <div class="row">
                                 <div class="chart items-by-actor"></div>
                             </div>
