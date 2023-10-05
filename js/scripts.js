@@ -14,8 +14,8 @@ recentLimit = 10,
 recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
 // be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
-decadePrefixes = ["193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
-decades = ["1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],// used for UI/chart display
+decadePrefixes = ["191", "192", "193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
+decades = ["1910s", "1920s", "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],// used for UI/chart display
 debugMode = false;// set to true to enable console logging
 
 let availableLibraries = [],// the list of libraries returned by your server
@@ -29,7 +29,7 @@ countries = {},// this stores country: count, and is then split into the two fol
 countryList = [],
 countryCounts = [],
 releaseDateList = [],// stores each instance of a release date
-releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
+releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
 oldestTitle = "",// the oldest title in the library
 oldestReleaseDate = "",// the oldest release date in the library
 studioInstances = [],// arrays of type fooInstances and sortedFoo are used to generate the pie charts
@@ -104,7 +104,7 @@ const resetLibraryStats = () => {
     countryList = [],
     countryCounts = [],
     releaseDateList = [],
-    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     oldestTitle = "",
     oldestReleaseDate = "",
     studioInstances = [],
