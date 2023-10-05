@@ -22,7 +22,6 @@ let availableLibraries = [],// the list of libraries returned by your server
 selectedLibrary = "",// the library currently selected by the user
 selectedLibraryKey = "",// the key of the library currently selected by the user
 selectedLibraryStats = {},// a large object containing all the stats for the selected library
-selectedLibrarySummary = "",// plain text summary of stat highlights
 libraryStatsLoading = false,// used to trigger loading animations
 recentlyAdded = [],// the list of recently added items returned by your server
 countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
@@ -99,7 +98,6 @@ const getLibraryData = async (libraryKey) => {
 /////////////////////////////////
 // reset library stats
 const resetLibraryStats = () => {
-    selectedLibrarySummary = "",
     countries = {},
     countryList = [],
     countryCounts = [],
@@ -393,13 +391,6 @@ const parseMediaPayload = (data) => {
                 longestTitle : longestTitle,
             }
 
-            // set concatenated summary string
-            app.selectedLibrarySummary = type === 'movie' ?
-            // movies
-            `The total duration is ${app.selectedLibraryStats.totalDuration}.` :
-            // tv
-            `The total duration is ${app.selectedLibraryStats.totalDuration}.`
-
             // render charts
             renderCharts();
 
@@ -573,7 +564,6 @@ const app = new Vue({
         selectedLibrary: selectedLibrary,
         selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
-        selectedLibrarySummary: selectedLibrarySummary,
         recentlyAdded: recentlyAdded,
     },
     mounted: function () {
