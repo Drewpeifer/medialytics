@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  medialytics:
+    environment:
+      - SERVER_IP=${SERVER_IP}
+      - SERVER_TOKEN=${SERVER_TOKEN}
+    build: .
+    ports:
+      - "8088:80"
