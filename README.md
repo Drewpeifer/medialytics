@@ -45,12 +45,27 @@ is only recommended for local usage at this time (just drag the html file into y
 to do so safely (at your own risk).
 
 # Getting Started
-Clone the repository to a local directory on your computer, or download the repository as a zip file and extract the contents. Open the contents in a text editor and do the following:
+Clone the repository to a local directory on your computer, or download the repository as a zip file and extract the contents. Open the contents in a text editor and do the following option:
 
+## Within the Application
 1. At the top of `scripts.js`, set the `serverIp` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
 1. At the top of `scripts.js`, set the `serverToken` variable equal to your **PRIVATE** plex token. **Do not share this value with anyone!** If compromised, generate a new one ([instructions on locating and generating a token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
 1. Drag `index.html` into a browser
 1. You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
+
+## With Docker
+1. Copy .env.sample from the repository as .env
+1. Set the `SERVER_IP` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
+1. Set the `SERVER_TOKEN` variable equal to your **PRIVATE** plex token. **Do not share this value with anyone!** If compromised, generate a new one ([instructions on locating and generating a token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
+1. Build the image
+    ```bash
+    docker compose build
+    ```
+1. Run the image
+    ```bash
+    docker compose up -d
+    ```
+1. Go to http://localhost:8088/ You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
 
 If you know HTML/CSS/JS you can edit the code to your liking. All the application logic and parsing is done in `scripts.js`, styling is in `styles.css`, and the page elements are
 in `index.html`.
