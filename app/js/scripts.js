@@ -420,7 +420,7 @@ const renderCharts = () => {
         x: 'x',
         data: {
             columns: [
-                countryCounts.slice(0, countryLimit)
+                countryCounts.slice(0, countryLimit + 1)
             ],
             type: 'bar'
         },
@@ -428,7 +428,7 @@ const renderCharts = () => {
             rotated: true,
             x: {
                 type: 'category',
-                categories: countryList.slice(0, countryLimit)
+                categories: countryList.slice(0, countryLimit + 1)
             }
         },
         legend: {
@@ -443,7 +443,7 @@ const renderCharts = () => {
         x: 'x',
         data: {
             columns: [
-                genreCounts.slice(0, genreLimit)
+                genreCounts.slice(0, genreLimit + 1)
             ],
             type: 'bar'
         },
@@ -451,7 +451,7 @@ const renderCharts = () => {
             rotated: true,
             x: {
                 type: 'category',
-                categories: genreList.slice(0, genreLimit)
+                categories: genreList.slice(0, genreLimit + 1)
             }
         },
         legend: {
