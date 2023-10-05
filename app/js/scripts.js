@@ -1,8 +1,8 @@
 ////// WARNING
 // Never share the following token with anyone! Do not host this on a public server with the token in place!
 // Keep it secret, keep it safe! If compromised, generate a new one: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
-const serverToken = 'SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
-serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
+const serverToken = 'SERVER_TOKEN'// ex: 'ad2T-askdjasd9WxJVBPQ'
+serverIp = 'SERVER_IP' // ex: 'http://12.345.678.90:32400'
 libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
 // below are the limits for displaying data in the charts, e.g. "Top X Countries", and the recently added list
 countryLimit = 20,
