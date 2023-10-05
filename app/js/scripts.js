@@ -129,7 +129,7 @@ const resetLibraryStats = () => {
 const parseMediaPayload = (data) => {
     let itemCount = data.data.MediaContainer.size,
     type = data.data.MediaContainer.viewGroup;
-    
+
     // loop through items and gather important data
     data.data.MediaContainer.Metadata.forEach((item, index) => {
         // track year
@@ -216,7 +216,7 @@ const parseMediaPayload = (data) => {
         } else {
             // no actors
         }
-        
+
         //////////////////////////
         // if it's the last entry in the library, calculate stats and prepare data for charts
         // (bar charts want 2 arrays of values, while pie charts want a dictionary)

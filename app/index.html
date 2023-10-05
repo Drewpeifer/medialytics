@@ -67,7 +67,7 @@
                 </div>
                 <div class="content">
                     <div class="row">
-                        <div v-for="library in availableLibraries" v-bind:key="library.key">                            
+                        <div v-for="library in availableLibraries" v-bind:key="library.key">
                             <p :class="{  selected : selectedLibrary === library.title }"><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a></p>
                         </div>
                     </div>
