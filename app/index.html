@@ -14,6 +14,7 @@
     <!-- fonts and styling -->
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
 </head>
 <body>
     <div class="wrapper">
@@ -66,7 +67,7 @@
                 </div>
                 <div class="content">
                     <div class="row">
-                        <div v-for="library in availableLibraries" v-bind:key="library.key">                            
+                        <div v-for="library in availableLibraries" v-bind:key="library.key">
                             <p :class="{  selected : selectedLibrary === library.title }"><a href="javascript:void(0);" v-on:click="getLibraryData(library.key)">{{ library.title }}</a></p>
                         </div>
                     </div>
