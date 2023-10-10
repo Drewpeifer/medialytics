@@ -51,7 +51,8 @@ lastAdded = "",
 lastAddedDate = "",
 seasonSum = 0,
 episodeCounts = []
-episodeSum = 0;
+episodeSum = 0,
+unmatchedItems = [];
 
 /////////////////////////////////
 // reset library stats
@@ -82,7 +83,8 @@ const resetLibraryStats = () => {
     firstAdded = "",
     firstAddedDate = "",
     lastAdded = "",
-    lastAddedDate = "";
+    lastAddedDate = "",
+    unmatchedItems = [];
 }
 
 /////////////////////////////////
@@ -128,7 +130,7 @@ const getLibraryData = async (libraryKey) => {
         return response.data.MediaContainer;
     });
     // uncomment the following line to print the raw xml in the console
-    console.log('Library Data: ', libraryData);
+    //console.log('Library Data: ', libraryData);
     resetLibraryStats();
     return libraryData;
 }
@@ -139,9 +141,6 @@ const parseMediaPayload = (data) => {
     let itemCount = data.data.MediaContainer.size,
     type = data.data.MediaContainer.viewGroup;
 
-    // unmatched items
-    let unmatchedItems = [];
-
     // loop through items and gather important data
     data.data.MediaContainer.Metadata.forEach((item, index) => {
         // track year
@@ -149,9 +148,9 @@ const parseMediaPayload = (data) => {
 
         // track unmatched items
         if (item.guid.includes('local')) {
-            console.log('unmatched item detected:');
-            console.dir(item);
-            unmatchedItems.push(item);
+            // console.log('unmatched item detected:');
+            // console.dir(item);
+            unmatchedItems.push(item.title);
         }
 
         // track oldest release date
@@ -438,6 +437,7 @@ const parseMediaPayload = (data) => {
                 firstAddedDate : firstAddedDate,
                 lastAdded : lastAdded,
                 lastAddedDate : lastAddedDate,
+                unmatchedItems : unmatchedItems
             }
 
             // render charts
