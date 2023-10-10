@@ -45,9 +45,45 @@ genreCounts = [],
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
 longestTitle = "",// title of item with longest duration / episode count
+firstAdded = "",// date the first item was added to the server
+firstAddedDate = "",// date the first item was added to the server
+lastAdded = "",
+lastAddedDate = "",
 seasonSum = 0,
 episodeCounts = []
 episodeSum = 0;
+
+/////////////////////////////////
+// reset library stats
+const resetLibraryStats = () => {
+    // keep in sync with list above, this resets data on library selection
+    countries = {},
+    countryList = [],
+    countryCounts = [],
+    releaseDateList = [],
+    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    oldestTitle = "",
+    oldestReleaseDate = "",
+    studioInstances = [],
+    sortedStudios = [],
+    directorInstances = [],
+    sortedDirectors = [],
+    actorInstances = [],
+    sortedActors = [],
+    genres = {},
+    genreList = [],
+    genreCounts = [],
+    durationSum = 0,
+    seasonSum = 0,
+    episodeCounts = []
+    episodeSum = 0,
+    longestDuration = 0,
+    longestTitle = "",
+    firstAdded = "",
+    firstAddedDate = "",
+    lastAdded = "",
+    lastAddedDate = "";
+}
 
 /////////////////////////////////
 // gets list of available libraries
@@ -92,36 +128,9 @@ const getLibraryData = async (libraryKey) => {
         return response.data.MediaContainer;
     });
     // uncomment the following line to print the raw xml in the console
-    // console.log('Library Data: ', libraryData);
+    console.log('Library Data: ', libraryData);
     resetLibraryStats();
     return libraryData;
-}
-
-/////////////////////////////////
-// reset library stats
-const resetLibraryStats = () => {
-    countries = {},
-    countryList = [],
-    countryCounts = [],
-    releaseDateList = [],
-    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    oldestTitle = "",
-    oldestReleaseDate = "",
-    studioInstances = [],
-    sortedStudios = [],
-    directorInstances = [],
-    sortedDirectors = [],
-    actorInstances = [],
-    sortedActors = [],
-    genres = {},
-    genreList = [],
-    genreCounts = [],
-    durationSum = 0,
-    seasonSum = 0,
-    episodeCounts = []
-    episodeSum = 0,
-    longestDuration = 0,
-    longestTitle = "";
 }
 
 /////////////////////////////////
@@ -130,16 +139,49 @@ const parseMediaPayload = (data) => {
     let itemCount = data.data.MediaContainer.size,
     type = data.data.MediaContainer.viewGroup;
 
+    // unmatched items
+    let unmatchedItems = [];
+
     // loop through items and gather important data
     data.data.MediaContainer.Metadata.forEach((item, index) => {
         // track year
         releaseDateList.push(item.year);
+
+        // track unmatched items
+        if (item.guid.includes('local')) {
+            console.log('unmatched item detected:');
+            console.dir(item);
+            unmatchedItems.push(item);
+        }
 
         // track oldest release date
         if (oldestTitle == "" || new Date(item.originallyAvailableAt) < new Date(oldestReleaseDate)) {
             oldestTitle = item.title + ' (' + item.originallyAvailableAt + ')';
             oldestReleaseDate = item.originallyAvailableAt;
         }
+        // track dateAdded (date added to server)
+        if (item.addedAt) {
+            // convert unix timestamp to date and parse for values to concatenate and push
+            let itemDate = new Date(item.addedAt * 1000),
+                itemMonth = itemDate.getMonth() + 1,// returns 0-11, other values are exact though
+                itemDay = itemDate.getDate(),
+                itemYear = itemDate.getFullYear(),
+                itemFullDate = `${itemMonth}-${itemDay}-${itemYear}`;
+
+            // track firstAdded
+            if (firstAdded == "" || itemDate < firstAddedDate) {
+                firstAdded = item.title;
+                firstAddedDate = itemDate;
+            }
+            // track lastAdded
+            if (lastAdded == "" || itemDate > lastAddedDate) {
+                lastAdded = item.title;
+                lastAddedDate = itemDate;
+            }
+        } else {
+            // no dateAdded
+        }
+
         // track studio
         studioInstances.push(item.studio);
         // track durations
@@ -391,6 +433,10 @@ const parseMediaPayload = (data) => {
                 genreLimit: genreLimit,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
+                firstAdded : firstAdded,
+                firstAddedDate : firstAddedDate,
+                lastAdded : lastAdded,
+                lastAddedDate : lastAddedDate,
             }
 
             // render charts

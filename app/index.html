@@ -102,6 +102,10 @@
                                 </p>
                                 <p><strong>Oldest {{ selectedLibraryStats.increment }}:</strong> {{ selectedLibraryStats.oldestTitle }}</p>
                             </div>
+                            <div class="row">
+                                <p><strong>Earliest Addition:</strong> {{ selectedLibraryStats.firstAdded }} ({{ selectedLibraryStats.firstAddedDate.toLocaleDateString() }})</p>
+                                <p><strong>Latest Addition:</strong> {{ selectedLibraryStats.lastAdded }} ({{ selectedLibraryStats.lastAddedDate.toLocaleDateString() }})</p>
+                            </div>
                         </div>
                     </div>
                 </div>
