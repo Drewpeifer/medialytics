@@ -4,6 +4,8 @@
 const serverToken = 'SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
 serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
 libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
+// chart color theme
+chartColors = ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
 // below are the limits for displaying data in the charts, e.g. "Top X Countries", and the recently added list
 countryLimit = 20,
 genreLimit = 20,
@@ -426,7 +428,7 @@ const renderCharts = () => {
             hide: true
         },
         color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+            pattern: chartColors
         }
     });
     c3.generate({
@@ -449,7 +451,7 @@ const renderCharts = () => {
             hide: true
         },
         color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+            pattern: chartColors
         }
     });
     c3.generate({
@@ -471,7 +473,7 @@ const renderCharts = () => {
             hide: true
         },
         color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+            pattern: chartColors
         }
     });
     c3.generate({
@@ -489,7 +491,7 @@ const renderCharts = () => {
             }
         },
         color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+            pattern: chartColors
         },
         tooltip: {
             format: {
@@ -514,7 +516,7 @@ const renderCharts = () => {
             }
         },
         color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+            pattern: chartColors
         },
         tooltip: {
             format: {
@@ -539,7 +541,7 @@ const renderCharts = () => {
             }
         },
         color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
+            pattern: chartColors
         },
         tooltip: {
             format: {
