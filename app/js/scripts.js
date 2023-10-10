@@ -262,6 +262,7 @@ const parseMediaPayload = (data) => {
         //////////////////////////
         // if it's the last entry in the library, calculate stats and prepare data for charts
         // (bar charts want 2 arrays of values, while pie charts want a dictionary)
+        // https://c3js.org/examples.html for more info
         if (index == itemCount - 1) {
             let totalMins = Math.round(durationSum),
             totalHours = Math.floor(durationSum/60),
