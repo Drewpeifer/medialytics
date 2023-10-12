@@ -29,6 +29,7 @@ recentlyAdded = [],// the list of recently added items returned by your server
 countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
 countryList = [],
 countryCounts = [],
+countryToggle = "pie",// used to toggle between bar and pie charts for countries
 releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
 oldestTitle = "",// the oldest title in the library
@@ -62,6 +63,7 @@ const resetLibraryStats = () => {
     countries = {},
     countryList = [],
     countryCounts = [],
+    countryToggle = "pie",
     releaseDateList = [],
     releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     oldestTitle = "",
@@ -413,6 +415,9 @@ const parseMediaPayload = (data) => {
                 topCountry: countryList[0],
                 topCountryCount: countryCounts[1].toLocaleString(),
                 totalCountryCount: Object.keys(countries).length.toLocaleString(),
+                countryCounts: countryCounts,
+                countryList: countryList,
+                countryToggle: "pie",
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
@@ -469,6 +474,7 @@ const app = new Vue({
         selectedLibraryStats: selectedLibraryStats,
         recentlyAdded: recentlyAdded,
         genreToggle: "pie",
+        countrytoggle: "pie"
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {

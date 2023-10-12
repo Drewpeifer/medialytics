@@ -123,7 +123,7 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Genres:</strong> {{ selectedLibraryStats.totalGenreCount }}</p>
-                                <div class="genre-toggle">
+                                <div>
                                     <input type="checkbox"
                                         id="genreToggle"
                                         class="chart-toggle"
@@ -134,19 +134,6 @@
                                         checked>
                                     <label for="genreToggle"></label>
                                 </div>
-                                <!-- <div class="radio-group">
-                                    <input type="radio"
-                                        name="genre-chart-type"
-                                        value="bar"
-                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit))"
-                                        checked>
-                                    <label for="bar">Bar</label>
-                                    <input type="radio"
-                                        name="genre-chart-type"
-                                        value="pie"
-                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit))">
-                                    <label for="pie">Pie</label>
-                                </div> -->
                                 <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
                             </div>
                             <div class="row">
@@ -165,18 +152,16 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Countries:</strong> {{ selectedLibraryStats.totalCountryCount }}</p>
-                                <div class="radio-group">
-                                    <input type="radio"
-                                        name="country-chart-type"
-                                        value="bar"
-                                        v-on:click="renderSingleChart('.items-by-country', 'bar', countryCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit))"
+                                <div>
+                                    <input type="checkbox"
+                                        id="countryToggle"
+                                        class="chart-toggle"
+                                        v-on:click="renderSingleChart('.items-by-country', countryToggle, selectedLibraryStats.countryCounts.slice(0, countryLimit + 1), selectedLibraryStats.countryList.slice(0, countryLimit))"
+                                        v-model="countryToggle"
+                                        true-value="pie"
+                                        false-value="bar"
                                         checked>
-                                    <label for="bar">Bar</label>
-                                    <input type="radio"
-                                        name="country-chart-type"
-                                        value="pie"
-                                        v-on:click="renderSingleChart('.items-by-country', 'pie', countryCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit))">
-                                    <label for="pie">Pie</label>
+                                    <label for="countryToggle"></label>
                                 </div>
                                 <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
                             </div>
