@@ -256,7 +256,7 @@ const parseMediaPayload = (data) => {
 
         //////////////////////////
         // if it's the last entry in the library, calculate stats and prepare data for charts
-        // (bar charts want 2 arrays of values, while pie charts want a dictionary)
+        // (bar charts want 2 arrays of values, while pie charts want an array or arrays, e.g. [['foo', 1], ['bar', 2]])
         // https://c3js.org/examples.html for more info
         if (index == itemCount - 1) {
             let totalMins = Math.round(durationSum),
@@ -437,160 +437,13 @@ const parseMediaPayload = (data) => {
             }
 
             // render charts
-            renderCharts();
+            app.renderDefaultCharts();
 
             // if debug mode is enabled, log data into the console:
             if (debugMode) {
                 console.log('Library Selected: ', app.selectedLibrary);
                 console.log('Total Items: ', itemCount);
                 console.log('Library XML: ' + serverIp + '/library/sections/' + app.selectedLibraryKey + '/all?X-Plex-Token=' + serverToken);
-            }
-        }
-    });
-}
-
-const renderCharts = () => {
-    // render charts
-    c3.generate({
-        bindto: '.items-by-country',
-        x: 'x',
-        data: {
-            columns: [
-                countryCounts.slice(0, countryLimit + 1)
-            ],
-            type: 'bar'
-        },
-        axis: {
-            rotated: true,
-            x: {
-                type: 'category',
-                categories: countryList.slice(0, countryLimit + 1)
-            }
-        },
-        legend: {
-            hide: true
-        },
-        color: {
-            pattern: chartColors
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-genre',
-        x: 'x',
-        data: {
-            columns: [
-                genreCounts.slice(0, genreLimit + 1)
-            ],
-            type: 'bar'
-        },
-        axis: {
-            rotated: true,
-            x: {
-                type: 'category',
-                categories: genreList.slice(0, genreLimit + 1)
-            }
-        },
-        legend: {
-            hide: true
-        },
-        color: {
-            pattern: chartColors
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-decade',
-        x: 'x',
-        data: {
-            columns: [
-                releaseDateCounts
-            ],
-            type: 'bar'
-        },
-        axis: {
-            x: {
-                type: 'category',
-                categories: decades
-            }
-        },
-        legend: {
-            hide: true
-        },
-        color: {
-            pattern: chartColors
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-studio',
-        data: {
-            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
-            columns: sortedStudios,
-            type : 'pie'
-        },
-        pie: {
-            label: {
-                format: function (value, ratio, id) {
-                    return value;
-                }
-            }
-        },
-        color: {
-            pattern: chartColors
-        },
-        tooltip: {
-            format: {
-                value: function (value, ratio, id) {
-                    return id + ' : ' + value;
-                }
-            }
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-director',
-        data: {
-            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
-            columns: sortedDirectors,
-            type : 'pie'
-        },
-        pie: {
-            label: {
-                format: function (value, ratio, id) {
-                    return value;
-                }
-            }
-        },
-        color: {
-            pattern: chartColors
-        },
-        tooltip: {
-            format: {
-                value: function (value, ratio, id) {
-                    return id + ' : ' + value;
-                }
-            }
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-actor',
-        data: {
-            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
-            columns: sortedActors,
-            type : 'pie'
-        },
-        pie: {
-            label: {
-                format: function (value, ratio, id) {
-                    return value;
-                }
-            }
-        },
-        color: {
-            pattern: chartColors
-        },
-        tooltip: {
-            format: {
-                value: function (value, ratio, id) {
-                    return id + ' : ' + value;
-                }
             }
         }
     });
@@ -610,6 +463,9 @@ const app = new Vue({
         selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
         recentlyAdded: recentlyAdded,
+        genreCounts: genreCounts,
+        genreList: genreList,
+        genreLimit: genreLimit,
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -627,5 +483,79 @@ const app = new Vue({
                 app.recentlyAdded = data;
             });
         });
+    },
+    methods: {
+        renderSingleChart: function (selector, type, columns, categories = [], rotated = true) {
+            // categories and rotated are optional parameters only applicable to bar charts.
+            // rotated = false will set the bar chart to vertical orientation.
+            if (type === 'bar') {
+                c3.generate({
+                    bindto: selector,
+                    x: 'x',
+                    data: {
+                        columns: [
+                            columns
+                        ],
+                        type: 'bar'
+                    },
+                    axis: {
+                        rotated: rotated,
+                        x: {
+                            type: 'category',
+                            categories: categories
+                        }
+                    },
+                    legend: {
+                        hide: true
+                    },
+                    color: {
+                        pattern: chartColors
+                    }
+                });
+            } else if (type === 'pie') {
+                columns.shift();
+                let pieColumns = [];
+                if (categories.length > 0) {
+                    categories.forEach((item, index) => {
+                        pieColumns.push([item, parseInt(columns[index])]);
+                    });
+                } else {
+                    pieColumns = columns;
+                }
+                c3.generate({
+                    bindto: selector,
+                    data: {
+                        columns: pieColumns,
+                        type : 'pie'
+                    },
+                    pie: {
+                        label: {
+                            format: function (value, ratio, id) {
+                                return value;
+                            }
+                        }
+                    },
+                    color: {
+                        pattern: chartColors
+                    },
+                    tooltip: {
+                        format: {
+                            value: function (value, ratio, id) {
+                                return id + ' : ' + value;
+                            }
+                        }
+                    }
+                });
+            }
+        },
+        renderDefaultCharts: function () {
+            // render charts
+            app.renderSingleChart('.items-by-genre', 'bar', genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit));
+            app.renderSingleChart('.items-by-country', 'bar', countryCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit));
+            app.renderSingleChart('.items-by-decade', 'bar', releaseDateCounts, decades, false);
+            app.renderSingleChart('.items-by-studio', 'pie', sortedStudios);
+            app.renderSingleChart('.items-by-director', 'pie', sortedDirectors);
+            app.renderSingleChart('.items-by-actor', 'pie', sortedActors);
+        }
     }
 });
