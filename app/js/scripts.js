@@ -466,6 +466,9 @@ const app = new Vue({
         genreCounts: genreCounts,
         genreList: genreList,
         genreLimit: genreLimit,
+        countryCounts: countryCounts,
+        countryList: countryList,
+        countryLimit: countryLimit,
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -515,7 +518,7 @@ const app = new Vue({
             } else if (type === 'pie') {
                 columns.shift();
                 let pieColumns = [];
-                if (categories.length > 0) {
+                if (categories.length >= 1) {
                     categories.forEach((item, index) => {
                         pieColumns.push([item, parseInt(columns[index])]);
                     });
