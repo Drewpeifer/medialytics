@@ -17,6 +17,7 @@ h1 {
 }
 strong, a {
     color: orange;
+    margin: 3px 0;
 }
 .library-stats p {
     margin: 5px 25px;
@@ -55,6 +56,10 @@ h3 {
     font-size: 20px;
     font-weight: bold;
     text-transform: capitalize;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
 .card .content {
     background: #222;
@@ -73,10 +78,15 @@ h3 {
 }
 
 /* layout */
-.library-info .row {
+.row {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
+    align-items: center;
+}
+.row > p {
+    min-width: 30%;
+    margin: 0 10px;
 }
 .library-stats .row p {
     min-width: 25%;
@@ -177,15 +187,20 @@ h3 {
     display:none;
 }
 .chart-toggle + label {
-    height: 32px;
-    width: 32px;
+    height: 40px;
+    width: 40px;
     display:inline-block;
-    border: 1px solid #f2f2f2;
     background-image: url(../images/icon-bar_64.png);
-    background-size: cover;
+    background-size: 90% 90%;
+    background-position: top center;
+    background-repeat: no-repeat;
+    cursor: pointer;
 }
 .chart-toggle:checked + label {
     background-image: url(../images/icon-pie_64.png);
+}
+.chart-toggle + label:hover {
+    scale: 1.2;
 }
 
 /* sweet loading spinner from css-tricks */
