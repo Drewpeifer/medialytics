@@ -161,11 +161,7 @@ const parseMediaPayload = (data) => {
         // track dateAdded (date added to server)
         if (item.addedAt) {
             // convert unix timestamp to date and parse for values to concatenate and push
-            let itemDate = new Date(item.addedAt * 1000),
-                itemMonth = itemDate.getMonth() + 1,// returns 0-11, other values are exact though
-                itemDay = itemDate.getDate(),
-                itemYear = itemDate.getFullYear(),
-                itemFullDate = `${itemMonth}-${itemDay}-${itemYear}`;
+            let itemDate = new Date(item.addedAt * 1000);
 
             // track firstAdded
             if (firstAdded == "" || itemDate < firstAddedDate) {
