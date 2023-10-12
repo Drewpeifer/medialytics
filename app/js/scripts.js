@@ -155,7 +155,7 @@ const parseMediaPayload = (data) => {
 
         // track oldest release date
         if (oldestTitle == "" || new Date(item.originallyAvailableAt) < new Date(oldestReleaseDate)) {
-            oldestTitle = item.title + ' (' + item.originallyAvailableAt + ')';
+            oldestTitle = item.title + ' (' + new Date(item.originallyAvailableAt).toLocaleDateString().replace(/\//g,'-') + ')';
             oldestReleaseDate = item.originallyAvailableAt;
         }
         // track dateAdded (date added to server)
