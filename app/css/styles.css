@@ -172,6 +172,21 @@ h3 {
 .pie .c3-chart-arc text {
     fill:#111;
 }
+/* chart toggle buttons */
+.chart-toggle {
+    display:none;
+}
+.chart-toggle + label {
+    height: 32px;
+    width: 32px;
+    display:inline-block;
+    border: 1px solid #f2f2f2;
+    background-image: url(../images/icon-bar_64.png);
+    background-size: cover;
+}
+.chart-toggle:checked + label {
+    background-image: url(../images/icon-pie_64.png);
+}
 
 /* sweet loading spinner from css-tricks */
 .loader {

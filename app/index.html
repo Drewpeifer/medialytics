@@ -123,19 +123,30 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Genres:</strong> {{ selectedLibraryStats.totalGenreCount }}</p>
-                                <div class="radio-group">
+                                <div class="genre-toggle">
+                                    <input type="checkbox"
+                                        id="genreToggle"
+                                        class="chart-toggle"
+                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, selectedLibraryStats.genreCounts.slice(0, genreLimit + 1), selectedLibraryStats.genreList.slice(0, genreLimit))"
+                                        v-model="genreToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="genreToggle"></label>
+                                </div>
+                                <!-- <div class="radio-group">
                                     <input type="radio"
                                         name="genre-chart-type"
                                         value="bar"
-                                        v-on:click="renderSingleChart('.items-by-genre', 'bar', genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit))"
+                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit))"
                                         checked>
                                     <label for="bar">Bar</label>
                                     <input type="radio"
                                         name="genre-chart-type"
                                         value="pie"
-                                        v-on:click="renderSingleChart('.items-by-genre', 'pie', genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit))">
+                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit))">
                                     <label for="pie">Pie</label>
-                                </div>
+                                </div> -->
                                 <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
                             </div>
                             <div class="row">

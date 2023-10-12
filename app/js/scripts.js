@@ -42,6 +42,7 @@ sortedActors = [],
 genres = {},// this stores genre: count, and is then split into the two following arrays
 genreList = [],
 genreCounts = [],
+genreToggle = "pie",// used to toggle between bar and pie charts for genres
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
 longestTitle = "",// title of item with longest duration / episode count
@@ -74,6 +75,7 @@ const resetLibraryStats = () => {
     genres = {},
     genreList = [],
     genreCounts = [],
+    genreToggle = "pie",
     durationSum = 0,
     seasonSum = 0,
     episodeCounts = [],
@@ -405,6 +407,9 @@ const parseMediaPayload = (data) => {
                 topGenre: genreList[0],
                 topGenreCount: genreCounts[1].toLocaleString(),
                 totalGenreCount: Object.keys(genres).length.toLocaleString(),
+                genreList: genreList,
+                genreCounts: genreCounts,
+                genreToggle: "pie",
                 topCountry: countryList[0],
                 topCountryCount: countryCounts[1].toLocaleString(),
                 totalCountryCount: Object.keys(countries).length.toLocaleString(),
@@ -463,12 +468,7 @@ const app = new Vue({
         selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
         recentlyAdded: recentlyAdded,
-        genreCounts: genreCounts,
-        genreList: genreList,
-        genreLimit: genreLimit,
-        countryCounts: countryCounts,
-        countryList: countryList,
-        countryLimit: countryLimit,
+        genreToggle: "pie",
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -491,6 +491,7 @@ const app = new Vue({
         renderSingleChart: function (selector, type, columns, categories = [], rotated = true) {
             // categories and rotated are optional parameters only applicable to bar charts.
             // rotated = false will set the bar chart to vertical orientation.
+            console.log('rendering chart: ', selector, type, columns, categories, rotated)
             if (type === 'bar') {
                 c3.generate({
                     bindto: selector,
