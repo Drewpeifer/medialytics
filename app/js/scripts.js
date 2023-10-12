@@ -50,7 +50,7 @@ firstAddedDate = "",// date the first item was added to the server
 lastAdded = "",
 lastAddedDate = "",
 seasonSum = 0,
-episodeCounts = []
+episodeCounts = [],
 episodeSum = 0,
 unmatchedItems = [];
 
@@ -76,7 +76,7 @@ const resetLibraryStats = () => {
     genreCounts = [],
     durationSum = 0,
     seasonSum = 0,
-    episodeCounts = []
+    episodeCounts = [],
     episodeSum = 0,
     longestDuration = 0,
     longestTitle = "",
