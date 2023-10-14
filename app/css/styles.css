@@ -70,19 +70,13 @@ h3 {
     flex-direction: column;
     border-radius: 0 0 5px 5px;
 }
-.card .content .row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    margin: 10px;
-}
 
 /* layout */
 .row {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
-    align-items: center;
+    margin: 10px;
 }
 .row > p {
     min-width: 30%;
@@ -96,6 +90,15 @@ h3 {
 }
 .half {
     width: 48%;
+}
+
+/* controls */
+.chart-limit input {
+    max-width: 50px;
+}
+.chart-limit button {
+    padding:2px 5px;
+    margin:0 5px;
 }
 
 /* recently added */
@@ -183,10 +186,10 @@ h3 {
     fill:#111;
 }
 /* chart toggle buttons */
-.chart-toggle {
+.chart-toggle input {
     display:none;
 }
-.chart-toggle + label {
+.chart-toggle input + label {
     height: 40px;
     width: 40px;
     display:inline-block;
@@ -196,10 +199,10 @@ h3 {
     background-repeat: no-repeat;
     cursor: pointer;
 }
-.chart-toggle:checked + label {
+.chart-toggle input:checked + label {
     background-image: url(../images/icon-pie_64.png);
 }
-.chart-toggle + label:hover {
+.chart-toggle input + label:hover {
     scale: 1.2;
 }
 

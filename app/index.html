@@ -123,16 +123,24 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Genres:</strong> {{ selectedLibraryStats.totalGenreCount }}</p>
-                                <div>
+                                <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="genreToggle"
-                                        class="chart-toggle"
-                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, selectedLibraryStats.genreCounts.slice(0, genreLimit + 1), selectedLibraryStats.genreList.slice(0, genreLimit))"
+                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, selectedLibraryStats.genreCounts.slice(0, selectedLibraryStats.genreLimit + 1), selectedLibraryStats.genreList.slice(0, selectedLibraryStats.genreLimit))"
                                         v-model="genreToggle"
                                         true-value="pie"
                                         false-value="bar"
                                         checked>
                                     <label for="genreToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="genreLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="genreLimit"
+                                        v-model="newGenreLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('genre', newGenreLimit)">Update</button>
                                 </div>
                                 <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
                             </div>
@@ -152,16 +160,24 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Countries:</strong> {{ selectedLibraryStats.totalCountryCount }}</p>
-                                <div>
+                                <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="countryToggle"
-                                        class="chart-toggle"
                                         v-on:click="renderSingleChart('.items-by-country', countryToggle, selectedLibraryStats.countryCounts.slice(0, countryLimit + 1), selectedLibraryStats.countryList.slice(0, countryLimit))"
                                         v-model="countryToggle"
                                         true-value="pie"
                                         false-value="bar"
                                         checked>
                                     <label for="countryToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="countryLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="countryLimit"
+                                        v-model="newCountryLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('country', newCountryLimit)">Update</button>
                                 </div>
                                 <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
                             </div>
@@ -196,6 +212,15 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Studios:</strong> {{ selectedLibraryStats.totalStudioCount }}</p>
+                                <div class="chart-limit">
+                                    <label for="studioLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="studioLimit"
+                                        v-model="newStudioLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('studio', newStudioLimit)">Update</button>
+                                </div>
                                 <p><strong>Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
                             </div>
                             <div class="row">
