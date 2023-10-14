@@ -59,6 +59,12 @@ There are 2 ways, you likely want the first set of instructions.
 
 ### Simple Installation with Docker Compose
 
+Set up:
+
+1. Copy .env.sample from the repository as .env
+1. Set the `SERVER_IP` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
+1. Set the `SERVER_TOKEN` variable equal to your **PRIVATE** plex token. **Do not share this value with anyone!** If compromised, generate a new one ([instructions on locating and generating a token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
+
 This assumes you followed the instructions and have a `.env` file in the same repo as a `docker-compose.yml` file with the following:
 
 ```
@@ -74,7 +80,7 @@ services:
       - "8088:80"
 ```
 
-Then:
+Finally run with:
 
 1. Run the image
     ```bash
