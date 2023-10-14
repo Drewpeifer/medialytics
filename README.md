@@ -70,6 +70,42 @@ Clone the repository to a local directory on your computer, or download the repo
 If you know HTML/CSS/JS you can edit the code to your liking. All the application logic and parsing is done in `scripts.js`, styling is in `styles.css`, and the page elements are
 in `index.html`.
 
+## Simple Docker
+
+This assumes you followed the instructions and have a `.env` file in the same repo as a `docker-compose.yml` file with the following:
+
+```
+version: "3.9"
+services:
+  medialytics:
+    image: ghcr.io/jzucker2/medialytics:latest
+    container_name: medialytics
+    environment:
+      - SERVER_IP=${SERVER_IP}
+      - SERVER_TOKEN=${SERVER_TOKEN}
+    ports:
+      - "8088:80"
+```
+
+Then:
+
+1. Run the image
+    ```bash
+    docker compose up -d
+    ```
+1. Go to http://localhost:8088/ You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
+
+## Run and Build Locally with Docker
+
+1. Copy .env.sample from the repository as .env
+1. Set the `SERVER_IP` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
+1. Set the `SERVER_TOKEN` variable equal to your **PRIVATE** plex token. **Do not share this value with anyone!** If compromised, generate a new one ([instructions on locating and generating a token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
+1. Run the image
+    ```bash
+    docker compose up -d
+    ```
+1. Go to http://localhost:8088/ You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
+
 **Anyone is welcome to fork / contribute / utilize for non-commercial purposes.** Credit for use elsewhere is appreciated but not required.
 
 ## Troubleshooting / FAQ
