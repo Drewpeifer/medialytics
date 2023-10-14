@@ -9,6 +9,8 @@ updates:
       - jzucker2
     assignees:
       - jzucker2
+    labels:
+      - github_actions
 
   # Enable version updates for Docker
   - package-ecosystem: "docker"
@@ -21,5 +23,7 @@ updates:
       - jzucker2
     assignees:
       - jzucker2
+    labels:
+      - github_actions
 
-# react dependencies could be added here too
+# js dependencies could be added here too
