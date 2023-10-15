@@ -333,7 +333,6 @@ const parseMediaPayload = (data) => {
             let sortedStudios = [];
             // choosing not to report on undefined entries
             delete studios['undefined'];
-            console.log('studios: ', studios);
             for (studio in studios) {
                 sortedStudios.push([studio, studios[studio]]);
             }
@@ -347,7 +346,6 @@ const parseMediaPayload = (data) => {
             }
 
             studioCounts.unshift("studioCounts");
-            console.log('studioCounts: ', studioCounts);
             /////////////////////////
             // items by decade chart
             // remove undefined entries from releaseDateList
@@ -521,8 +519,7 @@ const app = new Vue({
         renderSingleChart: function (selector, type, columns, categories = [], rotated = true) {
             // categories and rotated are optional parameters only applicable to bar charts.
             // rotated = false will set the bar chart to vertical orientation.
-            console.log('countryToggle', app.selectedLibraryStats.countryToggle);
-            console.log('rendering chart: ', selector, type, columns, categories, rotated)
+            // console.log('rendering chart: ', selector, type, columns, categories, rotated)
             if (type === 'bar') {
                 c3.generate({
                     bindto: selector,
@@ -605,7 +602,6 @@ const app = new Vue({
         },
         updateLimit: function (limitType, updatedLimit) {
             // limitType is a string like "genre" and updatedLimit is a number
-            console.log('updating limit: ', limitType, updatedLimit);
             // set the new limit, e.g. genreLimit = 10
             app.selectedLibraryStats[`${limitType}Limit`] = parseInt(updatedLimit);
             let newLimit = app.selectedLibraryStats[`${limitType}Limit`],
