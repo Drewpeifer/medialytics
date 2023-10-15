@@ -1,2 +1,4 @@
 .DS_store
 .env
+.idea
+.tool-versions

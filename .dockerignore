@@ -1,0 +1,8 @@
+.github/
+.tool-versions
+node_modules
+build
+.dockerignore
+Dockerfile
+Dockerfile.prod
+npm-debug.log
