@@ -4,12 +4,8 @@
 const serverToken = 'SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
 serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
 libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
-// below are the limits for displaying data in the charts, e.g. "Top X Countries", and the recently added list
-countryLimit = 20,
-genreLimit = 20,
-studioLimit = 20,
-directorLimit = 20,
-actorLimit = 20,
+// chart color theme
+chartColors = ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
 recentLimit = 10,
 recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
@@ -22,31 +18,90 @@ let availableLibraries = [],// the list of libraries returned by your server
 selectedLibrary = "",// the library currently selected by the user
 selectedLibraryKey = "",// the key of the library currently selected by the user
 selectedLibraryStats = {},// a large object containing all the stats for the selected library
-selectedLibrarySummary = "",// plain text summary of stat highlights
 libraryStatsLoading = false,// used to trigger loading animations
 recentlyAdded = [],// the list of recently added items returned by your server
+// genres
+genres = {},// this stores genre: count, and is then split into the two following arrays
+genreList = [],
+genreCounts = [],
+// countries
 countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
 countryList = [],
 countryCounts = [],
+// release dates
 releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
 oldestTitle = "",// the oldest title in the library
 oldestReleaseDate = "",// the oldest release date in the library
-studioInstances = [],// arrays of type fooInstances and sortedFoo are used to generate the pie charts
-sortedStudios = [],
+// studios
+studios = {},// this stores studio: count, and is then split into the two following arrays
+studioList = [],
+studioCounts = [],
+// directors, and actors
 directorInstances = [],
 sortedDirectors = [],
 actorInstances = [],
 sortedActors = [],
-genres = {},// this stores genre: count, and is then split into the two following arrays
-genreList = [],
-genreCounts = [],
+// durations, library size, and unmatched items
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
 longestTitle = "",// title of item with longest duration / episode count
+firstAdded = "",// date the first item was added to the server
+firstAddedDate = "",// date the first item was added to the server
+lastAdded = "",
+lastAddedDate = "",
 seasonSum = 0,
-episodeCounts = []
-episodeSum = 0;
+episodeCounts = [],
+episodeSum = 0,
+unmatchedItems = [],
+// below are the limits for displaying data in the charts, e.g. "Top X Countries", and the recently added list
+countryLimit = 20,
+newCountryLimit = countryLimit,// "new" variations are used for the UI to track changes to limit / Top X
+genreLimit = 20,
+newGenreLimit = genreLimit,
+studioLimit = 20,
+newStudioLimit = studioLimit,
+directorLimit = 20,
+newDirectorLimit = directorLimit,
+actorLimit = 20,
+newActorLimit = actorLimit;
+
+/////////////////////////////////
+// reset library stats
+const resetLibraryStats = () => {
+    // keep in sync with list above, this resets data on library selection
+    countries = {},
+    countryList = [],
+    countryCounts = [],
+    countryToggle = "",
+    genres = {},
+    genreList = [],
+    genreCounts = [],
+    genreToggle = "",
+    studios = {},
+    studioList = [],
+    studioCounts = [],
+    studioToggle = "",
+    releaseDateList = [],
+    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    oldestTitle = "",
+    oldestReleaseDate = "",
+    directorInstances = [],
+    sortedDirectors = [],
+    actorInstances = [],
+    sortedActors = [],
+    durationSum = 0,
+    seasonSum = 0,
+    episodeCounts = [],
+    episodeSum = 0,
+    longestDuration = 0,
+    longestTitle = "",
+    firstAdded = "",
+    firstAddedDate = "",
+    lastAdded = "",
+    lastAddedDate = "",
+    unmatchedItems = [];
+}
 
 /////////////////////////////////
 // gets list of available libraries
@@ -91,37 +146,9 @@ const getLibraryData = async (libraryKey) => {
         return response.data.MediaContainer;
     });
     // uncomment the following line to print the raw xml in the console
-    // console.log('Library Data: ', libraryData);
+    //console.log('Library Data: ', libraryData);
     resetLibraryStats();
     return libraryData;
-}
-
-/////////////////////////////////
-// reset library stats
-const resetLibraryStats = () => {
-    selectedLibrarySummary = "",
-    countries = {},
-    countryList = [],
-    countryCounts = [],
-    releaseDateList = [],
-    releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    oldestTitle = "",
-    oldestReleaseDate = "",
-    studioInstances = [],
-    sortedStudios = [],
-    directorInstances = [],
-    sortedDirectors = [],
-    actorInstances = [],
-    sortedActors = [],
-    genres = {},
-    genreList = [],
-    genreCounts = [],
-    durationSum = 0,
-    seasonSum = 0,
-    episodeCounts = []
-    episodeSum = 0,
-    longestDuration = 0,
-    longestTitle = "";
 }
 
 /////////////////////////////////
@@ -135,13 +162,49 @@ const parseMediaPayload = (data) => {
         // track year
         releaseDateList.push(item.year);
 
+        // track unmatched items
+        if (item.guid.includes('local')) {
+            // console.log('unmatched item detected:');
+            // console.dir(item);
+            unmatchedItems.push(item.title);
+        }
+
         // track oldest release date
         if (oldestTitle == "" || new Date(item.originallyAvailableAt) < new Date(oldestReleaseDate)) {
-            oldestTitle = item.title + ' (' + item.originallyAvailableAt + ')';
+            oldestTitle = item.title + ' (' + new Date(item.originallyAvailableAt).toLocaleDateString().replace(/\//g,'-') + ')';
             oldestReleaseDate = item.originallyAvailableAt;
         }
+        // track dateAdded (date added to server)
+        if (item.addedAt) {
+            // convert unix timestamp to date and parse for values to concatenate and push
+            let itemDate = new Date(item.addedAt * 1000);
+
+            // track firstAdded
+            if (firstAdded == "" || itemDate < firstAddedDate) {
+                firstAdded = item.title;
+                firstAddedDate = itemDate;
+            }
+            // track lastAdded
+            if (lastAdded == "" || itemDate > lastAddedDate) {
+                lastAdded = item.title;
+                lastAddedDate = itemDate;
+            }
+        } else {
+            // no dateAdded
+        }
+
         // track studio
-        studioInstances.push(item.studio);
+        if (item.studio) {
+            if (studios.hasOwnProperty(item.studio)) {
+                // if studio exists in the dictionary already,
+                // find the studio and increment the count
+                studios[item.studio]++;
+            } else {
+                studios[item.studio] = 1;
+            }
+        } else {
+            // no studios
+        }
         // track durations
         if (isNaN(item.duration)) {
             // duration is NaN
@@ -219,7 +282,8 @@ const parseMediaPayload = (data) => {
 
         //////////////////////////
         // if it's the last entry in the library, calculate stats and prepare data for charts
-        // (bar charts want 2 arrays of values, while pie charts want a dictionary)
+        // (bar charts want 2 arrays of values, while pie charts want an array or arrays, e.g. [['foo', 1], ['bar', 2]])
+        // https://c3js.org/examples.html for more info
         if (index == itemCount - 1) {
             let totalMins = Math.round(durationSum),
             totalHours = Math.floor(durationSum/60),
@@ -264,6 +328,24 @@ const parseMediaPayload = (data) => {
 
             genreCounts.unshift("genreCounts");
 
+            ////////////////////////
+            // items by studio chart
+            let sortedStudios = [];
+            // choosing not to report on undefined entries
+            delete studios['undefined'];
+            for (studio in studios) {
+                sortedStudios.push([studio, studios[studio]]);
+            }
+            sortedStudios.sort(function(a, b) {
+                return b[1] - a[1];
+            })
+            // split the sorted studio dictionary into an array of studios and an array of counts
+            for (property in sortedStudios) {
+                studioList.push(sortedStudios[property][0]);
+                studioCounts.push(sortedStudios[property][1]);
+            }
+
+            studioCounts.unshift("studioCounts");
             /////////////////////////
             // items by decade chart
             // remove undefined entries from releaseDateList
@@ -287,28 +369,6 @@ const parseMediaPayload = (data) => {
 
             releaseDateCounts.unshift("releaseDateCounts");
 
-            ////////////////////////
-            // items by studio chart
-            let studios = {};
-            // build a dictionary of studios and their counts
-            studioInstances.forEach((studio) => {
-                if (studios.hasOwnProperty(studio)) {
-                    studios[studio]++;
-                } else {
-                    studios[studio] = 1;
-                }
-            });
-            // remove undefined entries from studioInstances
-            delete studios['undefined'];
-            // sort the studios dictionary by count
-            for (studio in studios) {
-                sortedStudios.push([studio, studios[studio]]);
-            }
-            sortedStudios.sort(function(a, b) {
-                return b[1] - a[1];
-            });
-            // trim the sorted studios to the predefined limit
-            sortedStudios = sortedStudios.slice(0, studioLimit);
 
             ////////////////////////
             // items by director chart
@@ -367,16 +427,22 @@ const parseMediaPayload = (data) => {
                 topGenre: genreList[0],
                 topGenreCount: genreCounts[1].toLocaleString(),
                 totalGenreCount: Object.keys(genres).length.toLocaleString(),
+                genreList: genreList,
+                genreCounts: genreCounts,
                 topCountry: countryList[0],
                 topCountryCount: countryCounts[1].toLocaleString(),
                 totalCountryCount: Object.keys(countries).length.toLocaleString(),
+                countryCounts: countryCounts,
+                countryList: countryList,
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
                 studios: studios,
-                topStudio: sortedStudios[0][0],
-                topStudioCount: sortedStudios[0][1].toLocaleString(),
+                topStudio: studioList[0],
+                topStudioCount: studioCounts[1].toLocaleString(),
                 totalStudioCount: Object.keys(studios).length.toLocaleString(),
+                studioList: studioList,
+                studioCounts: studioCounts,
                 topDirector: sortedDirectors.length > 0 ? sortedDirectors[0][0] : "",
                 topDirectorCount: sortedDirectors.length > 0 ? sortedDirectors[0][1].toLocaleString() : 0,
                 topActor: sortedActors.length > 0 ? sortedActors[0][0] : "",
@@ -387,174 +453,28 @@ const parseMediaPayload = (data) => {
                 seasonSum: seasonSum,
                 episodeSum: episodeSum,
                 studioLimit: studioLimit,
+                newStudioLimit: newStudioLimit,
                 countryLimit: countryLimit,
+                newCountryLimit: newCountryLimit,
                 genreLimit: genreLimit,
+                newGenreLimit: newGenreLimit,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
+                firstAdded : firstAdded,
+                firstAddedDate : firstAddedDate,
+                lastAdded : lastAdded,
+                lastAddedDate : lastAddedDate,
+                unmatchedItems : unmatchedItems
             }
 
-            // set concatenated summary string
-            app.selectedLibrarySummary = type === 'movie' ?
-            // movies
-            `The total duration is ${app.selectedLibraryStats.totalDuration}.` :
-            // tv
-            `The total duration is ${app.selectedLibraryStats.totalDuration}.`
-
             // render charts
-            renderCharts();
+            app.renderDefaultCharts();
 
             // if debug mode is enabled, log data into the console:
             if (debugMode) {
                 console.log('Library Selected: ', app.selectedLibrary);
                 console.log('Total Items: ', itemCount);
                 console.log('Library XML: ' + serverIp + '/library/sections/' + app.selectedLibraryKey + '/all?X-Plex-Token=' + serverToken);
-            }
-        }
-    });
-}
-
-const renderCharts = () => {
-    // render charts
-    c3.generate({
-        bindto: '.items-by-country',
-        x: 'x',
-        data: {
-            columns: [
-                countryCounts.slice(0, countryLimit + 1)
-            ],
-            type: 'bar'
-        },
-        axis: {
-            rotated: true,
-            x: {
-                type: 'category',
-                categories: countryList.slice(0, countryLimit + 1)
-            }
-        },
-        legend: {
-            hide: true
-        },
-        color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-genre',
-        x: 'x',
-        data: {
-            columns: [
-                genreCounts.slice(0, genreLimit + 1)
-            ],
-            type: 'bar'
-        },
-        axis: {
-            rotated: true,
-            x: {
-                type: 'category',
-                categories: genreList.slice(0, genreLimit + 1)
-            }
-        },
-        legend: {
-            hide: true
-        },
-        color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-decade',
-        x: 'x',
-        data: {
-            columns: [
-                releaseDateCounts
-            ],
-            type: 'bar'
-        },
-        axis: {
-            x: {
-                type: 'category',
-                categories: decades
-            }
-        },
-        legend: {
-            hide: true
-        },
-        color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-studio',
-        data: {
-            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
-            columns: sortedStudios,
-            type : 'pie'
-        },
-        pie: {
-            label: {
-                format: function (value, ratio, id) {
-                    return value;
-                }
-            }
-        },
-        color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
-        },
-        tooltip: {
-            format: {
-                value: function (value, ratio, id) {
-                    return id + ' : ' + value;
-                }
-            }
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-director',
-        data: {
-            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
-            columns: sortedDirectors,
-            type : 'pie'
-        },
-        pie: {
-            label: {
-                format: function (value, ratio, id) {
-                    return value;
-                }
-            }
-        },
-        color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
-        },
-        tooltip: {
-            format: {
-                value: function (value, ratio, id) {
-                    return id + ' : ' + value;
-                }
-            }
-        }
-    });
-    c3.generate({
-        bindto: '.items-by-actor',
-        data: {
-            // set the columns property to a dictionary that contains the first 20 key/value pairs of the studios dictionary
-            columns: sortedActors,
-            type : 'pie'
-        },
-        pie: {
-            label: {
-                format: function (value, ratio, id) {
-                    return value;
-                }
-            }
-        },
-        color: {
-            pattern: ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7']
-        },
-        tooltip: {
-            format: {
-                value: function (value, ratio, id) {
-                    return id + ' : ' + value;
-                }
             }
         }
     });
@@ -573,8 +493,10 @@ const app = new Vue({
         selectedLibrary: selectedLibrary,
         selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
-        selectedLibrarySummary: selectedLibrarySummary,
         recentlyAdded: recentlyAdded,
+        genreToggle: "pie",
+        countryToggle: "pie",
+        studioToggle: "bar"
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -592,5 +514,103 @@ const app = new Vue({
                 app.recentlyAdded = data;
             });
         });
+    },
+    methods: {
+        renderSingleChart: function (selector, type, columns, categories = [], rotated = true) {
+            // categories and rotated are optional parameters only applicable to bar charts.
+            // rotated = false will set the bar chart to vertical orientation.
+            // console.log('rendering chart: ', selector, type, columns, categories, rotated)
+            if (type === 'bar') {
+                c3.generate({
+                    bindto: selector,
+                    x: 'x',
+                    data: {
+                        columns: [
+                            columns
+                        ],
+                        type: 'bar'
+                    },
+                    axis: {
+                        rotated: rotated,
+                        x: {
+                            type: 'category',
+                            categories: categories,
+                            tick: {
+                                multiline: false,
+                            }
+                        }
+                    },
+                    legend: {
+                        hide: true
+                    },
+                    color: {
+                        pattern: chartColors
+                    }
+                });
+            } else if (type === 'pie') {
+                columns.shift();
+                let pieColumns = [];
+                if (categories.length >= 1) {
+                    categories.forEach((item, index) => {
+                        pieColumns.push([item, parseInt(columns[index])]);
+                    });
+                } else {
+                    pieColumns = columns;
+                }
+                c3.generate({
+                    bindto: selector,
+                    data: {
+                        columns: pieColumns,
+                        type : 'pie'
+                    },
+                    pie: {
+                        label: {
+                            format: function (value, ratio, id) {
+                                return value;
+                            }
+                        }
+                    },
+                    color: {
+                        pattern: chartColors
+                    },
+                    tooltip: {
+                        format: {
+                            value: function (value, ratio, id) {
+                                return id + ' : ' + value;
+                            }
+                        }
+                    }
+                });
+            }
+            // if the current chart we are rendering is a bar chart, we need to flip the corresponding toggle
+            // to be pie, and vice versa, for the UI controls to stay in sync
+            const itemType = selector.split('-')[2];
+            if (type === 'bar') {
+                app[`${itemType}Toggle`] = 'pie';
+            } else {
+                app[`${itemType}Toggle`] = 'bar';
+            }
+        },
+        renderDefaultCharts: function () {
+            // render charts
+            app.renderSingleChart('.items-by-genre', 'bar', genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit));
+            app.renderSingleChart('.items-by-country', 'bar', countryCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit));
+            app.renderSingleChart('.items-by-decade', 'bar', releaseDateCounts, decades, false);
+            app.renderSingleChart('.items-by-studio', 'pie', studioCounts.slice(0, studioLimit + 1), studioList.slice(0, studioLimit));
+            app.renderSingleChart('.items-by-director', 'pie', sortedDirectors);
+            app.renderSingleChart('.items-by-actor', 'pie', sortedActors);
+        },
+        updateLimit: function (limitType, updatedLimit) {
+            // limitType is a string like "genre" and updatedLimit is a number
+            // set the new limit, e.g. genreLimit = 10
+            app.selectedLibraryStats[`${limitType}Limit`] = parseInt(updatedLimit);
+            let newLimit = app.selectedLibraryStats[`${limitType}Limit`],
+                newCounts = app.selectedLibraryStats[`${limitType}Counts`],
+                newList = app.selectedLibraryStats[`${limitType}List`] ? app.selectedLibraryStats[`${limitType}List`].slice(0, newLimit) : [],
+                currentChartType = app[`${limitType}Toggle`] === 'pie' ? 'bar' : 'pie';
+
+            // render the new chart
+            app.renderSingleChart(`.items-by-${limitType}`, currentChartType, newCounts.slice(0, newLimit + 1), newList);
+        }
     }
 });

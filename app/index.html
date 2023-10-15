@@ -14,7 +14,7 @@
     <!-- fonts and styling -->
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
 </head>
 <body>
     <div class="wrapper">
@@ -24,7 +24,7 @@
             <h3>This tool is not associated with Plex, and is intended only for private and non-commercial use</h3>
         </div>
         <div id="app">
-            <div class="warning" v-if="serverIp === 'YOUR_SERVER_IP' || serverToken === 'YOUR_SERVER_TOKEN'">
+            <div class="warning" v-if="serverIp === 'SERVER_IP' || serverToken === 'SERVER_TOKEN'">
                 <h3>
                     Credentials unset. Please edit scripts.js to set your server IP and token.
                 </h3>
@@ -102,6 +102,14 @@
                                 </p>
                                 <p><strong>Oldest {{ selectedLibraryStats.increment }}:</strong> {{ selectedLibraryStats.oldestTitle }}</p>
                             </div>
+                            <div class="row">
+                                <p><strong>Earliest Addition:</strong> {{ selectedLibraryStats.firstAdded }} ({{ selectedLibraryStats.firstAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
+                                <p><strong>Latest Addition:</strong> {{ selectedLibraryStats.lastAdded }} ({{ selectedLibraryStats.lastAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
+                            </div>
+                            <div class="row" v-if="unmatchedItems.length > 0">
+                                <p><strong>Unmatched Items ({{ selectedLibraryStats.unmatchedItems.length }}):</strong></p>
+                                <p>{{ selectedLibraryStats.unmatchedItems.join(', ') }}</span></p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -115,6 +123,25 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Genres:</strong> {{ selectedLibraryStats.totalGenreCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="genreToggle"
+                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, selectedLibraryStats.genreCounts.slice(0, selectedLibraryStats.genreLimit + 1), selectedLibraryStats.genreList.slice(0, selectedLibraryStats.genreLimit))"
+                                        v-model="genreToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="genreToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="genreLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="genreLimit"
+                                        v-model="newGenreLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('genre', newGenreLimit)">Update</button>
+                                </div>
                                 <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
                             </div>
                             <div class="row">
@@ -133,6 +160,25 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Countries:</strong> {{ selectedLibraryStats.totalCountryCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="countryToggle"
+                                        v-on:click="renderSingleChart('.items-by-country', countryToggle, selectedLibraryStats.countryCounts.slice(0, selectedLibraryStats.countryLimit + 1), selectedLibraryStats.countryList.slice(0, selectedLibraryStats.countryLimit))"
+                                        v-model="countryToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="countryToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="countryLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="countryLimit"
+                                        v-model="newCountryLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('country', newCountryLimit)">Update</button>
+                                </div>
                                 <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
                             </div>
                             <div class="row">
@@ -166,6 +212,25 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Studios:</strong> {{ selectedLibraryStats.totalStudioCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="studioToggle"
+                                        v-on:click="renderSingleChart('.items-by-studio', studioToggle, selectedLibraryStats.studioCounts.slice(0, selectedLibraryStats.studioLimit + 1), selectedLibraryStats.studioList.slice(0, selectedLibraryStats.studioLimit))"
+                                        v-model="studioToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="studioToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="studioLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="studioLimit"
+                                        v-model="newStudioLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('studio', newStudioLimit)">Update</button>
+                                </div>
                                 <p><strong>Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
                             </div>
                             <div class="row">
