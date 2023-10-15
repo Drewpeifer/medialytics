@@ -78,12 +78,9 @@ h3 {
     justify-content: space-evenly;
     margin: 10px;
 }
-.row > p {
+.row p {
     min-width: 30%;
     margin: 0 10px;
-}
-.library-stats .row p {
-    min-width: 25%;
 }
 .full {
     min-width: 98%;
@@ -93,6 +90,9 @@ h3 {
 }
 
 /* controls */
+.chart-limit {
+    min-width: 30%;
+}
 .chart-limit input {
     max-width: 50px;
 }
@@ -190,8 +190,8 @@ h3 {
     display:none;
 }
 .chart-toggle input + label {
-    height: 40px;
-    width: 40px;
+    height: 30px;
+    width: 30px;
     display:inline-block;
     background-image: url(../images/icon-bar_64.png);
     background-size: 90% 90%;

@@ -24,12 +24,10 @@ recentlyAdded = [],// the list of recently added items returned by your server
 genres = {},// this stores genre: count, and is then split into the two following arrays
 genreList = [],
 genreCounts = [],
-genreToggle = "pie",// used to toggle between bar and pie charts for genres
 // countries
 countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
 countryList = [],
 countryCounts = [],
-countryToggle = "pie",// used to toggle between bar and pie charts for countries
 // release dates
 releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
@@ -39,7 +37,6 @@ oldestReleaseDate = "",// the oldest release date in the library
 studios = {},// this stores studio: count, and is then split into the two following arrays
 studioList = [],
 studioCounts = [],
-studioToggle = "bar",// used to toggle between bar and pie charts for genres
 // directors, and actors
 directorInstances = [],
 sortedDirectors = [],
@@ -76,23 +73,23 @@ const resetLibraryStats = () => {
     countries = {},
     countryList = [],
     countryCounts = [],
-    countryToggle = "pie",
+    countryToggle = "",
+    genres = {},
+    genreList = [],
+    genreCounts = [],
+    genreToggle = "",
+    studios = {},
+    studioList = [],
+    studioCounts = [],
+    studioToggle = "",
     releaseDateList = [],
     releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     oldestTitle = "",
     oldestReleaseDate = "",
-    studios = {},
-    studioList = [],
-    studioCounts = [],
-    studioToggle = "bar",
     directorInstances = [],
     sortedDirectors = [],
     actorInstances = [],
     sortedActors = [],
-    genres = {},
-    genreList = [],
-    genreCounts = [],
-    genreToggle = "pie",
     durationSum = 0,
     seasonSum = 0,
     episodeCounts = [],
@@ -374,6 +371,7 @@ const parseMediaPayload = (data) => {
 
             releaseDateCounts.unshift("releaseDateCounts");
 
+
             ////////////////////////
             // items by director chart
             let directors = {};
@@ -433,13 +431,11 @@ const parseMediaPayload = (data) => {
                 totalGenreCount: Object.keys(genres).length.toLocaleString(),
                 genreList: genreList,
                 genreCounts: genreCounts,
-                genreToggle: "pie",
                 topCountry: countryList[0],
                 topCountryCount: countryCounts[1].toLocaleString(),
                 totalCountryCount: Object.keys(countries).length.toLocaleString(),
                 countryCounts: countryCounts,
                 countryList: countryList,
-                countryToggle: "pie",
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
@@ -449,7 +445,6 @@ const parseMediaPayload = (data) => {
                 totalStudioCount: Object.keys(studios).length.toLocaleString(),
                 studioList: studioList,
                 studioCounts: studioCounts,
-                studioToggle: "bar",
                 topDirector: sortedDirectors.length > 0 ? sortedDirectors[0][0] : "",
                 topDirectorCount: sortedDirectors.length > 0 ? sortedDirectors[0][1].toLocaleString() : 0,
                 topActor: sortedActors.length > 0 ? sortedActors[0][0] : "",
@@ -502,7 +497,8 @@ const app = new Vue({
         selectedLibraryStats: selectedLibraryStats,
         recentlyAdded: recentlyAdded,
         genreToggle: "pie",
-        countrytoggle: "pie"
+        countryToggle: "pie",
+        studioToggle: "bar"
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -525,6 +521,7 @@ const app = new Vue({
         renderSingleChart: function (selector, type, columns, categories = [], rotated = true) {
             // categories and rotated are optional parameters only applicable to bar charts.
             // rotated = false will set the bar chart to vertical orientation.
+            console.log('countryToggle', app.selectedLibraryStats.countryToggle);
             console.log('rendering chart: ', selector, type, columns, categories, rotated)
             if (type === 'bar') {
                 c3.generate({
@@ -585,6 +582,14 @@ const app = new Vue({
                     }
                 });
             }
+            // if the current chart we are rendering is a bar chart, we need to flip the corresponding toggle
+            // to be pie, and vice versa, for the UI controls to stay in sync
+            const itemType = selector.split('-')[2];
+            if (type === 'bar') {
+                app[`${itemType}Toggle`] = 'pie';
+            } else {
+                app[`${itemType}Toggle`] = 'bar';
+            }
         },
         renderDefaultCharts: function () {
             // render charts
@@ -602,34 +607,11 @@ const app = new Vue({
             app.selectedLibraryStats[`${limitType}Limit`] = parseInt(updatedLimit);
             let newLimit = app.selectedLibraryStats[`${limitType}Limit`],
                 newCounts = app.selectedLibraryStats[`${limitType}Counts`],
-                newList = app.selectedLibraryStats[`${limitType}List`] ? app.selectedLibraryStats[`${limitType}List`].slice(0, newLimit) : [];
-
-                console.log('newLimit: ', newLimit);
-                console.log('newList: ', newList);
-                console.log('newCounts: ', newCounts);
-                console.log('slicedCounts: ', newCounts.slice(0, newLimit));
+                newList = app.selectedLibraryStats[`${limitType}List`] ? app.selectedLibraryStats[`${limitType}List`].slice(0, newLimit) : [],
+                currentChartType = app[`${limitType}Toggle`] === 'pie' ? 'bar' : 'pie';
 
             // render the new chart
-            console.log('app.genreLimit: ', app.selectedLibraryStats.genreLimit);
-            switch (limitType) {
-                case 'genre':
-                    app.renderSingleChart(`.items-by-${limitType}`, 'bar', newCounts.slice(0, newLimit + 1), newList);
-                    break;
-                case 'country':
-                    app.renderSingleChart(`.items-by-${limitType}`, 'bar', newCounts.slice(0, newLimit + 1), newList);
-                    break;
-                case 'studio':
-                    app.renderSingleChart(`.items-by-${limitType}`, 'bar', newCounts.slice(0, newLimit + 1), newList);
-                    break;
-                case 'director':
-                    app.renderSingleChart('.items-by-director', 'pie', sortedDirectors.slice(0, app.selectedLibraryStats[limit]));
-                    break;
-                case 'actor':
-                    app.renderSingleChart('.items-by-actor', 'pie', sortedActors.slice(0, app.selectedLibraryStats[limit]));
-                    break;
-                default:
-                    console.log('no match');
-            }
+            app.renderSingleChart(`.items-by-${limitType}`, currentChartType, newCounts.slice(0, newLimit + 1), newList);
         }
     }
 });

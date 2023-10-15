@@ -212,6 +212,16 @@
                         <div class="content">
                             <div class="row">
                                 <p><strong>Total Studios:</strong> {{ selectedLibraryStats.totalStudioCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="studioToggle"
+                                        v-on:click="renderSingleChart('.items-by-studio', studioToggle, selectedLibraryStats.studioCounts.slice(0, selectedLibraryStats.studioLimit + 1), selectedLibraryStats.studioList.slice(0, selectedLibraryStats.studioLimit))"
+                                        v-model="studioToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="studioToggle"></label>
+                                </div>
                                 <div class="chart-limit">
                                     <label for="studioLimit">Limit:&nbsp;</label>
                                     <input type="number"
