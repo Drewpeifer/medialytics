@@ -163,7 +163,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="countryToggle"
-                                        v-on:click="renderSingleChart('.items-by-country', countryToggle, selectedLibraryStats.countryCounts.slice(0, countryLimit + 1), selectedLibraryStats.countryList.slice(0, countryLimit))"
+                                        v-on:click="renderSingleChart('.items-by-country', countryToggle, selectedLibraryStats.countryCounts.slice(0, selectedLibraryStats.countryLimit + 1), selectedLibraryStats.countryList.slice(0, selectedLibraryStats.countryLimit))"
                                         v-model="countryToggle"
                                         true-value="pie"
                                         false-value="bar"
