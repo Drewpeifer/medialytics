@@ -81,6 +81,7 @@ h3 {
 .row p {
     min-width: 30%;
     margin: 0 10px;
+    line-height: 24px;
 }
 .full {
     min-width: 98%;
@@ -198,6 +199,8 @@ h3 {
     background-position: top center;
     background-repeat: no-repeat;
     cursor: pointer;
+    position:relative;
+    top:-5px;
 }
 .chart-toggle input:checked + label {
     background-image: url(../images/icon-pie_64.png);
