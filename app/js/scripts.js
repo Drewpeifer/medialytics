@@ -42,7 +42,7 @@ directorInstances = [],
 sortedDirectors = [],
 actorInstances = [],
 sortedActors = [],
-// durations
+// durations, library size, and unmatched items
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
 longestTitle = "",// title of item with longest duration / episode count
@@ -537,7 +537,10 @@ const app = new Vue({
                         rotated: rotated,
                         x: {
                             type: 'category',
-                            categories: categories
+                            categories: categories,
+                            tick: {
+                                multiline: false,
+                            }
                         }
                     },
                     legend: {
