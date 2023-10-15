@@ -1,0 +1,27 @@
+version: 2
+updates:
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - drewpeifer
+    assignees:
+      - drewpeifer
+    labels:
+      - github_actions
+
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    # Look for a `Dockerfile` in the `root` directory
+    directory: "/"
+    # Check for updates once a week
+    schedule:
+      interval: "daily"
+    reviewers:
+      - drewpeifer
+    assignees:
+      - drewpeifer
+    labels:
+      - github_actions
