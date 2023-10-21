@@ -71,7 +71,7 @@ This assumes you followed the instructions and have a `.env` file in the same re
 version: "3.9"
 services:
   medialytics:
-    image: ghcr.io/Drewpeifer/medialytics:latest
+    image: ghcr.io/drewpeifer/medialytics:latest
     container_name: medialytics
     environment:
       - SERVER_IP=${SERVER_IP}
