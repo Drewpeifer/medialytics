@@ -146,7 +146,9 @@ const getLibraryData = async (libraryKey) => {
         return response.data.MediaContainer;
     });
     // uncomment the following line to print the raw xml in the console
-    //console.log('Library Data: ', libraryData);
+    if (debugMode) {
+        console.log('Library Data: ', libraryData);
+    }
     resetLibraryStats();
     return libraryData;
 }
@@ -164,8 +166,10 @@ const parseMediaPayload = (data) => {
 
         // track unmatched items
         if (item.guid.includes('local')) {
-            // console.log('unmatched item detected:');
-            // console.dir(item);
+            if (debugMode) {
+                console.log('unmatched item detected:');
+                console.dir(item);
+            }
             unmatchedItems.push(item.title);
         }
 
@@ -520,7 +524,10 @@ const app = new Vue({
         renderSingleChart: function (selector, type, columns, categories = [], rotated = true) {
             // categories and rotated are optional parameters only applicable to bar charts.
             // rotated = false will set the bar chart to vertical orientation.
-            // console.log('rendering chart: ', selector, type, columns, categories, rotated)
+            if (debugMode) {
+                console.log('rendering chart: ', selector, type, columns, categories, rotated)
+            }
+
             if (type === 'bar') {
                 c3.generate({
                     bindto: selector,
