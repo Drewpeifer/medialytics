@@ -1,13 +1,5 @@
-# Medialytics [2.0]
+# Medialytics
 ### A free analytics tool for Plex server content
-
---------
-### 2.0 update
-* rebuilt with Vue
-* several optimizations to parsing and aggregation logic
-* removed library view (wasn't particularly useful)
-* streamlined setup process, added library detection instead of manual entry
-* displaying some new statistics
 
 --------
 # What is Medialytics?
