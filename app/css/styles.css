@@ -109,7 +109,7 @@ h3 {
 /* recently added */
 .recently-added .content .row {
     flex-wrap: nowrap;
-    justify-content: center;
+    justify-content: flex-start;
     overflow-x: auto;
 }
 .recently-added .content .entry {

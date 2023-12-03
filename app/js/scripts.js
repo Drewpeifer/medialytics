@@ -6,8 +6,8 @@ serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
 libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
 // chart color theme
 chartColors = ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
-recentLimit = 10,
-recentlyAddedUrl = serverIp + '/library/recentlyAdded/search?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
+recentLimit = 20,
+recentlyAddedUrl = serverIp + '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
 // be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
 decadePrefixes = ["191", "192", "193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
@@ -146,7 +146,9 @@ const getLibraryData = async (libraryKey) => {
         return response.data.MediaContainer;
     });
     // uncomment the following line to print the raw xml in the console
-    //console.log('Library Data: ', libraryData);
+    if (debugMode) {
+        console.log('Library Data: ', libraryData);
+    }
     resetLibraryStats();
     return libraryData;
 }
@@ -164,8 +166,10 @@ const parseMediaPayload = (data) => {
 
         // track unmatched items
         if (item.guid.includes('local')) {
-            // console.log('unmatched item detected:');
-            // console.dir(item);
+            if (debugMode) {
+                console.log('unmatched item detected:');
+                console.dir(item);
+            }
             unmatchedItems.push(item.title);
         }
 
@@ -369,7 +373,6 @@ const parseMediaPayload = (data) => {
 
             releaseDateCounts.unshift("releaseDateCounts");
 
-
             ////////////////////////
             // items by director chart
             let directors = {};
@@ -392,6 +395,7 @@ const parseMediaPayload = (data) => {
             });
             // trim the sorted directors to the predefined limit
             sortedDirectors = sortedDirectors.slice(0, directorLimit);
+            sortedDirectors.unshift('directorCounts');
 
             ////////////////////////
             // items by actor chart
@@ -414,7 +418,8 @@ const parseMediaPayload = (data) => {
                 return b[1] - a[1];
             });
             // trim the sorted directors to the predefined limit
-            sortedActors = sortedActors.slice(0, directorLimit);
+            sortedActors = sortedActors.slice(0, actorLimit);
+            sortedActors.unshift('actorCounts');
 
             // reset all selectedLibraryStats
             app.selectedLibraryStats = {};
@@ -443,10 +448,10 @@ const parseMediaPayload = (data) => {
                 totalStudioCount: Object.keys(studios).length.toLocaleString(),
                 studioList: studioList,
                 studioCounts: studioCounts,
-                topDirector: sortedDirectors.length > 0 ? sortedDirectors[0][0] : "",
-                topDirectorCount: sortedDirectors.length > 0 ? sortedDirectors[0][1].toLocaleString() : 0,
-                topActor: sortedActors.length > 0 ? sortedActors[0][0] : "",
-                topActorCount: sortedActors.length > 0 ? sortedActors[0][1].toLocaleString() : 0,
+                topDirector: sortedDirectors.length > 0 ? sortedDirectors[1][0] : "",
+                topDirectorCount: sortedDirectors.length > 0 ? sortedDirectors[1][1].toLocaleString() : 0,
+                topActor: sortedActors.length > 0 ? sortedActors[1][0] : "",
+                topActorCount: sortedActors.length > 0 ? sortedActors[1][1].toLocaleString() : 0,
                 type: type,
                 increment: type === 'movie'? 'movie' : 'show',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
@@ -519,7 +524,10 @@ const app = new Vue({
         renderSingleChart: function (selector, type, columns, categories = [], rotated = true) {
             // categories and rotated are optional parameters only applicable to bar charts.
             // rotated = false will set the bar chart to vertical orientation.
-            // console.log('rendering chart: ', selector, type, columns, categories, rotated)
+            if (debugMode) {
+                console.log('rendering chart: ', selector, type, columns, categories, rotated)
+            }
+
             if (type === 'bar') {
                 c3.generate({
                     bindto: selector,
