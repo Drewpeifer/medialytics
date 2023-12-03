@@ -369,7 +369,6 @@ const parseMediaPayload = (data) => {
 
             releaseDateCounts.unshift("releaseDateCounts");
 
-
             ////////////////////////
             // items by director chart
             let directors = {};
@@ -392,6 +391,7 @@ const parseMediaPayload = (data) => {
             });
             // trim the sorted directors to the predefined limit
             sortedDirectors = sortedDirectors.slice(0, directorLimit);
+            sortedDirectors.unshift('directorCounts');
 
             ////////////////////////
             // items by actor chart
@@ -414,7 +414,8 @@ const parseMediaPayload = (data) => {
                 return b[1] - a[1];
             });
             // trim the sorted directors to the predefined limit
-            sortedActors = sortedActors.slice(0, directorLimit);
+            sortedActors = sortedActors.slice(0, actorLimit);
+            sortedActors.unshift('actorCounts');
 
             // reset all selectedLibraryStats
             app.selectedLibraryStats = {};
@@ -443,10 +444,10 @@ const parseMediaPayload = (data) => {
                 totalStudioCount: Object.keys(studios).length.toLocaleString(),
                 studioList: studioList,
                 studioCounts: studioCounts,
-                topDirector: sortedDirectors.length > 0 ? sortedDirectors[0][0] : "",
-                topDirectorCount: sortedDirectors.length > 0 ? sortedDirectors[0][1].toLocaleString() : 0,
-                topActor: sortedActors.length > 0 ? sortedActors[0][0] : "",
-                topActorCount: sortedActors.length > 0 ? sortedActors[0][1].toLocaleString() : 0,
+                topDirector: sortedDirectors.length > 0 ? sortedDirectors[1][0] : "",
+                topDirectorCount: sortedDirectors.length > 0 ? sortedDirectors[1][1].toLocaleString() : 0,
+                topActor: sortedActors.length > 0 ? sortedActors[1][0] : "",
+                topActorCount: sortedActors.length > 0 ? sortedActors[1][1].toLocaleString() : 0,
                 type: type,
                 increment: type === 'movie'? 'movie' : 'show',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
