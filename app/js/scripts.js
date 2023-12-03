@@ -6,8 +6,8 @@ serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
 libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
 // chart color theme
 chartColors = ['#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
-recentLimit = 10,
-recentlyAddedUrl = serverIp + '/library/recentlyAdded?type=1&X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
+recentLimit = 20,
+recentlyAddedUrl = serverIp + '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
 // be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
 decadePrefixes = ["191", "192", "193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
