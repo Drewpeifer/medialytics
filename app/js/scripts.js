@@ -145,7 +145,6 @@ const getLibraryData = async (libraryKey) => {
         app.libraryStatsLoading = false;
         return response.data.MediaContainer;
     });
-    // uncomment the following line to print the raw xml in the console
     if (debugMode) {
         console.log('Library Data: ', libraryData);
     }
