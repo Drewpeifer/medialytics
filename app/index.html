@@ -89,6 +89,11 @@
                                     {{ selectedLibraryStats.seasonSum.toLocaleString() }} seasons /
                                     {{ selectedLibraryStats.episodeSum.toLocaleString() }} episodes
                                 </p>
+                                <p>
+                                    <strong>Watched:</strong>
+                                    {{ selectedLibraryStats.watchedCount.toLocaleString() }}
+                                    ({{ Math.floor((selectedLibraryStats.watchedCount / parseInt(selectedLibraryStats.totalItems.replace(/,/g, ''))) * 100) }}&#37;)
+                                </p>
                                 <p><strong>Total Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
                             </div>
                             <div class="row">

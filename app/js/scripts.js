@@ -20,6 +20,7 @@ selectedLibraryKey = "",// the key of the library currently selected by the user
 selectedLibraryStats = {},// a large object containing all the stats for the selected library
 libraryStatsLoading = false,// used to trigger loading animations
 recentlyAdded = [],// the list of recently added items returned by your server
+watchedCount = 0,// total watched items in a library
 // genres
 genres = {},// this stores genre: count, and is then split into the two following arrays
 genreList = [],
@@ -100,7 +101,8 @@ const resetLibraryStats = () => {
     firstAddedDate = "",
     lastAdded = "",
     lastAddedDate = "",
-    unmatchedItems = [];
+    unmatchedItems = [],
+    watchedCount = 0;
 }
 
 /////////////////////////////////
@@ -170,6 +172,11 @@ const parseMediaPayload = (data) => {
                 console.dir(item);
             }
             unmatchedItems.push(item.title);
+        }
+
+        // track watched status
+        if (item.lastViewedAt) {
+            watchedCount++;
         }
 
         // track oldest release date
@@ -468,7 +475,8 @@ const parseMediaPayload = (data) => {
                 firstAddedDate : firstAddedDate,
                 lastAdded : lastAdded,
                 lastAddedDate : lastAddedDate,
-                unmatchedItems : unmatchedItems
+                unmatchedItems : unmatchedItems,
+                watchedCount : watchedCount
             }
 
             // render charts
