@@ -111,6 +111,9 @@
                                 <p><strong>Earliest Addition:</strong> {{ selectedLibraryStats.firstAdded }} ({{ selectedLibraryStats.firstAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
                                 <p><strong>Latest Addition:</strong> {{ selectedLibraryStats.lastAdded }} ({{ selectedLibraryStats.lastAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
                             </div>
+                            <div class="row">
+                                <p>{{ selectedLibraryStats.sortedGenresWatchedCounts }}</p>
+                            </div>
                             <div class="row" v-if="unmatchedItems.length > 0">
                                 <p><strong>Unmatched Items ({{ selectedLibraryStats.unmatchedItems.length }}):</strong></p>
                                 <p>{{ selectedLibraryStats.unmatchedItems.join(', ') }}</span></p>
