@@ -40,6 +40,10 @@ releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
 oldestTitle = "",// the oldest title in the library
 oldestReleaseDate = "",// the oldest release date in the library
+// watched status for the decades chart
+decadesWatchedList = [],
+decadesWatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+decadesUnwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 // studios
 studios = {},// this stores studio: count, and is then split into the two following arrays
 studioList = [],
@@ -99,6 +103,9 @@ const resetLibraryStats = () => {
     releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     oldestTitle = "",
     oldestReleaseDate = "",
+    decadesWatchedList = {},
+    decadesWatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    decadesUnwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     directorInstances = [],
     sortedDirectors = [],
     actorInstances = [],
@@ -175,7 +182,9 @@ const parseMediaPayload = (data) => {
     // loop through items and gather important data
     data.data.MediaContainer.Metadata.forEach((item, index) => {
         // track year
-        releaseDateList.push(item.year);
+        if (typeof item.year === 'number' || !isNaN(item.year)) {
+            releaseDateList.push(item.year);
+        }
 
         // track unmatched items
         if (item.guid.includes('local')) {
@@ -186,9 +195,13 @@ const parseMediaPayload = (data) => {
             unmatchedItems.push(item.title);
         }
 
-        // track overall / total watched count
+        // track overall / total watched count, take any actions
+        // for watched items that don't require extra parsing
         if (item.lastViewedAt) {
             watchedCount++;
+            if (typeof item.year === 'number' || !isNaN(item.year)) {
+                decadesWatchedList.push(item.year);
+            }
         }
 
         // track oldest release date
@@ -339,12 +352,8 @@ const parseMediaPayload = (data) => {
             }
             countryCounts.unshift("countryCounts");
             // for every country in countryList, find the corresponding count in countriesWatched and push it to the sortedCountriesWatchedCounts array
-            console.log('countryList: ', countryList);
             countryList.forEach((country) => {
-                console.log('country: ', country);
                 sortedCountriesWatchedCounts.push(countriesWatched[country]);
-                console.log('countriesWatched[country]: ', countriesWatched[country]);
-                console.log('sortedCountriesWatchedCounts: ', sortedCountriesWatchedCounts);
             });
             sortedCountriesWatchedCounts.unshift("sortedGenresWatchedCounts");
             // copy sortedCountriesWatchedCounts to sortedCountriesUnwatchedCounts and set each value to the difference between the watched and total count for that country
@@ -374,12 +383,8 @@ const parseMediaPayload = (data) => {
 
             genreCounts.unshift("genreCounts");
             // for every genre in genreList, find the corresponding count in genresWatched and push it to the sortedGenresWatchedCounts array
-            console.log('genreList: ', genreList);
             genreList.forEach((genre) => {
-                console.log('genre: ', genre);
                 sortedGenresWatchedCounts.push(genresWatched[genre]);
-                console.log('genresWatched[genre]: ', genresWatched[genre]);
-                console.log('sortedGenresWatchedCounts: ', sortedGenresWatchedCounts);
             });
             sortedGenresWatchedCounts.unshift("sortedGenresWatchedCounts");
             // copy sortedGenresWatchedCounts to sortedGenresUnwatchedCounts and set each value to the difference between the watched and total count for that genre
@@ -427,7 +432,30 @@ const parseMediaPayload = (data) => {
             let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
             topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
 
+            decadesWatchedList.forEach((year, index) => {
+                if (typeof year !== 'number' || isNaN(year)) {
+                    decadesWatchedList.splice(index, 1);
+                } else {
+                    // compare each year to the decadePrefixes array, and if the first 3 chars of the year match the decade prefix,
+                    // increment the corresponding index in decadesWatchedCounts
+                    let yearSub = year.toString().substring(0, 3);
+                    for (let i = 0; i < decadePrefixes.length; i++) {
+                        if (yearSub == decadePrefixes[i]) {
+                            decadesWatchedCounts[i]++;
+                        }
+                    }
+                }
+            });
+
+            // copy the release date counts to a new array for unwatched items,
+            // then subtract the watched count from the total count for each decade
+            let decadesUnwatchedCounts = releaseDateCounts;
+            decadesUnwatchedCounts = decadesUnwatchedCounts.map((count, index) => {
+                return Math.abs(count - decadesWatchedCounts[index]);
+            });
             releaseDateCounts.unshift("releaseDateCounts");
+            decadesWatchedCounts.unshift("decadesWatchedCounts");
+            decadesUnwatchedCounts.unshift("decadesUnwatchedCounts");
 
             ////////////////////////
             // items by director chart
@@ -502,6 +530,8 @@ const parseMediaPayload = (data) => {
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
+                decadesWatchedCounts : decadesWatchedCounts,
+                decadesUnwatchedCounts : decadesUnwatchedCounts,
                 studios: studios,
                 topStudio: studioList[0],
                 topStudioCount: studioCounts[1].toLocaleString(),
@@ -583,6 +613,9 @@ const app = new Vue({
     },
     methods: {
         renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = []) {
+            if (debugMode) {
+                console.log('rendering chart: ', selector, dataColumns, categories, rotated, stackGroup)
+            }
             stackGroup.length > 1 ? c3.generate({
                 bindto: selector,
                 x: 'x',
@@ -649,6 +682,9 @@ const app = new Vue({
             });
         },
         renderPieChart: function (selector, dataColumns, categories = []) {
+            if (debugMode) {
+                console.log('rendering chart: ', selector, dataColumns, categories)
+            }
             dataColumns.shift();
             let pieColumns = [];
             if (categories.length >= 1) {
@@ -692,7 +728,6 @@ const app = new Vue({
             }
 
             if (type === 'bar') {
-                console.log('bar chart, stackGroup: ', stackGroup.length);
                 stackGroup.length > 1 ? c3.generate({
                     bindto: selector,
                     x: 'x',
@@ -807,7 +842,7 @@ const app = new Vue({
             // render charts
             app.renderBarChart('.items-by-genre', app.selectedLibraryStats.genresUnwatchedCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit), true, app.selectedLibraryStats.genresWatchedCounts.slice(0, genreLimit + 1));
             app.renderBarChart('.items-by-country', app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit), true, app.selectedLibraryStats.countriesWatchedCounts.slice(0, countryLimit + 1));
-            app.renderBarChart('.items-by-decade', releaseDateCounts, decades, false);
+            app.renderBarChart('.items-by-decade', app.selectedLibraryStats.decadesUnwatchedCounts, decades, false, app.selectedLibraryStats.decadesWatchedCounts);
             app.renderPieChart('.items-by-studio', studioCounts.slice(0, studioLimit + 1), studioList.slice(0, studioLimit));
             app.renderPieChart('.items-by-director', sortedDirectors);
             app.renderPieChart('.items-by-actor', sortedActors);
