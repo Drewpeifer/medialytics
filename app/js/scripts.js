@@ -32,6 +32,9 @@ genresUnwatchedCounts = [],
 countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
 countryList = [],
 countryCounts = [],
+countriesWatched = {},
+countriesWatchedCounts = [],
+countriesUnwatchedCounts = [],
 // release dates
 releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
@@ -77,6 +80,9 @@ const resetLibraryStats = () => {
     countries = {},
     countryList = [],
     countryCounts = [],
+    countriesWatched = {},
+    countriesWatchedCounts = [],
+    countriesUnwatchedCounts = [],
     countryToggle = "",
     genres = {},
     genreList = [],
@@ -180,7 +186,7 @@ const parseMediaPayload = (data) => {
             unmatchedItems.push(item.title);
         }
 
-        // track watched status
+        // track overall / total watched count
         if (item.lastViewedAt) {
             watchedCount++;
         }
@@ -254,11 +260,12 @@ const parseMediaPayload = (data) => {
                 if (genres.hasOwnProperty(genre.tag)) {
                     // if genre exists in the dictionary already,
                     // find the genre and increment the count
-                    item.lastViewedAt ? genresWatched[genre.tag]++ : genresWatched[genre.tag];
                     genres[genre.tag]++;
+                    // track the watched count for that genre
+                    item.lastViewedAt ? genresWatched[genre.tag]++ : genresWatched[genre.tag];
                 } else {
-                    item.lastViewedAt ? genresWatched[genre.tag] = 1 : genresWatched[genre.tag] = 0;
                     genres[genre.tag] = 1;
+                    item.lastViewedAt ? genresWatched[genre.tag] = 1 : genresWatched[genre.tag] = 0;
                 }
             });
         } else {
@@ -273,8 +280,11 @@ const parseMediaPayload = (data) => {
                     // if country exists in the dictionary already,
                     // find the country and increment the count
                     countries[country.tag]++;
+                    // track the watched count for that country
+                    item.lastViewedAt ? countriesWatched[country.tag]++ : countriesWatched[country.tag];
                 } else {
                     countries[country.tag] = 1;
+                    item.lastViewedAt ? countriesWatched[country.tag] = 1 : countriesWatched[country.tag] = 0;
                 }
             });
         } else {
@@ -312,7 +322,8 @@ const parseMediaPayload = (data) => {
 
             //////////////////////////
             // items by country chart
-            let sortedCountries = [];
+            let sortedCountries = []
+            sortedCountriesWatchedCounts = [];
             // choosing not to report on undefined entries
             delete countries['undefined'];
             for (country in countries) {
@@ -327,6 +338,21 @@ const parseMediaPayload = (data) => {
                 countryCounts.push(sortedCountries[property][1]);
             }
             countryCounts.unshift("countryCounts");
+            // for every country in countryList, find the corresponding count in countriesWatched and push it to the sortedCountriesWatchedCounts array
+            console.log('countryList: ', countryList);
+            countryList.forEach((country) => {
+                console.log('country: ', country);
+                sortedCountriesWatchedCounts.push(countriesWatched[country]);
+                console.log('countriesWatched[country]: ', countriesWatched[country]);
+                console.log('sortedCountriesWatchedCounts: ', sortedCountriesWatchedCounts);
+            });
+            sortedCountriesWatchedCounts.unshift("sortedGenresWatchedCounts");
+            // copy sortedCountriesWatchedCounts to sortedCountriesUnwatchedCounts and set each value to the difference between the watched and total count for that country
+            let sortedCountriesUnwatchedCounts = sortedCountriesWatchedCounts.slice();
+            sortedCountriesUnwatchedCounts = sortedCountriesUnwatchedCounts.map((count, index) => {
+                return countryCounts[index] - count;
+            });
+            sortedCountriesUnwatchedCounts[0] = "sortedCountriesUnwatchedCounts";
 
             ////////////////////////
             // items by genre chart
@@ -357,7 +383,7 @@ const parseMediaPayload = (data) => {
             });
             sortedGenresWatchedCounts.unshift("sortedGenresWatchedCounts");
             // copy sortedGenresWatchedCounts to sortedGenresUnwatchedCounts and set each value to the difference between the watched and total count for that genre
-            sortedGenresUnwatchedCounts = sortedGenresWatchedCounts.slice();
+            let sortedGenresUnwatchedCounts = sortedGenresWatchedCounts.slice();
             sortedGenresUnwatchedCounts = sortedGenresUnwatchedCounts.map((count, index) => {
                 return genreCounts[index] - count;
             });
@@ -471,6 +497,8 @@ const parseMediaPayload = (data) => {
                 totalCountryCount: Object.keys(countries).length.toLocaleString(),
                 countryCounts: countryCounts,
                 countryList: countryList,
+                countriesWatchedCounts : sortedCountriesWatchedCounts,
+                countriesUnwatchedCounts : sortedCountriesUnwatchedCounts,
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
@@ -620,7 +648,7 @@ const app = new Vue({
                 }
             });
         },
-        renderPieChart: function (selector, dataColumns) {
+        renderPieChart: function (selector, dataColumns, categories = []) {
             dataColumns.shift();
             let pieColumns = [];
             if (categories.length >= 1) {
@@ -778,7 +806,7 @@ const app = new Vue({
         renderDefaultCharts: function () {
             // render charts
             app.renderBarChart('.items-by-genre', app.selectedLibraryStats.genresUnwatchedCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit), true, app.selectedLibraryStats.genresWatchedCounts.slice(0, genreLimit + 1));
-            app.renderBarChart('.items-by-country', countryCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit));
+            app.renderBarChart('.items-by-country', app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit), true, app.selectedLibraryStats.countriesWatchedCounts.slice(0, countryLimit + 1));
             app.renderBarChart('.items-by-decade', releaseDateCounts, decades, false);
             app.renderPieChart('.items-by-studio', studioCounts.slice(0, studioLimit + 1), studioList.slice(0, studioLimit));
             app.renderPieChart('.items-by-director', sortedDirectors);
