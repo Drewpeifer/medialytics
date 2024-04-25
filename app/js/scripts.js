@@ -331,7 +331,7 @@ const parseMediaPayload = (data) => {
             ////////////////////////
             // items by genre chart
             let sortedGenres = [],
-                sortedGenresWatchedCounts = [];
+            sortedGenresWatchedCounts = [];
             // choosing not to report on undefined entries
             delete genres['undefined'];
             for (genre in genres) {
@@ -399,7 +399,7 @@ const parseMediaPayload = (data) => {
             });
 
             let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
-                topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
+            topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
 
             releaseDateCounts.unshift("releaseDateCounts");
 
@@ -554,6 +554,107 @@ const app = new Vue({
         });
     },
     methods: {
+        renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = []) {
+            stackGroup.length > 1 ? c3.generate({
+                bindto: selector,
+                x: 'x',
+                data: {
+                    columns: [
+                        dataColumns,
+                        stackGroup
+                    ],
+                    type: 'bar',
+                    groups: [[ dataColumns[0], stackGroup[0] ]]
+                },
+                axis: {
+                    rotated: rotated,
+                    x: {
+                        type: 'category',
+                        categories: categories,
+                        tick: {
+                            multiline: false,
+                        }
+                    }
+                },
+                legend: {
+                    hide: true
+                },
+                color: {
+                    pattern: chartColors
+                },
+                tooltip: {
+                    format: {
+                        title: function(x, index) {
+                            return `${categories[index]} (${parseInt(stackGroup[index + 1]) + parseInt(dataColumns[index + 1])})`;
+                        },
+                        value: function (val, ratio, id, index) {
+                            return id.includes('Unwatched') ? `Unwatched : ${val}` : `Watched : ${val}`;
+                        },
+                    }
+                }
+            }) :
+            c3.generate({
+                bindto: selector,
+                x: 'x',
+                data: {
+                    columns: [
+                        dataColumns
+                    ],
+                    type: 'bar'
+                },
+                axis: {
+                    rotated: rotated,
+                    x: {
+                        type: 'category',
+                        categories: categories,
+                        tick: {
+                            multiline: false,
+                        }
+                    }
+                },
+                legend: {
+                    hide: true
+                },
+                color: {
+                    pattern: chartColors
+                }
+            });
+        },
+        renderPieChart: function (selector, dataColumns) {
+            dataColumns.shift();
+            let pieColumns = [];
+            if (categories.length >= 1) {
+                categories.forEach((item, index) => {
+                    pieColumns.push([item, parseInt(dataColumns[index])]);
+                });
+            } else {
+                pieColumns = dataColumns;
+            }
+            c3.generate({
+                bindto: selector,
+                data: {
+                    columns: pieColumns,
+                    type : 'pie'
+                },
+                pie: {
+                    label: {
+                        format: function (value, ratio, id) {
+                            return value;
+                        }
+                    }
+                },
+                color: {
+                    pattern: chartColors
+                },
+                tooltip: {
+                    format: {
+                        value: function (value, ratio, id) {
+                            return id + ' : ' + value;
+                        }
+                    }
+                }
+            });
+        },
         renderSingleChart: function (selector, type, dataColumns, categories = [], rotated = true, stackGroup = []) {
             // categories and rotated are optional parameters only applicable to bar charts.
             // stackGroup is an optional parameter for stacked bar charts.
@@ -569,6 +670,8 @@ const app = new Vue({
                     x: 'x',
                     data: {
                         columns: [
+                            // stacked bars will stack in this order, with
+                            // the first item in the array at the "bottom" of the stack
                             dataColumns,
                             stackGroup
                         ],
@@ -674,21 +777,21 @@ const app = new Vue({
         },
         renderDefaultCharts: function () {
             // render charts
-            app.renderSingleChart('.items-by-genre', 'bar', app.selectedLibraryStats.genresUnwatchedCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit), true, app.selectedLibraryStats.genresWatchedCounts.slice(0, genreLimit + 1));
-            app.renderSingleChart('.items-by-country', 'bar', countryCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit));
-            app.renderSingleChart('.items-by-decade', 'bar', releaseDateCounts, decades, false);
-            app.renderSingleChart('.items-by-studio', 'pie', studioCounts.slice(0, studioLimit + 1), studioList.slice(0, studioLimit));
-            app.renderSingleChart('.items-by-director', 'pie', sortedDirectors);
-            app.renderSingleChart('.items-by-actor', 'pie', sortedActors);
+            app.renderBarChart('.items-by-genre', app.selectedLibraryStats.genresUnwatchedCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit), true, app.selectedLibraryStats.genresWatchedCounts.slice(0, genreLimit + 1));
+            app.renderBarChart('.items-by-country', countryCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit));
+            app.renderBarChart('.items-by-decade', releaseDateCounts, decades, false);
+            app.renderPieChart('.items-by-studio', studioCounts.slice(0, studioLimit + 1), studioList.slice(0, studioLimit));
+            app.renderPieChart('.items-by-director', sortedDirectors);
+            app.renderPieChart('.items-by-actor', sortedActors);
         },
         updateLimit: function (limitType, updatedLimit) {
             // limitType is a string like "genre" and updatedLimit is a number
             // set the new limit, e.g. genreLimit = 10
             app.selectedLibraryStats[`${limitType}Limit`] = parseInt(updatedLimit);
             let newLimit = app.selectedLibraryStats[`${limitType}Limit`],
-                newCounts = app.selectedLibraryStats[`${limitType}Counts`],
-                newList = app.selectedLibraryStats[`${limitType}List`] ? app.selectedLibraryStats[`${limitType}List`].slice(0, newLimit) : [],
-                currentChartType = app[`${limitType}Toggle`] === 'pie' ? 'bar' : 'pie';
+            newCounts = app.selectedLibraryStats[`${limitType}Counts`],
+            newList = app.selectedLibraryStats[`${limitType}List`] ? app.selectedLibraryStats[`${limitType}List`].slice(0, newLimit) : [],
+            currentChartType = app[`${limitType}Toggle`] === 'pie' ? 'bar' : 'pie';
 
             // render the new chart
             app.renderSingleChart(`.items-by-${limitType}`, currentChartType, newCounts.slice(0, newLimit + 1), newList);
