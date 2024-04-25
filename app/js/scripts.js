@@ -240,7 +240,7 @@ const parseMediaPayload = (data) => {
                 // if studio exists in the dictionary already,
                 // find the studio and increment the count
                 studios[item.studio]++;
-                // track the watched count for that country
+                // track the watched count for that studio
                 item.lastViewedAt ? studiosWatched[item.studio]++ : studiosWatched[item.studio];
             } else {
                 studios[item.studio] = 1;
@@ -432,11 +432,6 @@ const parseMediaPayload = (data) => {
                 return studioCounts[index] - count;
             });
             sortedStudiosUnwatchedCounts[0] = "sortedStudiosUnwatchedCounts";
-            console.log('test');
-            console.dir(studioList);
-            console.dir(studioCounts);
-            console.dir(sortedStudiosWatchedCounts);
-            console.dir(sortedStudiosUnwatchedCounts);
 
             /////////////////////////
             // items by decade chart
@@ -621,7 +616,7 @@ const app = new Vue({
         recentlyAdded: recentlyAdded,
         genreToggle: "pie",
         countryToggle: "pie",
-        studioToggle: "bar"
+        studioToggle: "pie"
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -846,9 +841,9 @@ const app = new Vue({
             this.renderGenreChart('bar');
             this.renderCountryChart('bar');
             this.renderDecadeChart('bar');
-            this.renderStudioChart('pie');
-            app.renderPieChart('.items-by-director', sortedDirectors);
-            app.renderPieChart('.items-by-actor', sortedActors);
+            this.renderStudioChart('bar');
+            this.renderDirectorChart();
+            this.renderActorChart();
         },
         renderGenreChart: function (type) {
             if (type == 'bar') {
@@ -886,17 +881,37 @@ const app = new Vue({
                 console.error('Invalid chart type');
             }
         },
+        renderDirectorChart: function () {
+            app.renderPieChart('.items-by-director', sortedDirectors);
+        },
+        renderActorChart: function () {
+            app.renderPieChart('.items-by-actor', sortedActors);
+        },
         updateLimit: function (limitType, updatedLimit) {
             // limitType is a string like "genre" and updatedLimit is a number
             // set the new limit, e.g. genreLimit = 10
             app.selectedLibraryStats[`${limitType}Limit`] = parseInt(updatedLimit);
-            let newLimit = app.selectedLibraryStats[`${limitType}Limit`],
-            newCounts = app.selectedLibraryStats[`${limitType}Counts`],
-            newList = app.selectedLibraryStats[`${limitType}List`] ? app.selectedLibraryStats[`${limitType}List`].slice(0, newLimit) : [],
-            newChartType = app[`${limitType}Toggle`] === 'pie' ? 'bar' : 'pie';
 
             // render the new chart
-            app.renderSingleChart(`.items-by-${limitType}`, newChartType, newCounts.slice(0, newLimit + 1), newList);
+            switch (limitType) {
+                case 'genre':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderGenreChart('pie') : app.renderGenreChart('bar');
+                    break;
+                case 'country':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderCountryChart('pie') : app.renderCountryChart('bar');
+                    break;
+                case 'studio':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderStudioChart('pie') : app.renderStudioChart('bar');
+                    break;
+                case 'director':
+                    app.renderDirectorChart();
+                    break;
+                case 'actor':
+                    app.renderActorChart();
+                    break;
+                default:
+                    console.error('Invalid limit type');
+            }
         }
     }
 });
