@@ -134,7 +134,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="genreToggle"
-                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, selectedLibraryStats.genreCounts.slice(0, selectedLibraryStats.genreLimit + 1), selectedLibraryStats.genreList.slice(0, selectedLibraryStats.genreLimit))"
+                                        v-on:click="renderGenreChart(genreToggle)"
                                         v-model="genreToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -171,7 +171,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="countryToggle"
-                                        v-on:click="renderSingleChart('.items-by-country', countryToggle, selectedLibraryStats.countryCounts.slice(0, selectedLibraryStats.countryLimit + 1), selectedLibraryStats.countryList.slice(0, selectedLibraryStats.countryLimit))"
+                                        v-on:click="renderCountryChart(countryToggle)"
                                         v-model="countryToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -223,7 +223,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="studioToggle"
-                                        v-on:click="renderSingleChart('.items-by-studio', studioToggle, selectedLibraryStats.studioCounts.slice(0, selectedLibraryStats.studioLimit + 1), selectedLibraryStats.studioList.slice(0, selectedLibraryStats.studioLimit))"
+                                        v-on:click="renderStudioChart(studioToggle)"
                                         v-model="studioToggle"
                                         true-value="pie"
                                         false-value="bar"

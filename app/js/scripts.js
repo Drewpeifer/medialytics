@@ -48,6 +48,9 @@ decadesUnwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 studios = {},// this stores studio: count, and is then split into the two following arrays
 studioList = [],
 studioCounts = [],
+studiosWatched = {},
+studiosWatchedCounts = [],
+studiosUnwatchedCounts = [],
 // directors, and actors
 directorInstances = [],
 sortedDirectors = [],
@@ -98,6 +101,9 @@ const resetLibraryStats = () => {
     studios = {},
     studioList = [],
     studioCounts = [],
+    studiosWatched = {},
+    studiosWatchedCounts = [],
+    studiosUnwatchedCounts = [],
     studioToggle = "",
     releaseDateList = [],
     releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -234,8 +240,11 @@ const parseMediaPayload = (data) => {
                 // if studio exists in the dictionary already,
                 // find the studio and increment the count
                 studios[item.studio]++;
+                // track the watched count for that country
+                item.lastViewedAt ? studiosWatched[item.studio]++ : studiosWatched[item.studio];
             } else {
                 studios[item.studio] = 1;
+                item.lastViewedAt ? studiosWatched[item.studio] = 1 : studiosWatched[item.studio] = 0;
             }
         } else {
             // no studios
@@ -335,7 +344,7 @@ const parseMediaPayload = (data) => {
 
             //////////////////////////
             // items by country chart
-            let sortedCountries = []
+            let sortedCountries = [],
             sortedCountriesWatchedCounts = [];
             // choosing not to report on undefined entries
             delete countries['undefined'];
@@ -395,7 +404,8 @@ const parseMediaPayload = (data) => {
             sortedGenresUnwatchedCounts[0] = "sortedGenresUnwatchedCounts";
             ////////////////////////
             // items by studio chart
-            let sortedStudios = [];
+            let sortedStudios = [],
+                sortedStudiosWatchedCounts = [];
             // choosing not to report on undefined entries
             delete studios['undefined'];
             for (studio in studios) {
@@ -409,8 +419,25 @@ const parseMediaPayload = (data) => {
                 studioList.push(sortedStudios[property][0]);
                 studioCounts.push(sortedStudios[property][1]);
             }
-
             studioCounts.unshift("studioCounts");
+
+            // for every studio in studioList, find the corresponding count in studiosWatched and push it to the sortedStudiosWatchedCounts array
+            studioList.forEach((genre) => {
+                sortedStudiosWatchedCounts.push(studiosWatched[genre]);
+            });
+            sortedStudiosWatchedCounts.unshift("sortedStudiosWatchedCounts");
+            // copy sortedStudiosWatchedCounts to sortedStudiosUnwatchedCounts and set each value to the difference between the watched and total count for that studio
+            let sortedStudiosUnwatchedCounts = sortedStudiosWatchedCounts.slice();
+            sortedStudiosUnwatchedCounts = sortedStudiosUnwatchedCounts.map((count, index) => {
+                return studioCounts[index] - count;
+            });
+            sortedStudiosUnwatchedCounts[0] = "sortedStudiosUnwatchedCounts";
+            console.log('test');
+            console.dir(studioList);
+            console.dir(studioCounts);
+            console.dir(sortedStudiosWatchedCounts);
+            console.dir(sortedStudiosUnwatchedCounts);
+
             /////////////////////////
             // items by decade chart
             // remove undefined entries from releaseDateList
@@ -538,6 +565,8 @@ const parseMediaPayload = (data) => {
                 totalStudioCount: Object.keys(studios).length.toLocaleString(),
                 studioList: studioList,
                 studioCounts: studioCounts,
+                studiosWatchedCounts: sortedStudiosWatchedCounts,
+                studiosUnwatchedCounts: sortedStudiosUnwatchedCounts,
                 topDirector: sortedDirectors.length > 1 ? sortedDirectors[1][0] : "",
                 topDirectorCount: sortedDirectors.length > 1 ? sortedDirectors[1][1].toLocaleString() : 0,
                 topActor: sortedActors.length > 0 ? sortedActors[1][0] : "",
@@ -616,7 +645,7 @@ const app = new Vue({
             if (debugMode) {
                 console.log('rendering chart: ', selector, dataColumns, categories, rotated, stackGroup)
             }
-            stackGroup.length > 1 ? c3.generate({
+            c3.generate({
                 bindto: selector,
                 x: 'x',
                 data: {
@@ -652,32 +681,6 @@ const app = new Vue({
                             return id.includes('Unwatched') ? `Unwatched : ${val}` : `Watched : ${val}`;
                         },
                     }
-                }
-            }) :
-            c3.generate({
-                bindto: selector,
-                x: 'x',
-                data: {
-                    columns: [
-                        dataColumns
-                    ],
-                    type: 'bar'
-                },
-                axis: {
-                    rotated: rotated,
-                    x: {
-                        type: 'category',
-                        categories: categories,
-                        tick: {
-                            multiline: false,
-                        }
-                    }
-                },
-                legend: {
-                    hide: true
-                },
-                color: {
-                    pattern: chartColors
                 }
             });
         },
@@ -840,12 +843,48 @@ const app = new Vue({
         },
         renderDefaultCharts: function () {
             // render charts
-            app.renderBarChart('.items-by-genre', app.selectedLibraryStats.genresUnwatchedCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit), true, app.selectedLibraryStats.genresWatchedCounts.slice(0, genreLimit + 1));
-            app.renderBarChart('.items-by-country', app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit), true, app.selectedLibraryStats.countriesWatchedCounts.slice(0, countryLimit + 1));
-            app.renderBarChart('.items-by-decade', app.selectedLibraryStats.decadesUnwatchedCounts, decades, false, app.selectedLibraryStats.decadesWatchedCounts);
-            app.renderPieChart('.items-by-studio', studioCounts.slice(0, studioLimit + 1), studioList.slice(0, studioLimit));
+            this.renderGenreChart('bar');
+            this.renderCountryChart('bar');
+            this.renderDecadeChart('bar');
+            this.renderStudioChart('pie');
             app.renderPieChart('.items-by-director', sortedDirectors);
             app.renderPieChart('.items-by-actor', sortedActors);
+        },
+        renderGenreChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-genre',app.selectedLibraryStats.genresUnwatchedCounts.slice(0, app.selectedLibraryStats.genreLimit + 1), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit), true, app.selectedLibraryStats.genresWatchedCounts.slice(0, app.selectedLibraryStats.genreLimit + 1))
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-genre', app.selectedLibraryStats.genreCounts.slice(0, app.selectedLibraryStats.genreLimit + 1), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderCountryChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-country', app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit), true, app.selectedLibraryStats.countriesWatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1))
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-country', app.selectedLibraryStats.countryCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderDecadeChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-decade', app.selectedLibraryStats.decadesUnwatchedCounts, decades, false, app.selectedLibraryStats.decadesWatchedCounts);
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-decade', app.selectedLibraryStats.releaseDateCounts, decades);
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderStudioChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-studio', app.selectedLibraryStats.studiosUnwatchedCounts.slice(0, app.selectedLibraryStats.studioLimit + 1), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit + 1), true, app.selectedLibraryStats.studiosWatchedCounts.slice(0, app.selectedLibraryStats.studioLimit + 1));
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-studio', app.selectedLibraryStats.studioCounts.slice(0, app.selectedLibraryStats.studioLimit + 1), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
         },
         updateLimit: function (limitType, updatedLimit) {
             // limitType is a string like "genre" and updatedLimit is a number
@@ -854,10 +893,10 @@ const app = new Vue({
             let newLimit = app.selectedLibraryStats[`${limitType}Limit`],
             newCounts = app.selectedLibraryStats[`${limitType}Counts`],
             newList = app.selectedLibraryStats[`${limitType}List`] ? app.selectedLibraryStats[`${limitType}List`].slice(0, newLimit) : [],
-            currentChartType = app[`${limitType}Toggle`] === 'pie' ? 'bar' : 'pie';
+            newChartType = app[`${limitType}Toggle`] === 'pie' ? 'bar' : 'pie';
 
             // render the new chart
-            app.renderSingleChart(`.items-by-${limitType}`, currentChartType, newCounts.slice(0, newLimit + 1), newList);
+            app.renderSingleChart(`.items-by-${limitType}`, newChartType, newCounts.slice(0, newLimit + 1), newList);
         }
     }
 });
