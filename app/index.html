@@ -89,6 +89,14 @@
                                     {{ selectedLibraryStats.seasonSum.toLocaleString() }} seasons /
                                     {{ selectedLibraryStats.episodeSum.toLocaleString() }} episodes
                                 </p>
+                                <p class="watched">
+                                    <strong>Watched:</strong>
+                                    <span class="watched-gauge"></span>
+                                    <span>
+                                        {{ selectedLibraryStats.watchedCount.toLocaleString() }} / {{ selectedLibraryStats.totalItems }}
+                                        ({{ Math.floor((selectedLibraryStats.watchedCount / parseInt(selectedLibraryStats.totalItems.replace(/,/g, ''))) * 100) }}&#37;)
+                                    </span>
+                                </p>
                                 <p><strong>Total Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
                             </div>
                             <div class="row">
@@ -105,6 +113,9 @@
                             <div class="row">
                                 <p><strong>Earliest Addition:</strong> {{ selectedLibraryStats.firstAdded }} ({{ selectedLibraryStats.firstAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
                                 <p><strong>Latest Addition:</strong> {{ selectedLibraryStats.lastAdded }} ({{ selectedLibraryStats.lastAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
+                            </div>
+                            <div class="row">
+                                <p>{{ selectedLibraryStats.sortedGenresWatchedCounts }}</p>
                             </div>
                             <div class="row" v-if="unmatchedItems.length > 0">
                                 <p><strong>Unmatched Items ({{ selectedLibraryStats.unmatchedItems.length }}):</strong></p>
@@ -126,7 +137,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="genreToggle"
-                                        v-on:click="renderSingleChart('.items-by-genre', genreToggle, selectedLibraryStats.genreCounts.slice(0, selectedLibraryStats.genreLimit + 1), selectedLibraryStats.genreList.slice(0, selectedLibraryStats.genreLimit))"
+                                        v-on:click="renderGenreChart(genreToggle)"
                                         v-model="genreToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -163,7 +174,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="countryToggle"
-                                        v-on:click="renderSingleChart('.items-by-country', countryToggle, selectedLibraryStats.countryCounts.slice(0, selectedLibraryStats.countryLimit + 1), selectedLibraryStats.countryList.slice(0, selectedLibraryStats.countryLimit))"
+                                        v-on:click="renderCountryChart(countryToggle)"
                                         v-model="countryToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -215,7 +226,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="studioToggle"
-                                        v-on:click="renderSingleChart('.items-by-studio', studioToggle, selectedLibraryStats.studioCounts.slice(0, selectedLibraryStats.studioLimit + 1), selectedLibraryStats.studioList.slice(0, selectedLibraryStats.studioLimit))"
+                                        v-on:click="renderStudioChart(studioToggle)"
                                         v-model="studioToggle"
                                         true-value="pie"
                                         false-value="bar"

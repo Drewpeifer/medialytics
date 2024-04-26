@@ -7,9 +7,18 @@ Plex itself, as well as other tools, generate statistics regarding your server a
 but they don't report much on the nature of your media content itself. Medialytics is a small client-side app that
 runs in the browser and generates statistics specifically about the content of your server, e.g. top production studio across a libary.
 
-![header](https://i.imgur.com/qSRyhUG.png)
+![header](https://i.imgur.com/t7IFigr.png)
 
-![visualizations](https://i.imgur.com/i7D0g0s.png)
+![visualizations](https://i.imgur.com/pfvdA8b.png)
+
+![visualizations-2](https://i.imgur.com/CCmDkSo.png)
+
+## Main features
+* Charts for genre, country, decade, studio, actor, and director analysis
+* Statistics for size and duration of entire library
+* Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
+* Detect unmatched library items
+* Watched/unwatched comparison across genres, countries, decades, and studios
 
 ## How does it work?
 [Plex](http://www.plex.tv) servers generate an XML feed that returns a list of libraries associated with a server, as well

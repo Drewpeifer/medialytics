@@ -82,6 +82,9 @@ h3 {
     justify-content: space-evenly;
     margin: 10px;
 }
+.library-stats .content .row {
+    justify-content: center;
+}
 .row p {
     min-width: 30%;
     margin: 0 10px;
@@ -138,7 +141,6 @@ h3 {
 .recently-added .entry:hover .info {
     display: block;
 }
-
 /* charts */
 .chart {
     font-size:12px;
@@ -166,6 +168,7 @@ h3 {
     font-size:12px;
 }
 .c3-axis .tick text,
+.c3-chart-arc text,
 .c3-legend-item text {
     stroke:none;
     fill:#f2f2f2;
@@ -189,6 +192,14 @@ h3 {
 }
 .pie .c3-chart-arc text {
     fill:#111;
+}
+/* gauge chart */
+.watched span,
+.watched strong {
+    display: block;
+}
+.c3-chart-arcs-background {
+    fill: #444;
 }
 /* chart toggle buttons */
 .chart-toggle input {

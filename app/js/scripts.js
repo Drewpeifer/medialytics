@@ -20,23 +20,37 @@ selectedLibraryKey = "",// the key of the library currently selected by the user
 selectedLibraryStats = {},// a large object containing all the stats for the selected library
 libraryStatsLoading = false,// used to trigger loading animations
 recentlyAdded = [],// the list of recently added items returned by your server
+watchedCount = 0,// total watched items in a library
 // genres
 genres = {},// this stores genre: count, and is then split into the two following arrays
 genreList = [],
 genreCounts = [],
+genresWatched = {},// functions the same as genres object, but count is incremented only if the parsed item has been watched
+genresWatchedCounts = [],
+genresUnwatchedCounts = [],
 // countries
 countries = {},// this stores country: count, and is then split into the two following arrays for the bar chart
 countryList = [],
 countryCounts = [],
+countriesWatched = {},
+countriesWatchedCounts = [],
+countriesUnwatchedCounts = [],
 // release dates
 releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
 oldestTitle = "",// the oldest title in the library
 oldestReleaseDate = "",// the oldest release date in the library
+// watched status for the decades chart
+decadesWatchedList = [],
+decadesWatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+decadesUnwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 // studios
 studios = {},// this stores studio: count, and is then split into the two following arrays
 studioList = [],
 studioCounts = [],
+studiosWatched = {},
+studiosWatchedCounts = [],
+studiosUnwatchedCounts = [],
 // directors, and actors
 directorInstances = [],
 sortedDirectors = [],
@@ -73,19 +87,31 @@ const resetLibraryStats = () => {
     countries = {},
     countryList = [],
     countryCounts = [],
+    countriesWatched = {},
+    countriesWatchedCounts = [],
+    countriesUnwatchedCounts = [],
     countryToggle = "",
     genres = {},
     genreList = [],
     genreCounts = [],
+    genresWatched = {},
+    genresWatchedCounts = [],
+    genresUnwatchedCounts = [],
     genreToggle = "",
     studios = {},
     studioList = [],
     studioCounts = [],
+    studiosWatched = {},
+    studiosWatchedCounts = [],
+    studiosUnwatchedCounts = [],
     studioToggle = "",
     releaseDateList = [],
     releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     oldestTitle = "",
     oldestReleaseDate = "",
+    decadesWatchedList = [],
+    decadesWatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    decadesUnwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     directorInstances = [],
     sortedDirectors = [],
     actorInstances = [],
@@ -100,7 +126,8 @@ const resetLibraryStats = () => {
     firstAddedDate = "",
     lastAdded = "",
     lastAddedDate = "",
-    unmatchedItems = [];
+    unmatchedItems = [],
+    watchedCount = 0;
 }
 
 /////////////////////////////////
@@ -145,11 +172,12 @@ const getLibraryData = async (libraryKey) => {
         app.libraryStatsLoading = false;
         return response.data.MediaContainer;
     });
-    // uncomment the following line to print the raw xml in the console
+
     if (debugMode) {
         console.log('Library Data: ', libraryData);
     }
     resetLibraryStats();
+    app.renderWatchedGauge();
     return libraryData;
 }
 
@@ -162,7 +190,9 @@ const parseMediaPayload = (data) => {
     // loop through items and gather important data
     data.data.MediaContainer.Metadata.forEach((item, index) => {
         // track year
-        releaseDateList.push(item.year);
+        if (typeof item.year === 'number' || !isNaN(item.year)) {
+            releaseDateList.push(item.year);
+        }
 
         // track unmatched items
         if (item.guid.includes('local')) {
@@ -171,6 +201,15 @@ const parseMediaPayload = (data) => {
                 console.dir(item);
             }
             unmatchedItems.push(item.title);
+        }
+
+        // track overall / total watched count, take any actions
+        // for watched items that don't require extra parsing
+        if (item.lastViewedAt) {
+            watchedCount++;
+            if (typeof item.year === 'number' || !isNaN(item.year)) {
+                decadesWatchedList.push(item.year);
+            }
         }
 
         // track oldest release date
@@ -203,8 +242,11 @@ const parseMediaPayload = (data) => {
                 // if studio exists in the dictionary already,
                 // find the studio and increment the count
                 studios[item.studio]++;
+                // track the watched count for that studio
+                item.lastViewedAt ? studiosWatched[item.studio]++ : studiosWatched[item.studio];
             } else {
                 studios[item.studio] = 1;
+                item.lastViewedAt ? studiosWatched[item.studio] = 1 : studiosWatched[item.studio] = 0;
             }
         } else {
             // no studios
@@ -243,13 +285,17 @@ const parseMediaPayload = (data) => {
                     // if genre exists in the dictionary already,
                     // find the genre and increment the count
                     genres[genre.tag]++;
+                    // track the watched count for that genre
+                    item.lastViewedAt ? genresWatched[genre.tag]++ : genresWatched[genre.tag];
                 } else {
                     genres[genre.tag] = 1;
+                    item.lastViewedAt ? genresWatched[genre.tag] = 1 : genresWatched[genre.tag] = 0;
                 }
             });
         } else {
             // no genres
         }
+
         // track countries
         if (item.Country) {
             // check if a country exists for movie
@@ -258,8 +304,11 @@ const parseMediaPayload = (data) => {
                     // if country exists in the dictionary already,
                     // find the country and increment the count
                     countries[country.tag]++;
+                    // track the watched count for that country
+                    item.lastViewedAt ? countriesWatched[country.tag]++ : countriesWatched[country.tag];
                 } else {
                     countries[country.tag] = 1;
+                    item.lastViewedAt ? countriesWatched[country.tag] = 1 : countriesWatched[country.tag] = 0;
                 }
             });
         } else {
@@ -297,7 +346,8 @@ const parseMediaPayload = (data) => {
 
             //////////////////////////
             // items by country chart
-            let sortedCountries = [];
+            let sortedCountries = [],
+            sortedCountriesWatchedCounts = [];
             // choosing not to report on undefined entries
             delete countries['undefined'];
             for (country in countries) {
@@ -312,10 +362,22 @@ const parseMediaPayload = (data) => {
                 countryCounts.push(sortedCountries[property][1]);
             }
             countryCounts.unshift("countryCounts");
+            // for every country in countryList, find the corresponding count in countriesWatched and push it to the sortedCountriesWatchedCounts array
+            countryList.forEach((country) => {
+                sortedCountriesWatchedCounts.push(countriesWatched[country]);
+            });
+            sortedCountriesWatchedCounts.unshift("Watched");
+            // copy sortedCountriesWatchedCounts to sortedCountriesUnwatchedCounts and set each value to the difference between the watched and total count for that country
+            let sortedCountriesUnwatchedCounts = sortedCountriesWatchedCounts.slice();
+            sortedCountriesUnwatchedCounts = sortedCountriesUnwatchedCounts.map((count, index) => {
+                return countryCounts[index] - count;
+            });
+            sortedCountriesUnwatchedCounts[0] = "Unwatched";
 
             ////////////////////////
             // items by genre chart
-            let sortedGenres = [];
+            let sortedGenres = [],
+            sortedGenresWatchedCounts = [];
             // choosing not to report on undefined entries
             delete genres['undefined'];
             for (genre in genres) {
@@ -323,18 +385,29 @@ const parseMediaPayload = (data) => {
             }
             sortedGenres.sort(function(a, b) {
                 return b[1] - a[1];
-            })
+            });
             // split the sorted genres dictionary into an array of genres and an array of counts
-            for (property in sortedGenres) {
-                genreList.push(sortedGenres[property][0]);
-                genreCounts.push(sortedGenres[property][1]);
+            for (genre in sortedGenres) {
+                genreList.push(sortedGenres[genre][0]);
+                genreCounts.push(sortedGenres[genre][1]);
             }
 
             genreCounts.unshift("genreCounts");
-
+            // for every genre in genreList, find the corresponding count in genresWatched and push it to the sortedGenresWatchedCounts array
+            genreList.forEach((genre) => {
+                sortedGenresWatchedCounts.push(genresWatched[genre]);
+            });
+            sortedGenresWatchedCounts.unshift("Watched");
+            // copy sortedGenresWatchedCounts to sortedGenresUnwatchedCounts and set each value to the difference between the watched and total count for that genre
+            let sortedGenresUnwatchedCounts = sortedGenresWatchedCounts.slice();
+            sortedGenresUnwatchedCounts = sortedGenresUnwatchedCounts.map((count, index) => {
+                return genreCounts[index] - count;
+            });
+            sortedGenresUnwatchedCounts[0] = "Unwatched";
             ////////////////////////
             // items by studio chart
-            let sortedStudios = [];
+            let sortedStudios = [],
+                sortedStudiosWatchedCounts = [];
             // choosing not to report on undefined entries
             delete studios['undefined'];
             for (studio in studios) {
@@ -348,8 +421,20 @@ const parseMediaPayload = (data) => {
                 studioList.push(sortedStudios[property][0]);
                 studioCounts.push(sortedStudios[property][1]);
             }
-
             studioCounts.unshift("studioCounts");
+
+            // for every studio in studioList, find the corresponding count in studiosWatched and push it to the sortedStudiosWatchedCounts array
+            studioList.forEach((genre) => {
+                sortedStudiosWatchedCounts.push(studiosWatched[genre]);
+            });
+            sortedStudiosWatchedCounts.unshift("Watched");
+            // copy sortedStudiosWatchedCounts to sortedStudiosUnwatchedCounts and set each value to the difference between the watched and total count for that studio
+            let sortedStudiosUnwatchedCounts = sortedStudiosWatchedCounts.slice();
+            sortedStudiosUnwatchedCounts = sortedStudiosUnwatchedCounts.map((count, index) => {
+                return studioCounts[index] - count;
+            });
+            sortedStudiosUnwatchedCounts[0] = "Unwatched";
+
             /////////////////////////
             // items by decade chart
             // remove undefined entries from releaseDateList
@@ -369,9 +454,32 @@ const parseMediaPayload = (data) => {
             });
 
             let topDecade = decades[releaseDateCounts.indexOf(Math.max(...releaseDateCounts))],
-                topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
+            topDecadeCount = Math.max(...releaseDateCounts).toLocaleString();
 
+            decadesWatchedList.forEach((year, index) => {
+                if (typeof year !== 'number' || isNaN(year)) {
+                    decadesWatchedList.splice(index, 1);
+                } else {
+                    // compare each year to the decadePrefixes array, and if the first 3 chars of the year match the decade prefix,
+                    // increment the corresponding index in decadesWatchedCounts
+                    let yearSub = year.toString().substring(0, 3);
+                    for (let i = 0; i < decadePrefixes.length; i++) {
+                        if (yearSub == decadePrefixes[i]) {
+                            decadesWatchedCounts[i]++;
+                        }
+                    }
+                }
+            });
+
+            // copy the release date counts to a new array for unwatched items,
+            // then subtract the watched count from the total count for each decade
+            let decadesUnwatchedCounts = releaseDateCounts;
+            decadesUnwatchedCounts = decadesUnwatchedCounts.map((count, index) => {
+                return Math.abs(count - decadesWatchedCounts[index]);
+            });
             releaseDateCounts.unshift("releaseDateCounts");
+            decadesWatchedCounts.unshift("Watched");
+            decadesUnwatchedCounts.unshift("Unwatched");
 
             ////////////////////////
             // items by director chart
@@ -434,22 +542,30 @@ const parseMediaPayload = (data) => {
                 totalGenreCount: Object.keys(genres).length.toLocaleString(),
                 genreList: genreList,
                 genreCounts: genreCounts,
+                genresWatchedCounts : sortedGenresWatchedCounts,
+                genresUnwatchedCounts : sortedGenresUnwatchedCounts,
                 topCountry: countryList[0],
                 topCountryCount: countryCounts[1].toLocaleString(),
                 totalCountryCount: Object.keys(countries).length.toLocaleString(),
                 countryCounts: countryCounts,
                 countryList: countryList,
+                countriesWatchedCounts : sortedCountriesWatchedCounts,
+                countriesUnwatchedCounts : sortedCountriesUnwatchedCounts,
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
+                decadesWatchedCounts : decadesWatchedCounts,
+                decadesUnwatchedCounts : decadesUnwatchedCounts,
                 studios: studios,
                 topStudio: studioList[0],
                 topStudioCount: studioCounts[1].toLocaleString(),
                 totalStudioCount: Object.keys(studios).length.toLocaleString(),
                 studioList: studioList,
                 studioCounts: studioCounts,
-                topDirector: sortedDirectors.length > 0 ? sortedDirectors[1][0] : "",
-                topDirectorCount: sortedDirectors.length > 0 ? sortedDirectors[1][1].toLocaleString() : 0,
+                studiosWatchedCounts: sortedStudiosWatchedCounts,
+                studiosUnwatchedCounts: sortedStudiosUnwatchedCounts,
+                topDirector: sortedDirectors.length > 1 ? sortedDirectors[1][0] : "",
+                topDirectorCount: sortedDirectors.length > 1 ? sortedDirectors[1][1].toLocaleString() : 0,
                 topActor: sortedActors.length > 0 ? sortedActors[1][0] : "",
                 topActorCount: sortedActors.length > 0 ? sortedActors[1][1].toLocaleString() : 0,
                 type: type,
@@ -469,7 +585,8 @@ const parseMediaPayload = (data) => {
                 firstAddedDate : firstAddedDate,
                 lastAdded : lastAdded,
                 lastAddedDate : lastAddedDate,
-                unmatchedItems : unmatchedItems
+                unmatchedItems : unmatchedItems,
+                watchedCount : watchedCount
             }
 
             // render charts
@@ -501,7 +618,7 @@ const app = new Vue({
         recentlyAdded: recentlyAdded,
         genreToggle: "pie",
         countryToggle: "pie",
-        studioToggle: "bar"
+        studioToggle: "pie"
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -521,104 +638,193 @@ const app = new Vue({
         });
     },
     methods: {
-        renderSingleChart: function (selector, type, columns, categories = [], rotated = true) {
-            // categories and rotated are optional parameters only applicable to bar charts.
-            // rotated = false will set the bar chart to vertical orientation.
+        renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = []) {
             if (debugMode) {
-                console.log('rendering chart: ', selector, type, columns, categories, rotated)
+                console.log('rendering chart: ', selector, dataColumns, categories, rotated, stackGroup)
             }
-
-            if (type === 'bar') {
-                c3.generate({
-                    bindto: selector,
-                    x: 'x',
-                    data: {
-                        columns: [
-                            columns
-                        ],
-                        type: 'bar'
-                    },
-                    axis: {
-                        rotated: rotated,
-                        x: {
-                            type: 'category',
-                            categories: categories,
-                            tick: {
-                                multiline: false,
-                            }
+            c3.generate({
+                bindto: selector,
+                x: 'x',
+                data: {
+                    columns: [
+                        dataColumns,
+                        stackGroup
+                    ],
+                    type: 'bar',
+                    groups: [[ dataColumns[0], stackGroup[0] ]]
+                },
+                axis: {
+                    rotated: rotated,
+                    x: {
+                        type: 'category',
+                        categories: categories,
+                        tick: {
+                            multiline: false,
                         }
-                    },
-                    legend: {
-                        hide: true
-                    },
-                    color: {
-                        pattern: chartColors
                     }
-                });
-            } else if (type === 'pie') {
-                columns.shift();
-                let pieColumns = [];
-                if (categories.length >= 1) {
-                    categories.forEach((item, index) => {
-                        pieColumns.push([item, parseInt(columns[index])]);
-                    });
-                } else {
-                    pieColumns = columns;
+                },
+                legend: {
+                    hide: false,
+                },
+                color: {
+                    pattern: chartColors
+                },
+                tooltip: {
+                    format: {
+                        title: function(x, index) {
+                            return `${categories[index]} (${parseInt(stackGroup[index + 1]) + parseInt(dataColumns[index + 1])})`;
+                        },
+                        value: function (val, ratio, id, index) {
+                            return id.includes('Unwatched') ? `Unwatched : ${val}` : `Watched : ${val}`;
+                        },
+                    }
                 }
-                c3.generate({
-                    bindto: selector,
-                    data: {
-                        columns: pieColumns,
-                        type : 'pie'
-                    },
-                    pie: {
-                        label: {
-                            format: function (value, ratio, id) {
-                                return value;
-                            }
-                        }
-                    },
-                    color: {
-                        pattern: chartColors
-                    },
-                    tooltip: {
-                        format: {
-                            value: function (value, ratio, id) {
-                                return id + ' : ' + value;
-                            }
+            });
+        },
+        renderPieChart: function (selector, dataColumns, categories = []) {
+            if (debugMode) {
+                console.log('rendering chart: ', selector, dataColumns, categories)
+            }
+            dataColumns.shift();
+            let pieColumns = [];
+            if (categories.length >= 1) {
+                categories.forEach((item, index) => {
+                    pieColumns.push([item, parseInt(dataColumns[index])]);
+                });
+            } else {
+                pieColumns = dataColumns;
+            }
+            c3.generate({
+                bindto: selector,
+                data: {
+                    columns: pieColumns,
+                    type : 'pie'
+                },
+                pie: {
+                    label: {
+                        format: function (value, ratio, id) {
+                            return value;
                         }
                     }
-                });
-            }
-            // if the current chart we are rendering is a bar chart, we need to flip the corresponding toggle
-            // to be pie, and vice versa, for the UI controls to stay in sync
-            const itemType = selector.split('-')[2];
-            if (type === 'bar') {
-                app[`${itemType}Toggle`] = 'pie';
-            } else {
-                app[`${itemType}Toggle`] = 'bar';
-            }
+                },
+                color: {
+                    pattern: chartColors
+                },
+                tooltip: {
+                    format: {
+                        value: function (value, ratio, id) {
+                            return id + ' : ' + value;
+                        }
+                    }
+                }
+            });
         },
         renderDefaultCharts: function () {
             // render charts
-            app.renderSingleChart('.items-by-genre', 'bar', genreCounts.slice(0, genreLimit + 1), genreList.slice(0, genreLimit));
-            app.renderSingleChart('.items-by-country', 'bar', countryCounts.slice(0, countryLimit + 1), countryList.slice(0, countryLimit));
-            app.renderSingleChart('.items-by-decade', 'bar', releaseDateCounts, decades, false);
-            app.renderSingleChart('.items-by-studio', 'pie', studioCounts.slice(0, studioLimit + 1), studioList.slice(0, studioLimit));
-            app.renderSingleChart('.items-by-director', 'pie', sortedDirectors);
-            app.renderSingleChart('.items-by-actor', 'pie', sortedActors);
+            this.renderGenreChart('bar');
+            this.renderCountryChart('bar');
+            this.renderDecadeChart('bar');
+            this.renderStudioChart('bar');
+            this.renderDirectorChart();
+            this.renderActorChart();
+        },
+        renderGenreChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-genre',app.selectedLibraryStats.genresUnwatchedCounts.slice(0, app.selectedLibraryStats.genreLimit + 1), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit), true, app.selectedLibraryStats.genresWatchedCounts.slice(0, app.selectedLibraryStats.genreLimit + 1))
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-genre', app.selectedLibraryStats.genreCounts.slice(0, app.selectedLibraryStats.genreLimit + 1), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderCountryChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-country', app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit), true, app.selectedLibraryStats.countriesWatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1))
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-country', app.selectedLibraryStats.countryCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderDecadeChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-decade', app.selectedLibraryStats.decadesUnwatchedCounts, decades, false, app.selectedLibraryStats.decadesWatchedCounts);
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-decade', app.selectedLibraryStats.releaseDateCounts, decades);
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderStudioChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-studio', app.selectedLibraryStats.studiosUnwatchedCounts.slice(0, app.selectedLibraryStats.studioLimit + 1), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit + 1), true, app.selectedLibraryStats.studiosWatchedCounts.slice(0, app.selectedLibraryStats.studioLimit + 1));
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-studio', app.selectedLibraryStats.studioCounts.slice(0, app.selectedLibraryStats.studioLimit + 1), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderDirectorChart: function () {
+            app.renderPieChart('.items-by-director', sortedDirectors);
+        },
+        renderActorChart: function () {
+            app.renderPieChart('.items-by-actor', sortedActors);
+        },
+        renderWatchedGauge: function () {
+            c3.generate({
+                bindto: '.watched-gauge',
+                data: {
+                    columns: [
+                        ['Watched:', Math.floor((app.selectedLibraryStats.watchedCount / parseInt(app.selectedLibraryStats.totalItems.replace(/,/g, ''))) * 100)]
+                    ],
+                    type: 'gauge'
+                },
+                gauge: {
+                    label: {
+                        format: function(value, ratio) {
+                            return '';
+                        },
+                        show: false // to turn off the min/max labels.
+                    },
+                    width: 20 // for adjusting arc thickness
+                },
+                legend: {
+                    show: false
+                },
+                color: {
+                    pattern: ['#F75C03'], // the three color levels for the percentage values.
+                },
+                size: {
+                    height: 75,
+                    width: 150
+                }
+            });
         },
         updateLimit: function (limitType, updatedLimit) {
             // limitType is a string like "genre" and updatedLimit is a number
             // set the new limit, e.g. genreLimit = 10
             app.selectedLibraryStats[`${limitType}Limit`] = parseInt(updatedLimit);
-            let newLimit = app.selectedLibraryStats[`${limitType}Limit`],
-                newCounts = app.selectedLibraryStats[`${limitType}Counts`],
-                newList = app.selectedLibraryStats[`${limitType}List`] ? app.selectedLibraryStats[`${limitType}List`].slice(0, newLimit) : [],
-                currentChartType = app[`${limitType}Toggle`] === 'pie' ? 'bar' : 'pie';
 
             // render the new chart
-            app.renderSingleChart(`.items-by-${limitType}`, currentChartType, newCounts.slice(0, newLimit + 1), newList);
+            switch (limitType) {
+                case 'genre':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderGenreChart('pie') : app.renderGenreChart('bar');
+                    break;
+                case 'country':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderCountryChart('pie') : app.renderCountryChart('bar');
+                    break;
+                case 'studio':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderStudioChart('pie') : app.renderStudioChart('bar');
+                    break;
+                case 'director':
+                    app.renderDirectorChart();
+                    break;
+                case 'actor':
+                    app.renderActorChart();
+                    break;
+                default:
+                    console.error('Invalid limit type');
+            }
         }
     }
 });
