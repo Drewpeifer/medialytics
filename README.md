@@ -1,4 +1,4 @@
-# Medialytics
+# Medialytics 2.2
 ### A free analytics tool for Plex server content
 
 --------
