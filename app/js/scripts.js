@@ -365,13 +365,13 @@ const parseMediaPayload = (data) => {
             countryList.forEach((country) => {
                 sortedCountriesWatchedCounts.push(countriesWatched[country]);
             });
-            sortedCountriesWatchedCounts.unshift("sortedGenresWatchedCounts");
+            sortedCountriesWatchedCounts.unshift("Watched");
             // copy sortedCountriesWatchedCounts to sortedCountriesUnwatchedCounts and set each value to the difference between the watched and total count for that country
             let sortedCountriesUnwatchedCounts = sortedCountriesWatchedCounts.slice();
             sortedCountriesUnwatchedCounts = sortedCountriesUnwatchedCounts.map((count, index) => {
                 return countryCounts[index] - count;
             });
-            sortedCountriesUnwatchedCounts[0] = "sortedCountriesUnwatchedCounts";
+            sortedCountriesUnwatchedCounts[0] = "Unwatched";
 
             ////////////////////////
             // items by genre chart
@@ -396,13 +396,13 @@ const parseMediaPayload = (data) => {
             genreList.forEach((genre) => {
                 sortedGenresWatchedCounts.push(genresWatched[genre]);
             });
-            sortedGenresWatchedCounts.unshift("sortedGenresWatchedCounts");
+            sortedGenresWatchedCounts.unshift("Watched");
             // copy sortedGenresWatchedCounts to sortedGenresUnwatchedCounts and set each value to the difference between the watched and total count for that genre
             let sortedGenresUnwatchedCounts = sortedGenresWatchedCounts.slice();
             sortedGenresUnwatchedCounts = sortedGenresUnwatchedCounts.map((count, index) => {
                 return genreCounts[index] - count;
             });
-            sortedGenresUnwatchedCounts[0] = "sortedGenresUnwatchedCounts";
+            sortedGenresUnwatchedCounts[0] = "Unwatched";
             ////////////////////////
             // items by studio chart
             let sortedStudios = [],
@@ -426,13 +426,13 @@ const parseMediaPayload = (data) => {
             studioList.forEach((genre) => {
                 sortedStudiosWatchedCounts.push(studiosWatched[genre]);
             });
-            sortedStudiosWatchedCounts.unshift("sortedStudiosWatchedCounts");
+            sortedStudiosWatchedCounts.unshift("Watched");
             // copy sortedStudiosWatchedCounts to sortedStudiosUnwatchedCounts and set each value to the difference between the watched and total count for that studio
             let sortedStudiosUnwatchedCounts = sortedStudiosWatchedCounts.slice();
             sortedStudiosUnwatchedCounts = sortedStudiosUnwatchedCounts.map((count, index) => {
                 return studioCounts[index] - count;
             });
-            sortedStudiosUnwatchedCounts[0] = "sortedStudiosUnwatchedCounts";
+            sortedStudiosUnwatchedCounts[0] = "Unwatched";
 
             /////////////////////////
             // items by decade chart
@@ -477,8 +477,8 @@ const parseMediaPayload = (data) => {
                 return Math.abs(count - decadesWatchedCounts[index]);
             });
             releaseDateCounts.unshift("releaseDateCounts");
-            decadesWatchedCounts.unshift("decadesWatchedCounts");
-            decadesUnwatchedCounts.unshift("decadesUnwatchedCounts");
+            decadesWatchedCounts.unshift("Watched");
+            decadesUnwatchedCounts.unshift("Unwatched");
 
             ////////////////////////
             // items by director chart
@@ -663,7 +663,7 @@ const app = new Vue({
                     }
                 },
                 legend: {
-                    hide: true
+                    hide: false,
                 },
                 color: {
                     pattern: chartColors
