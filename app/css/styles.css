@@ -82,6 +82,9 @@ h3 {
     justify-content: space-evenly;
     margin: 10px;
 }
+.library-stats .content .row {
+    justify-content: center;
+}
 .row p {
     min-width: 30%;
     margin: 0 10px;
