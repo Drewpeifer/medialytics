@@ -176,6 +176,7 @@ const getLibraryData = async (libraryKey) => {
         console.log('Library Data: ', libraryData);
     }
     resetLibraryStats();
+    app.renderWatchedGauge();
     return libraryData;
 }
 
@@ -767,6 +768,36 @@ const app = new Vue({
         },
         renderActorChart: function () {
             app.renderPieChart('.items-by-actor', sortedActors);
+        },
+        renderWatchedGauge: function () {
+            c3.generate({
+                bindto: '.watched-gauge',
+                data: {
+                    columns: [
+                        ['Watched:', Math.floor((app.selectedLibraryStats.watchedCount / parseInt(app.selectedLibraryStats.totalItems.replace(/,/g, ''))) * 100)]
+                    ],
+                    type: 'gauge'
+                },
+                gauge: {
+                    label: {
+                        format: function(value, ratio) {
+                            return '';
+                        },
+                        show: false // to turn off the min/max labels.
+                    },
+                    width: 20 // for adjusting arc thickness
+                },
+                legend: {
+                    show: false
+                },
+                color: {
+                    pattern: ['#F75C03'], // the three color levels for the percentage values.
+                },
+                size: {
+                    height: 75,
+                    width: 150
+                }
+            });
         },
         updateLimit: function (limitType, updatedLimit) {
             // limitType is a string like "genre" and updatedLimit is a number
