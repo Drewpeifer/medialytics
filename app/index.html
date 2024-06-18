@@ -285,6 +285,46 @@
                         </div>
                     </div>
                 </div>
+                <!-- items by resolution chart -->
+                <div class="row">
+                    <div class="card full">
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div v-else class="header">
+                            <p>{{ selectedLibraryStats.increment }}s per Resolution (Top {{ selectedLibraryStats.resolutionLimit }})</p>
+                        </div>
+                        <div class="content">
+                            <div v-if="selectedLibraryStats.increment === 'movie'" class="row">
+                                <p><strong>Total Resolutions:</strong> {{ selectedLibraryStats.totalResolutionCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="resolutionToggle"
+                                        v-on:click="renderResolutionChart(resolutionToggle)"
+                                        v-model="resolutionToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="resolutionToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="resolutionLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="resolutionLimit"
+                                        v-model="newResolutionLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('resolution', newResolutionLimit)">Update</button>
+                                </div>
+                                <p><strong>Top Resolution:</strong> {{ selectedLibraryStats.topResolution }} ({{ selectedLibraryStats.topResolutionCount }})</p>
+                            </div>
+                            <div class="row">
+                                <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
+                                    Only available for movie libraries
+                                </div>
+                                <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-resolution"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <script type="text/javascript" src="js/scripts.js"></script>
