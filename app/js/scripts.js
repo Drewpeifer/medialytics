@@ -35,6 +35,13 @@ countryCounts = [],
 countriesWatched = {},
 countriesWatchedCounts = [],
 countriesUnwatchedCounts = [],
+// resolutions
+resolutions = {},
+resolutionList = [],
+resolutionCounts = [],
+resolutionsWatched = {},
+resolutionsWatchedCounts = [],
+resolutionsUnwatchedCounts = [],
 // release dates
 releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
@@ -73,6 +80,8 @@ countryLimit = 20,
 newCountryLimit = countryLimit,// "new" variations are used for the UI to track changes to limit / Top X
 genreLimit = 20,
 newGenreLimit = genreLimit,
+resolutionLimit = 20,
+newResolutionLimit = resolutionLimit,
 studioLimit = 20,
 newStudioLimit = studioLimit,
 directorLimit = 20,
@@ -98,6 +107,13 @@ const resetLibraryStats = () => {
     genresWatchedCounts = [],
     genresUnwatchedCounts = [],
     genreToggle = "",
+    resolutions = {},
+    resolutionList = [],
+    resolutionCounts = [],
+    resolutionsWatched = {},
+    resolutionsWatchedCounts = [],
+    resolutionsUnwatchedCounts = [],
+    resolutionToggle = "",
     studios = {},
     studioList = [],
     studioCounts = [],
@@ -296,6 +312,28 @@ const parseMediaPayload = (data) => {
             // no genres
         }
 
+        // track resolutions
+        if (item.Media) {
+            item.Media.forEach((media) => {
+                if (media.videoResolution) {
+                    if (resolutions.hasOwnProperty(media.videoResolution)) {
+                        // if resolution exists in the dictionary already,
+                        // find the resolution and increment the count
+                        resolutions[media.videoResolution]++;
+                        // track the watched count for that resolution
+                        item.lastViewedAt ? resolutionsWatched[media.videoResolution]++ : resolutionsWatched[media.videoResolution];
+                    } else {
+                        resolutions[media.videoResolution] = 1;
+                        item.lastViewedAt ? resolutionsWatched[media.videoResolution] = 1 : resolutionsWatched[media.videoResolution] = 0;
+                    }
+                } else {
+                    // no resolution
+                }
+            });
+        } else {
+            // no media
+        }
+
         // track countries
         if (item.Country) {
             // check if a country exists for movie
@@ -373,6 +411,36 @@ const parseMediaPayload = (data) => {
                 return countryCounts[index] - count;
             });
             sortedCountriesUnwatchedCounts[0] = "Unwatched";
+
+            //////////////////////////
+            // items by resolution chart
+            let sortedResolutions = [],
+            sortedResolutionsWatchedCounts = [];
+            // choosing not to report on undefined entries
+            delete resolutions['undefined'];
+            for (resolution in resolutions) {
+                sortedResolutions.push([resolution, resolutions[resolution]]);
+            }
+            sortedResolutions.sort(function(a, b) {
+                return b[1] - a[1];
+            });
+            // split the sorted resolutions dictionary into an array of resolutions and an array of counts
+            for (property in sortedResolutions) {
+                resolutionList.push(sortedResolutions[property][0]);
+                resolutionCounts.push(sortedResolutions[property][1]);
+            }
+            resolutionCounts.unshift("resolutionCounts");
+            // for every resolution in resolutionList, find the corresponding count in resolutionsWatched and push it to the sortedResolutionsWatchedCounts array
+            resolutionList.forEach((resolution) => {
+                sortedResolutionsWatchedCounts.push(resolutionsWatched[resolution]);
+            });
+            sortedResolutionsWatchedCounts.unshift("Watched");
+            // copy sortedResolutionsWatchedCounts to sortedResolutionsUnwatchedCounts and set each value to the difference between the watched and total count for that resolution
+            let sortedResolutionsUnwatchedCounts = sortedResolutionsWatchedCounts.slice();
+            sortedResolutionsUnwatchedCounts = sortedResolutionsUnwatchedCounts.map((count, index) => {
+                return resolutionCounts[index] - count;
+            });
+            sortedResolutionsUnwatchedCounts[0] = "Unwatched";
 
             ////////////////////////
             // items by genre chart
@@ -551,6 +619,12 @@ const parseMediaPayload = (data) => {
                 countryList: countryList,
                 countriesWatchedCounts : sortedCountriesWatchedCounts,
                 countriesUnwatchedCounts : sortedCountriesUnwatchedCounts,
+                resolutionCounts: resolutionCounts,
+                resolutionList: resolutionList,
+                resolutionsWatchedCounts : sortedResolutionsWatchedCounts,
+                resolutionsUnwatchedCounts : sortedResolutionsUnwatchedCounts,
+                topResolution: sortedResolutions.length > 1 ? resolutionList[0] : "",
+                topResolutionCount: sortedResolutions.length > 1 ? resolutionCounts[1].toLocaleString() : "",
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
@@ -579,6 +653,8 @@ const parseMediaPayload = (data) => {
                 newCountryLimit: newCountryLimit,
                 genreLimit: genreLimit,
                 newGenreLimit: newGenreLimit,
+                resolutionLimit: resolutionLimit,
+                newResolutionLimit: newResolutionLimit,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
                 firstAdded : firstAdded,
@@ -616,6 +692,7 @@ const app = new Vue({
         selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
         recentlyAdded: recentlyAdded,
+        resolutionToggle: "pie",
         genreToggle: "pie",
         countryToggle: "pie",
         studioToggle: "pie"
@@ -723,6 +800,7 @@ const app = new Vue({
             // render charts
             this.renderGenreChart('bar');
             this.renderCountryChart('bar');
+            this.renderResolutionChart('bar');
             this.renderDecadeChart('bar');
             this.renderStudioChart('bar');
             this.renderDirectorChart();
@@ -742,6 +820,15 @@ const app = new Vue({
                 app.renderBarChart('.items-by-country', app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit), true, app.selectedLibraryStats.countriesWatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1))
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-country', app.selectedLibraryStats.countryCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderResolutionChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-resolution', app.selectedLibraryStats.resolutionsUnwatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit), true, app.selectedLibraryStats.resolutionsWatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1))
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-resolution', app.selectedLibraryStats.resolutionCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit));
             } else {
                 console.error('Invalid chart type');
             }
@@ -815,6 +902,9 @@ const app = new Vue({
                     break;
                 case 'studio':
                     app[`${limitType}Toggle`] == 'bar' ? app.renderStudioChart('pie') : app.renderStudioChart('bar');
+                    break;
+                case 'resolution':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderResolutionChart('pie') : app.renderResolutionChart('bar');
                     break;
                 case 'director':
                     app.renderDirectorChart();
