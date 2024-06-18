@@ -223,6 +223,10 @@ h3 {
     scale: 1.2;
 }
 
+/* capitalization for resolution chart */
+.items-by-resolution .c3-axis-x .tick text {
+    text-transform: uppercase;
+}
 /* sweet loading spinner from css-tricks */
 .loader {
     width: 40px;/* the size */
