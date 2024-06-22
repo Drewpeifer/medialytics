@@ -14,11 +14,10 @@ runs in the browser and generates statistics specifically about the content of y
 ![visualizations-2](https://i.imgur.com/CCmDkSo.png)
 
 ## Main features
-* Charts for genre, country, decade, studio, actor, and director* analysis
+* Charts for genre, country, decade, studio, resolution, container (file type), actor, and director* analysis
 * Statistics for size and duration of entire library
 * Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
-* Statistics for resolution* and container* (file type)
-* Detect unmatched library items
+* Detects unmatched library items
 * Watched/unwatched comparison across genres, countries, decades, and studios
 
 _Items marked with "*" are only available for Movie libraries_
@@ -131,7 +130,7 @@ it only returns the first few items. For example, a movie can have an infinite n
 (not alphabetically, just the first two in the list). This means that a film with Action, Mystery, and Crime genres will only get reported in the XML as being in Action and Mystery.
 
 In terms of what Medialytics reports on, the only statistics affected by this process are as follows:
-* Directors (Plex only returns one even if the film's credits list multiple)
+* Directors (first 2)
 * Actors (first 3)
 * Genres (first 2)
 
