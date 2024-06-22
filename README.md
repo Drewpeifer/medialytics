@@ -1,4 +1,4 @@
-# Medialytics 2.2.1
+# Medialytics 2.3
 ### A free analytics tool for Plex server content
 
 --------
@@ -14,11 +14,14 @@ runs in the browser and generates statistics specifically about the content of y
 ![visualizations-2](https://i.imgur.com/CCmDkSo.png)
 
 ## Main features
-* Charts for genre, country, decade, studio, actor, and director analysis
+* Charts for genre, country, decade, studio, actor, and director* analysis
 * Statistics for size and duration of entire library
 * Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
+* Statistics for resolution* and container* (file type)
 * Detect unmatched library items
 * Watched/unwatched comparison across genres, countries, decades, and studios
+
+_Items marked with "*" are only available for Movie libraries_
 
 ## How does it work?
 [Plex](http://www.plex.tv) servers generate an XML feed that returns a list of libraries associated with a server, as well
@@ -118,12 +121,29 @@ If your libraries do not automatically load after following the instructions abo
 ### How recent is this data?
 Data is retrieved from Plex in real time. When you load the page or select a library, you are making a fresh request to the targeted server each time.
 
-### Why is some of the metadata for my library missing?
-Plex pulls all its metadata from external agents like [theTVDB.com](http://thetvdb.com) which are
-crowd-sourced information. Some of the more obscure titles have incomplete data,
-especially when it comes to ratings, so if you see an empty or "undefined" value it is most likely appearing
-as empty or "undefined" in the Plex web interface as well. I have chosen not to report on undefined values, but
-there may be edge cases I haven't considered.
+### How accurate is this data?
+The short answer is that the data is as accurate as the XML feed can provide. The feed returns every title in a library, and so the counts for the library
+as a whole and any "basic" attribute that the feed reports for that item should be accurate when cross referenced with your Plex server, such as release date, length, etc. If the value
+for any tracked data point is left blank or otherwise returns `undefined`, I have chosen to omit that single value from all counts and calculations.
+
+**However**, the XML feed does abbreviate some information that could otherwise generate many results, and instead of returning the full list that is available in Plex
+it only returns the first few items. For example, a movie can have an infinite number of genres added manually by a user, so the XML feed just returns the first two genres in the list
+(not alphabetically, just the first two in the list). This means that a film with Action, Mystery, and Crime genres will only get reported in the XML as being in Action and Mystery.
+
+In terms of what Medialytics reports on, the only statistics affected by this process are as follows:
+* Directors (Plex only returns one even if the film's credits list multiple)
+* Actors (first 3)
+* Genres (first 2)
+
+The only other nuance I've encountered is that different "editions" of a movie will be counted as separate instances, so `Aliens (1986) {edition-SD}.avi` and
+`Aliens (1986) {edition-4K}.mkv` each count as separate films, with separate (duplicate) metadata. While this may inflate certain statistics if you have many editions
+of the same film, it also allows for accurate tracking of resolution and container (file type) across editions. Ignoring separate editions would create inconsistencies with counts
+in Medialytics vs the Plex UI, so I have chosen to track them this way for now. When comparing numbers between Medialytics and the Plex UI, also consider that Medialytics does not
+count Collections as library items (and the Plex UI does, if they are visible).
+
+### Why are some charts only available for certain types of libraries?
+The XML feed does not return the same information for all library types. For example, the feed for a TV library only returns data about shows, so it does not include Director,
+Resolution, or Container information since that could be specific to each episode.
 
 ### Related documentation
 For anyone who wishes to fork and modify this repo, here are some links you may find useful:
