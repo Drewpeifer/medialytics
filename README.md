@@ -14,11 +14,11 @@ runs in the browser and generates statistics specifically about the content of y
 ![visualizations-2](https://i.imgur.com/CCmDkSo.png)
 
 ## Main features
-* Charts for genre, country, decade, studio, resolution, container (file type), actor, and director* analysis
+* Charts for genre, country, decade, studio, resolution*, container* (file type), actor, and director* analysis
 * Statistics for size and duration of entire library
 * Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
 * Detects unmatched library items
-* Watched/unwatched comparison across genres, countries, decades, studios, resolutions, and containers
+* Watched/unwatched comparison across genres, countries, decades, studios, resolutions*, and containers*
 
 _Items marked with "*" are only available for Movie libraries_
 
