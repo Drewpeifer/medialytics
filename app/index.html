@@ -287,7 +287,7 @@
                 </div>
                 <!-- items by resolution chart -->
                 <div class="row">
-                    <div class="card full">
+                    <div class="card half">
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div v-else class="header">
                             <p>{{ selectedLibraryStats.increment }}s per Resolution (Top {{ selectedLibraryStats.resolutionLimit }})</p>
@@ -321,6 +321,44 @@
                                     Only available for movie libraries
                                 </div>
                                 <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-resolution"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- items by container chart -->
+                    <div class="card half">
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div v-else class="header">
+                            <p>{{ selectedLibraryStats.increment }}s per Container (Top {{ selectedLibraryStats.containerLimit }})</p>
+                        </div>
+                        <div class="content">
+                            <div v-if="selectedLibraryStats.increment === 'movie'" class="row">
+                                <p><strong>Total Containers:</strong> {{ selectedLibraryStats.totalContainerCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="containerToggle"
+                                        v-on:click="renderContainerChart(containerToggle)"
+                                        v-model="containerToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="containerToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="containerLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="containerLimit"
+                                        v-model="newContainerLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('container', newContainerLimit)">Update</button>
+                                </div>
+                                <p><strong>Top Container:</strong> {{ selectedLibraryStats.topContainer }} ({{ selectedLibraryStats.topContainerCount }})</p>
+                            </div>
+                            <div class="row">
+                                <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
+                                    Only available for movie libraries
+                                </div>
+                                <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-container"></div>
                             </div>
                         </div>
                     </div>
