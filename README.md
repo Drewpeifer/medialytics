@@ -18,7 +18,7 @@ runs in the browser and generates statistics specifically about the content of y
 * Statistics for size and duration of entire library
 * Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
 * Detects unmatched library items
-* Watched/unwatched comparison across genres, countries, decades, and studios
+* Watched/unwatched comparison across genres, countries, decades, studios, resolutions, and containers
 
 _Items marked with "*" are only available for Movie libraries_
 
