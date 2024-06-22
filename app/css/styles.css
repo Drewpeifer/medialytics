@@ -80,7 +80,7 @@ h3 {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
-    margin: 10px;
+    margin: 10px 0;
 }
 .library-stats .content .row {
     justify-content: center;
@@ -94,7 +94,7 @@ h3 {
     min-width: 98%;
 }
 .half {
-    width: 48%;
+    width: 47%;
 }
 
 /* controls */
@@ -224,7 +224,12 @@ h3 {
 }
 
 /* capitalization for resolution chart */
-.items-by-resolution .c3-axis-x .tick text {
+.items-by-resolution .c3-axis-x .tick text,
+.items-by-container .c3-axis-x .tick text {
+    text-transform: uppercase;
+}
+.items-by-resolution .c3-tooltip tr:first-child,
+.items-by-container .c3-tooltip tr:first-child {
     text-transform: uppercase;
 }
 /* sweet loading spinner from css-tricks */

@@ -42,6 +42,13 @@ resolutionCounts = [],
 resolutionsWatched = {},
 resolutionsWatchedCounts = [],
 resolutionsUnwatchedCounts = [],
+// containers
+containers = {},
+containerList = [],
+containerCounts = [],
+containersWatched = {},
+containersWatchedCounts = [],
+containersUnwatchedCounts = [],
 // release dates
 releaseDateList = [],// stores each instance of a release date
 releaseDateCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
@@ -82,6 +89,8 @@ genreLimit = 20,
 newGenreLimit = genreLimit,
 resolutionLimit = 20,
 newResolutionLimit = resolutionLimit,
+containerLimit = 20,
+newContainerLimit = containerLimit,
 studioLimit = 20,
 newStudioLimit = studioLimit,
 directorLimit = 20,
@@ -114,6 +123,13 @@ const resetLibraryStats = () => {
     resolutionsWatchedCounts = [],
     resolutionsUnwatchedCounts = [],
     resolutionToggle = "",
+    containers = {},
+    containerList = [],
+    containerCounts = [],
+    containersWatched = {},
+    containersWatchedCounts = [],
+    containersUnwatchedCounts = [],
+    containerToggle = "",
     studios = {},
     studioList = [],
     studioCounts = [],
@@ -312,7 +328,7 @@ const parseMediaPayload = (data) => {
             // no genres
         }
 
-        // track resolutions
+        // track resolutions and containers
         if (item.Media) {
             item.Media.forEach((media) => {
                 if (media.videoResolution) {
@@ -328,6 +344,18 @@ const parseMediaPayload = (data) => {
                     }
                 } else {
                     // no resolution
+                }
+                if (media.container) {
+                    if (containers.hasOwnProperty(media.container)) {
+                        // if container exists in the dictionary already,
+                        // find the container and increment the count
+                        containers[media.container]++;
+                        // track the watched count for that container
+                        item.lastViewedAt ? containersWatched[media.container]++ : containersWatched[media.container];
+                    } else {
+                        containers[media.container] = 1;
+                        item.lastViewedAt ? containersWatched[media.container] = 1 : containersWatched[media.container] = 0;
+                    }
                 }
             });
         } else {
@@ -441,6 +469,36 @@ const parseMediaPayload = (data) => {
                 return resolutionCounts[index] - count;
             });
             sortedResolutionsUnwatchedCounts[0] = "Unwatched";
+
+            //////////////////////////
+            // items by container chart
+            let sortedContainers = [],
+            sortedContainersWatchedCounts = [];
+            // choosing not to report on undefined entries
+            delete containers['undefined'];
+            for (container in containers) {
+                sortedContainers.push([container, containers[container]]);
+            }
+            sortedContainers.sort(function(a, b) {
+                return b[1] - a[1];
+            });
+            // split the sorted containers dictionary into an array of containers and an array of counts
+            for (property in sortedContainers) {
+                containerList.push(sortedContainers[property][0]);
+                containerCounts.push(sortedContainers[property][1]);
+            }
+            containerCounts.unshift("containerCounts");
+            // for every container in containerList, find the corresponding count in containersWatched and push it to the sortedContainersWatchedCounts array
+            containerList.forEach((container) => {
+                sortedContainersWatchedCounts.push(containersWatched[container]);
+            });
+            sortedContainersWatchedCounts.unshift("Watched");
+            // copy sortedContainersWatchedCounts to sortedContainersUnwatchedCounts and set each value to the difference between the watched and total count for that container
+            let sortedContainersUnwatchedCounts = sortedContainersWatchedCounts.slice();
+            sortedContainersUnwatchedCounts = sortedContainersUnwatchedCounts.map((count, index) => {
+                return containerCounts[index] - count;
+            });
+            sortedContainersUnwatchedCounts[0] = "Unwatched";
 
             ////////////////////////
             // items by genre chart
@@ -625,6 +683,12 @@ const parseMediaPayload = (data) => {
                 resolutionsUnwatchedCounts : sortedResolutionsUnwatchedCounts,
                 topResolution: sortedResolutions.length > 1 ? resolutionList[0] : "",
                 topResolutionCount: sortedResolutions.length > 1 ? resolutionCounts[1].toLocaleString() : "",
+                containerCounts: containerCounts,
+                containerList: containerList,
+                containersWatchedCounts : sortedContainersWatchedCounts,
+                containersUnwatchedCounts : sortedContainersUnwatchedCounts,
+                topContainer: sortedContainers.length > 1 ? containerList[0] : "",
+                topContainerCount: sortedContainers.length > 1 ? containerCounts[1].toLocaleString() : "",
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 oldestTitle: oldestTitle,
@@ -655,6 +719,8 @@ const parseMediaPayload = (data) => {
                 newGenreLimit: newGenreLimit,
                 resolutionLimit: resolutionLimit,
                 newResolutionLimit: newResolutionLimit,
+                containerLimit: containerLimit,
+                newContainerLimit: newContainerLimit,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
                 firstAdded : firstAdded,
@@ -693,6 +759,7 @@ const app = new Vue({
         selectedLibraryStats: selectedLibraryStats,
         recentlyAdded: recentlyAdded,
         resolutionToggle: "pie",
+        containerToggle: "pie",
         genreToggle: "pie",
         countryToggle: "pie",
         studioToggle: "pie"
@@ -801,6 +868,7 @@ const app = new Vue({
             this.renderGenreChart('bar');
             this.renderCountryChart('bar');
             this.renderResolutionChart('bar');
+            this.renderContainerChart('bar');
             this.renderDecadeChart('bar');
             this.renderStudioChart('bar');
             this.renderDirectorChart();
@@ -829,6 +897,15 @@ const app = new Vue({
                 app.renderBarChart('.items-by-resolution', app.selectedLibraryStats.resolutionsUnwatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit), true, app.selectedLibraryStats.resolutionsWatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1))
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-resolution', app.selectedLibraryStats.resolutionCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
+        renderContainerChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-container', app.selectedLibraryStats.containersUnwatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit), true, app.selectedLibraryStats.containersWatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1))
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-container', app.selectedLibraryStats.containerCounts.slice(0, app.selectedLibraryStats.containerLimit + 1), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit));
             } else {
                 console.error('Invalid chart type');
             }
@@ -905,6 +982,9 @@ const app = new Vue({
                     break;
                 case 'resolution':
                     app[`${limitType}Toggle`] == 'bar' ? app.renderResolutionChart('pie') : app.renderResolutionChart('bar');
+                    break;
+                case 'container':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderContainerChart('pie') : app.renderContainerChart('bar');
                     break;
                 case 'director':
                     app.renderDirectorChart();
