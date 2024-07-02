@@ -810,6 +810,7 @@ const parseMediaPayload = (data) => {
             // if debug mode is enabled, log data into the console:
             if (debugMode) {
                 console.log('Library Selected: ', app.selectedLibrary);
+                console.log('Library Stats: ', app.selectedLibraryStats);
                 console.log('Total Items: ', itemCount);
                 console.log('Library XML: ' + serverIp + '/library/sections/' + app.selectedLibraryKey + '/all?X-Plex-Token=' + serverToken);
             }
