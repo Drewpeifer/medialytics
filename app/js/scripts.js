@@ -971,7 +971,7 @@ const app = new Vue({
         },
         renderResolutionChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-resolution', app.selectedLibraryStats.resolutionsUnwatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit), true, app.selectedLibraryStats.resolutionsWatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1))
+                app.renderBarChart('.items-by-resolution', app.selectedLibraryStats.resolutionsUnwatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit), false, app.selectedLibraryStats.resolutionsWatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1))
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-resolution', app.selectedLibraryStats.resolutionCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit));
             } else {
@@ -980,7 +980,7 @@ const app = new Vue({
         },
         renderContainerChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-container', app.selectedLibraryStats.containersUnwatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit), true, app.selectedLibraryStats.containersWatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1))
+                app.renderBarChart('.items-by-container', app.selectedLibraryStats.containersUnwatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit), false, app.selectedLibraryStats.containersWatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1))
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-container', app.selectedLibraryStats.containerCounts.slice(0, app.selectedLibraryStats.containerLimit + 1), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit));
             } else {
