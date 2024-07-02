@@ -65,11 +65,20 @@ studioCounts = [],
 studiosWatched = {},
 studiosWatchedCounts = [],
 studiosUnwatchedCounts = [],
-// directors, and actors
-directorInstances = [],
-sortedDirectors = [],
-actorInstances = [],
-sortedActors = [],
+// directors
+directors = {},
+directorList = [],
+directorCounts = [],
+directorsWatched = {},
+directorsWatchedCounts = [],
+directorsUnwatchedCounts = [],
+// actors
+actors = {},
+actorList = [],
+actorCounts = [],
+actorsWatched = {},
+actorsWatchedCounts = [],
+actorsUnwatchedCounts = [],
 // durations, library size, and unmatched items
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
@@ -147,10 +156,20 @@ const resetLibraryStats = () => {
     decadesWatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     decadesUnwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     decadeToggle = "",
-    directorInstances = [],
-    sortedDirectors = [],
-    actorInstances = [],
-    sortedActors = [],
+    directors = {},
+    directorList = [],
+    directorCounts = [],
+    directorsWatched = {},
+    directorsWatchedCounts = [],
+    directorsUnwatchedCounts = [],
+    directorToggle = "",
+    actors = {},
+    actorList = [],
+    actorCounts = [],
+    actorsWatched = {},
+    actorsWatchedCounts = [],
+    actorsUnwatchedCounts = [],
+    actorToggle = "",
     durationSum = 0,
     seasonSum = 0,
     episodeCounts = [],
@@ -386,18 +405,32 @@ const parseMediaPayload = (data) => {
 
         // track directors
         if (item.Director) {
-            item.Director.forEach((director) => {
-                directorInstances.push(director.tag);
-            });
+            if (directors.hasOwnProperty(item.Director[0].tag)) {
+                // if director exists in the dictionary already,
+                // find the director and increment the count
+                directors[item.Director[0].tag]++;
+                // track the watched count for that director
+                item.lastViewedAt ? directorsWatched[item.Director[0].tag]++ : directorsWatched[item.Director[0].tag];
+            } else {
+                directors[item.Director[0].tag] = 1;
+                item.lastViewedAt ? directorsWatched[item.Director[0].tag] = 1 : directorsWatched[item.Director[0].tag] = 0;
+            }
         } else {
             // no directors
         }
 
         // track actors
         if (item.Role) {
-            item.Role.forEach((actor) => {
-                actorInstances.push(actor.tag);
-            });
+            if (actors.hasOwnProperty(item.Role[0].tag)) {
+                // if actor exists in the dictionary already,
+                // find the actor and increment the count
+                actors[item.Role[0].tag]++;
+                // track the watched count for that actor
+                item.lastViewedAt ? actorsWatched[item.Role[0].tag]++ : actorsWatched[item.Role[0].tag];
+            } else {
+                actors[item.Role[0].tag] = 1;
+                item.lastViewedAt ? actorsWatched[item.Role[0].tag] = 1 : actorsWatched[item.Role[0].tag] = 0;
+            }
         } else {
             // no actors
         }
@@ -616,51 +649,64 @@ const parseMediaPayload = (data) => {
 
             ////////////////////////
             // items by director chart
-            let directors = {};
-            // build a dictionary of directors and their counts
-            directorInstances.forEach((director) => {
-                if (directors.hasOwnProperty(director)) {
-                    directors[director]++;
-                } else {
-                    directors[director] = 1;
+            // remove undefined entries from directors object
+            directors = Object.keys(directors).reduce((object, key) => {
+                if (key !== 'undefined') {
+                    object[key] = directors[key];
                 }
-            });
-            // remove undefined entries from directorInstances
-            delete directors['undefined'];
-            // sort the directors dictionary by count
-            for (director in directors) {
-                sortedDirectors.push([director, directors[director]]);
+                return object;
             }
-            sortedDirectors.sort(function(a, b) {
-                return b[1] - a[1];
+            , {});
+            // sort the directors object by value
+            directors = Object.entries(directors).sort((a, b) => b[1] - a[1]);
+
+            // split the sorted director dictionary into an array of directors and an array of counts
+            for (property in directors) {
+                directorList.push(directors[property][0]);
+                directorCounts.push(directors[property][1]);
+            }
+            directorCounts.unshift("directorCounts");
+            let sortedDirectorsWatchedCounts = [];
+            // for every director in directorList, find the corresponding count in directorsWatched and push it to the sortedDirectorsWatchedCounts array
+            directorList.forEach((director) => {
+                sortedDirectorsWatchedCounts.push(directorsWatched[director]);
             });
-            // trim the sorted directors to the predefined limit
-            sortedDirectors = sortedDirectors.slice(0, directorLimit);
-            sortedDirectors.unshift('directorCounts');
+            sortedDirectorsWatchedCounts.unshift("Watched");
+            // copy sortedDirectorsWatchedCounts to sortedDirectorsUnwatchedCounts and set each value to the difference between the watched and total count for that director
+            let sortedDirectorsUnwatchedCounts = sortedDirectorsWatchedCounts.slice();
+            sortedDirectorsUnwatchedCounts = sortedDirectorsUnwatchedCounts.map((count, index) => {
+                return directorCounts[index] - count;
+            });
+            sortedDirectorsUnwatchedCounts[0] = "Unwatched";
 
             ////////////////////////
             // items by actor chart
-            let actors = {};
-            // build a dictionary of actors and their counts
-            actorInstances.forEach((actor) => {
-                if (actors.hasOwnProperty(actor)) {
-                    actors[actor]++;
-                } else {
-                    actors[actor] = 1;
+            // remove undefined entries from actors object
+            actors = Object.keys(actors).reduce((object, key) => {
+                if (key !== 'undefined') {
+                    object[key] = actors[key];
                 }
-            });
-            // remove undefined entries from actorInstances
-            delete actors['undefined'];
-            // sort the actors dictionary by count
-            for (actor in actors) {
-                sortedActors.push([actor, actors[actor]]);
+                return object;
+            }, {});
+            // sort the actors object by value
+            actors = Object.entries(actors).sort((a, b) => b[1] - a[1]);
+            // split the sorted actors dictionary into an array of actors and an array of counts
+            for (property in actors) {
+                actorList.push(actors[property][0]);
+                actorCounts.push(actors[property][1]);
             }
-            sortedActors.sort(function(a, b) {
-                return b[1] - a[1];
+            actorCounts.unshift("actorCounts");
+            // for every actor in actorList, find the corresponding count in actorsWatched and push it to the sortedActorsWatchedCounts array
+            actorList.forEach((actor) => {
+                actorsWatchedCounts.push(actorsWatched[actor]);
             });
-            // trim the sorted directors to the predefined limit
-            sortedActors = sortedActors.slice(0, actorLimit);
-            sortedActors.unshift('actorCounts');
+            actorsWatchedCounts.unshift("Watched");
+            // copy sortedActorsWatchedCounts to sortedActorsUnwatchedCounts and set each value to the difference between the watched and total count for that actor
+            let sortedActorsUnwatchedCounts = actorsWatchedCounts.slice();
+            sortedActorsUnwatchedCounts = sortedActorsUnwatchedCounts.map((count, index) => {
+                return actorCounts[index] - count;
+            });
+            sortedActorsUnwatchedCounts[0] = "Unwatched";
 
             // reset all selectedLibraryStats
             app.selectedLibraryStats = {};
@@ -710,10 +756,20 @@ const parseMediaPayload = (data) => {
                 studioCounts: studioCounts,
                 studiosWatchedCounts: sortedStudiosWatchedCounts,
                 studiosUnwatchedCounts: sortedStudiosUnwatchedCounts,
-                topDirector: sortedDirectors.length > 1 ? sortedDirectors[1][0] : "",
-                topDirectorCount: sortedDirectors.length > 1 ? sortedDirectors[1][1].toLocaleString() : 0,
-                topActor: sortedActors.length > 0 ? sortedActors[1][0] : "",
-                topActorCount: sortedActors.length > 0 ? sortedActors[1][1].toLocaleString() : 0,
+                topDirector: directors[0][0],
+                topDirectorCount: directors[0][1].toLocaleString(),
+                totalDirectorCount: Object.keys(directors).length.toLocaleString(),
+                directorList: directorList,
+                directorCounts: directorCounts,
+                directorsWatchedCounts: sortedDirectorsWatchedCounts,
+                directorsUnwatchedCounts: sortedDirectorsUnwatchedCounts,
+                topActor: actors[0][0],
+                topActorCount: actors[0][1].toLocaleString(),
+                totalActorCount: Object.keys(actors).length.toLocaleString(),
+                actorList: actorList,
+                actorCounts: actorCounts,
+                actorsWatchedCounts: actorsWatchedCounts,
+                actorsUnwatchedCounts: sortedActorsUnwatchedCounts,
                 type: type,
                 increment: type === 'movie'? 'movie' : 'show',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
@@ -731,6 +787,10 @@ const parseMediaPayload = (data) => {
                 newContainerLimit: newContainerLimit,
                 decadeLimit: decadeLimit,
                 newDecadeLimit: newDecadeLimit,
+                directorLimit: directorLimit,
+                newDirectorLimit: newDirectorLimit,
+                actorLimit: actorLimit,
+                newActorLimit: newActorLimit,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
                 firstAdded : firstAdded,
@@ -773,6 +833,8 @@ const app = new Vue({
         genreToggle: "pie",
         countryToggle: "pie",
         studioToggle: "pie",
+        directorToggle: "pie",
+        actorToggle: "pie",
         decadeToggle: "pie"
     },
     mounted: function () {
@@ -882,8 +944,8 @@ const app = new Vue({
             this.renderContainerChart('bar');
             this.renderDecadeChart('bar');
             this.renderStudioChart('bar');
-            this.renderDirectorChart();
-            this.renderActorChart();
+            this.renderDirectorChart('bar');
+            this.renderActorChart('bar');
         },
         renderGenreChart: function (type) {
             if (type == 'bar') {
@@ -939,11 +1001,23 @@ const app = new Vue({
                 console.error('Invalid chart type');
             }
         },
-        renderDirectorChart: function () {
-            app.renderPieChart('.items-by-director', sortedDirectors);
+        renderDirectorChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-director', app.selectedLibraryStats.directorsUnwatchedCounts.slice(0, app.selectedLibraryStats.directorLimit + 1), app.selectedLibraryStats.directorList.slice(0, app.selectedLibraryStats.directorLimit + 1), true, app.selectedLibraryStats.directorsWatchedCounts.slice(0, app.selectedLibraryStats.directorLimit + 1));
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-director', app.selectedLibraryStats.directorCounts.slice(0, app.selectedLibraryStats.directorLimit + 1), app.selectedLibraryStats.directorList.slice(0, app.selectedLibraryStats.directorLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
         },
-        renderActorChart: function () {
-            app.renderPieChart('.items-by-actor', sortedActors);
+        renderActorChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-actor', app.selectedLibraryStats.actorsUnwatchedCounts.slice(0, app.selectedLibraryStats.actorLimit + 1), app.selectedLibraryStats.actorList.slice(0, app.selectedLibraryStats.actorLimit), true, app.selectedLibraryStats.actorsWatchedCounts.slice(0, app.selectedLibraryStats.actorLimit + 1));
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-actor', app.selectedLibraryStats.actorCounts.slice(0, app.selectedLibraryStats.actorLimit + 1), app.selectedLibraryStats.actorList.slice(0, app.selectedLibraryStats.actorLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
         },
         renderWatchedGauge: function () {
             c3.generate({
@@ -1001,10 +1075,10 @@ const app = new Vue({
                     app[`${limitType}Toggle`] == 'bar' ? app.renderDecadeChart('pie') : app.renderDecadeChart('bar');
                     break;
                 case 'director':
-                    app.renderDirectorChart();
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderDirectorChart('pie') : app.renderDirectorChart('bar');
                     break;
                 case 'actor':
-                    app.renderActorChart();
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderActorChart('pie') : app.renderActorChart('bar');
                     break;
                 default:
                     console.error('Invalid limit type');
