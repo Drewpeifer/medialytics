@@ -207,6 +207,26 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
                             <div class="row">
+                                <p><strong>Total Decades:</strong> {{ selectedLibraryStats.totalDecadeCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="decadeToggle"
+                                        v-on:click="renderDecadeChart(decadeToggle)"
+                                        v-model="decadeToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="decadeToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="decadeLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="decadeLimit"
+                                        v-model="newDecadeLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('decade', newDecadeLimit)">Update</button>
+                                </div>
                                 <p><strong>Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
                             </div>
                             <div class="row">

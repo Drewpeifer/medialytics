@@ -96,7 +96,9 @@ newStudioLimit = studioLimit,
 directorLimit = 20,
 newDirectorLimit = directorLimit,
 actorLimit = 20,
-newActorLimit = actorLimit;
+newActorLimit = actorLimit,
+decadeLimit = 20,
+newDecadeLimit = decadeLimit;
 
 /////////////////////////////////
 // reset library stats
@@ -144,6 +146,7 @@ const resetLibraryStats = () => {
     decadesWatchedList = [],
     decadesWatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     decadesUnwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    decadeToggle = "",
     directorInstances = [],
     sortedDirectors = [],
     actorInstances = [],
@@ -603,9 +606,13 @@ const parseMediaPayload = (data) => {
             decadesUnwatchedCounts = decadesUnwatchedCounts.map((count, index) => {
                 return Math.abs(count - decadesWatchedCounts[index]);
             });
-            releaseDateCounts.unshift("releaseDateCounts");
-            decadesWatchedCounts.unshift("Watched");
-            decadesUnwatchedCounts.unshift("Unwatched");
+            // reversing everything here makes the most recent decade appear first (left) in the chart,
+            // which makes changing the chart limit a lot easier to manage
+            // (sorting by highest count seems more confusing than chronologically in this case)
+            decades.reverse();
+            releaseDateCounts.reverse().unshift("releaseDateCounts");
+            decadesWatchedCounts.reverse().unshift("Watched");
+            decadesUnwatchedCounts.reverse().unshift("Unwatched");
 
             ////////////////////////
             // items by director chart
@@ -691,6 +698,7 @@ const parseMediaPayload = (data) => {
                 topContainerCount: sortedContainers.length > 1 ? containerCounts[1].toLocaleString() : "",
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
+                releaseDateCounts: releaseDateCounts,
                 oldestTitle: oldestTitle,
                 decadesWatchedCounts : decadesWatchedCounts,
                 decadesUnwatchedCounts : decadesUnwatchedCounts,
@@ -721,6 +729,8 @@ const parseMediaPayload = (data) => {
                 newResolutionLimit: newResolutionLimit,
                 containerLimit: containerLimit,
                 newContainerLimit: newContainerLimit,
+                decadeLimit: decadeLimit,
+                newDecadeLimit: newDecadeLimit,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
                 firstAdded : firstAdded,
@@ -762,7 +772,8 @@ const app = new Vue({
         containerToggle: "pie",
         genreToggle: "pie",
         countryToggle: "pie",
-        studioToggle: "pie"
+        studioToggle: "pie",
+        decadeToggle: "pie"
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -912,9 +923,9 @@ const app = new Vue({
         },
         renderDecadeChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-decade', app.selectedLibraryStats.decadesUnwatchedCounts, decades, false, app.selectedLibraryStats.decadesWatchedCounts);
+                app.renderBarChart('.items-by-decade', app.selectedLibraryStats.decadesUnwatchedCounts.slice((app), app.selectedLibraryStats.decadeLimit + 1), decades.slice(0, app.selectedLibraryStats.decadeLimit), false, app.selectedLibraryStats.decadesWatchedCounts.slice(0, app.selectedLibraryStats.decadeLimit + 1));
             } else if (type == 'pie') {
-                app.renderPieChart('.items-by-decade', app.selectedLibraryStats.releaseDateCounts, decades);
+                app.renderPieChart('.items-by-decade', app.selectedLibraryStats.releaseDateCounts.slice(0, app.selectedLibraryStats.decadeLimit + 1), decades.slice(0, app.selectedLibraryStats.decadeLimit));
             } else {
                 console.error('Invalid chart type');
             }
@@ -985,6 +996,9 @@ const app = new Vue({
                     break;
                 case 'container':
                     app[`${limitType}Toggle`] == 'bar' ? app.renderContainerChart('pie') : app.renderContainerChart('bar');
+                    break;
+                case 'decade':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderDecadeChart('pie') : app.renderDecadeChart('bar');
                     break;
                 case 'director':
                     app.renderDirectorChart();
