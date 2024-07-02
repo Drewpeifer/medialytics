@@ -154,7 +154,7 @@ h3 {
 }
 .chart svg {
     position: relative;
-    left: -1%;/* QAD temp fix for eggregious left-padding d3 adds to SVG */
+    left: -20px;/* QAD temp fix for eggregious left-padding d3 adds to SVG */
 }
 .c3-axis-x path,
 .c3-axis-x line,
@@ -225,9 +225,7 @@ h3 {
 
 /* capitalization for resolution chart */
 .items-by-resolution .c3-axis-x .tick text,
-.items-by-container .c3-axis-x .tick text {
-    text-transform: uppercase;
-}
+.items-by-container .c3-axis-x .tick text,
 .items-by-resolution .c3-tooltip tr:first-child,
 .items-by-container .c3-tooltip tr:first-child {
     text-transform: uppercase;
