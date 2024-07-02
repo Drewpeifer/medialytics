@@ -278,8 +278,28 @@
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
-                            <div class="row">
-                                <p v-if="selectedLibraryStats.increment === 'movie'"><strong>Top Director:</strong> {{ selectedLibraryStats.topDirector }} ({{ selectedLibraryStats.topDirectorCount }})</p>
+                            <div v-if="selectedLibraryStats.increment === 'movie'" class="row">
+                                <p><strong>Total Directors:</strong> {{ selectedLibraryStats.totalDirectorCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="directorToggle"
+                                        v-on:click="renderDirectorChart(directorToggle)"
+                                        v-model="directorToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="directorToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="directorLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="directorLimit"
+                                        v-model="newDirectorLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('director', newDirectorLimit)">Update</button>
+                                </div>
+                                <p><strong>Top Director:</strong> {{ selectedLibraryStats.topDirector }} ({{ selectedLibraryStats.topDirectorCount }})</p>
                             </div>
                             <div class="row">
                                 <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
@@ -297,6 +317,26 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
                             <div class="row">
+                                <p><strong>Total Actors:</strong> {{ selectedLibraryStats.totalActorCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="actorToggle"
+                                        v-on:click="renderActorChart(actorToggle)"
+                                        v-model="actorToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="actorToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="actorLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="actorLimit"
+                                        v-model="newActorLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('actor', newActorLimit)">Update</button>
+                                </div>
                                 <p><strong>Top Actor:</strong> {{ selectedLibraryStats.topActor }} ({{ selectedLibraryStats.topActorCount }})</p>
                             </div>
                             <div class="row">
