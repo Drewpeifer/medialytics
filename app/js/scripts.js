@@ -359,18 +359,18 @@ const parseMediaPayload = (data) => {
         // track actors
         if (item.Role) {
             // loop through each role
-            for (let i = 0; i < item.Role.length; i++) {
-                if (actors.hasOwnProperty(item.Role[i].tag)) {
+            item.Role.forEach((role, i) => {
+                if (actors.hasOwnProperty(role.tag)) {
                     // if actor exists in the dictionary already,
                     // find the actor and increment the count
-                    actors[item.Role[i].tag]++;
+                    actors[role.tag]++;
                     // track the watched count for that actor
-                    item.lastViewedAt ? actorsWatched[item.Role[i].tag]++ : actorsWatched[item.Role[i].tag];
+                    item.lastViewedAt ? actorsWatched[role.tag]++ : actorsWatched[role.tag];
                 } else {
-                    actors[item.Role[i].tag] = 1;
-                    item.lastViewedAt ? actorsWatched[item.Role[i].tag] = 1 : actorsWatched[item.Role[i].tag] = 0;
+                    actors[role.tag] = 1;
+                    item.lastViewedAt ? actorsWatched[role.tag] = 1 : actorsWatched[role.tag] = 0;
                 }
-            }
+            });
         }
 
         /////////////////////////////////
@@ -422,36 +422,35 @@ const parseMediaPayload = (data) => {
             // track directors
             if (item.Director) {
                 // loop through each director
-                for (let i = 0; i < item.Director.length; i++) {
-                    if (directors.hasOwnProperty(item.Director[i].tag)) {
+                item.Director.forEach((director, i) => {
+                    if (directors.hasOwnProperty(director.tag)) {
                         // if director exists in the dictionary already,
                         // find the director and increment the count
-                        directors[item.Director[i].tag]++;
+                        directors[director.tag]++;
                         // track the watched count for that director
-                        item.lastViewedAt ? directorsWatched[item.Director[i].tag]++ : directorsWatched[item.Director[i].tag];
+                        item.lastViewedAt ? directorsWatched[director.tag]++ : directorsWatched[director.tag];
                     } else {
-                        directors[item.Director[i].tag] = 1;
-                        item.lastViewedAt ? directorsWatched[item.Director[i].tag] = 1 : directorsWatched[item.Director[i].tag] = 0;
+                        directors[director.tag] = 1;
+                        item.lastViewedAt ? directorsWatched[director.tag] = 1 : directorsWatched[director.tag] = 0;
                     }
-                }
+                });
             }
             /////////////////////////////////
             // track writers
             if (item.Writer) {
-
                 // loop through each writer
-                for (let i = 0; i < item.Writer.length; i++) {
-                    if (writers.hasOwnProperty(item.Writer[i].tag)) {
+                item.Writer.forEach((writer, i) => {
+                    if (writers.hasOwnProperty(writer.tag)) {
                         // if writer exists in the dictionary already,
                         // find the writer and increment the count
-                        writers[item.Writer[i].tag]++;
+                        writers[writer.tag]++;
                         // track the watched count for that writer
-                        item.lastViewedAt ? writersWatched[item.Writer[i].tag]++ : writersWatched[item.Writer[i].tag];
+                        item.lastViewedAt ? writersWatched[writer.tag]++ : writersWatched[writer.tag];
                     } else {
-                        writers[item.Writer[i].tag] = 1;
-                        item.lastViewedAt ? writersWatched[item.Writer[i].tag] = 1 : writersWatched[item.Writer[i].tag] = 0;
+                        writers[writer.tag] = 1;
+                        item.lastViewedAt ? writersWatched[writer.tag] = 1 : writersWatched[writer.tag] = 0;
                     }
-                }
+                });
             }
         } else if (type === 'show') {
             /////////////////////////////////
