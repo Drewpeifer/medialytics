@@ -126,7 +126,7 @@
                 </div>
                 <!-- items by genre chart -->
                 <div class="row">
-                    <div class="card full">
+                    <div class="card half">
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div v-else class="header">
                             <p>{{ selectedLibraryStats.increment }}s per Genre (Top {{ selectedLibraryStats.genreLimit }})</p>
@@ -160,10 +160,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
                     <!-- items by country chart -->
-                    <div class="card full">
+                    <div class="card half">
                         <div class="header">
                             <p>{{ selectedLibraryStats.increment }}s per Country (Top {{ selectedLibraryStats.countryLimit }})</p>
                         </div>
