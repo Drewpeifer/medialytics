@@ -241,13 +241,12 @@ const parseMediaPayload = (data) => {
     let itemCount = data.data.MediaContainer.size,
     type = data.data.MediaContainer.viewGroup;
 
-    // loop through items and gather important data
     data.data.MediaContainer.Metadata.forEach((item, index) => {
-        // track year
-        if (typeof item.year === 'number' || !isNaN(item.year)) {
-            releaseDateList.push(item.year);
-        }
+        /////////////////////////////////
+        // start with the data that is library-type agnostic
+        /////////////////////////////////
 
+        /////////////////////////////////
         // track unmatched items
         if (item.guid.includes('local')) {
             if (debugMode) {
@@ -256,7 +255,7 @@ const parseMediaPayload = (data) => {
             }
             unmatchedItems.push(item.title);
         }
-
+        /////////////////////////////////
         // track overall / total watched count, take any actions
         // for watched items that don't require extra parsing
         if (item.lastViewedAt) {
@@ -265,12 +264,18 @@ const parseMediaPayload = (data) => {
                 decadesWatchedList.push(item.year);
             }
         }
-
+        /////////////////////////////////
+        // track year
+        if (typeof item.year === 'number' || !isNaN(item.year)) {
+            releaseDateList.push(item.year);
+        }
+        /////////////////////////////////
         // track oldest release date
         if (oldestTitle == "" || new Date(item.originallyAvailableAt) < new Date(oldestReleaseDate)) {
             oldestTitle = item.title + ' (' + new Date(item.originallyAvailableAt).toLocaleDateString().replace(/\//g,'-') + ')';
             oldestReleaseDate = item.originallyAvailableAt;
         }
+        /////////////////////////////////
         // track dateAdded (date added to file system)
         if (item.addedAt) {
             // convert unix timestamp to date and parse for values to concatenate and push
@@ -286,10 +291,8 @@ const parseMediaPayload = (data) => {
                 lastAdded = item.title;
                 lastAddedDate = itemDate;
             }
-        } else {
-            // no dateAdded
         }
-
+        /////////////////////////////////
         // track studio
         if (item.studio) {
             if (studios.hasOwnProperty(item.studio)) {
@@ -302,36 +305,8 @@ const parseMediaPayload = (data) => {
                 studios[item.studio] = 1;
                 item.lastViewedAt ? studiosWatched[item.studio] = 1 : studiosWatched[item.studio] = 0;
             }
-        } else {
-            // no studios
         }
-        // track durations
-        if (isNaN(item.duration)) {
-            // duration is NaN
-        } else if (type === 'show') {
-            // track seasons
-            seasonSum = seasonSum + item.childCount;
-            // multiply the avg episode length by the number of episodes to approximate total duration
-            durationSum = durationSum + (item.duration/60000 * item.leafCount);
-            // track number of episodes
-            episodeSum = episodeSum + parseInt(item.leafCount);
-        } else {
-            // it's a movie
-            durationSum = durationSum + (item.duration/60000);
-        }
-        // track longest duration (runtime for movie, number of episodes for tv)
-        if (item.type === 'movie') {
-            if (longestDuration === 0 || item.duration > longestDuration) {
-                longestDuration = item.duration;
-                longestTitle = item.title;
-            }
-        } else {
-            // it's a tv show
-            if (longestDuration === 0 || item.leafCount > longestDuration) {
-                longestDuration = item.leafCount;
-                longestTitle = item.title;
-            }
-        }
+        /////////////////////////////////
         // track genres
         if (item.Genre) {
             item.Genre.forEach((genre) => {
@@ -346,47 +321,11 @@ const parseMediaPayload = (data) => {
                     item.lastViewedAt ? genresWatched[genre.tag] = 1 : genresWatched[genre.tag] = 0;
                 }
             });
-        } else {
-            // no genres
         }
-
-        // track resolutions and containers
-        if (item.Media) {
-            item.Media.forEach((media) => {
-                if (media.videoResolution) {
-                    if (resolutions.hasOwnProperty(media.videoResolution)) {
-                        // if resolution exists in the dictionary already,
-                        // find the resolution and increment the count
-                        resolutions[media.videoResolution]++;
-                        // track the watched count for that resolution
-                        item.lastViewedAt ? resolutionsWatched[media.videoResolution]++ : resolutionsWatched[media.videoResolution];
-                    } else {
-                        resolutions[media.videoResolution] = 1;
-                        item.lastViewedAt ? resolutionsWatched[media.videoResolution] = 1 : resolutionsWatched[media.videoResolution] = 0;
-                    }
-                } else {
-                    // no resolution
-                }
-                if (media.container) {
-                    if (containers.hasOwnProperty(media.container)) {
-                        // if container exists in the dictionary already,
-                        // find the container and increment the count
-                        containers[media.container]++;
-                        // track the watched count for that container
-                        item.lastViewedAt ? containersWatched[media.container]++ : containersWatched[media.container];
-                    } else {
-                        containers[media.container] = 1;
-                        item.lastViewedAt ? containersWatched[media.container] = 1 : containersWatched[media.container] = 0;
-                    }
-                }
-            });
-        } else {
-            // no media
-        }
-
+        /////////////////////////////////
         // track countries
         if (item.Country) {
-            // check if a country exists for movie
+            // check if a country exists for item
             item.Country.forEach((country) => {
                 if (countries.hasOwnProperty(country.tag)) {
                     // if country exists in the dictionary already,
@@ -399,26 +338,8 @@ const parseMediaPayload = (data) => {
                     item.lastViewedAt ? countriesWatched[country.tag] = 1 : countriesWatched[country.tag] = 0;
                 }
             });
-        } else {
-            // no countries
         }
-
-        // track directors
-        if (item.Director) {
-            if (directors.hasOwnProperty(item.Director[0].tag)) {
-                // if director exists in the dictionary already,
-                // find the director and increment the count
-                directors[item.Director[0].tag]++;
-                // track the watched count for that director
-                item.lastViewedAt ? directorsWatched[item.Director[0].tag]++ : directorsWatched[item.Director[0].tag];
-            } else {
-                directors[item.Director[0].tag] = 1;
-                item.lastViewedAt ? directorsWatched[item.Director[0].tag] = 1 : directorsWatched[item.Director[0].tag] = 0;
-            }
-        } else {
-            // no directors
-        }
-
+        /////////////////////////////////
         // track actors
         if (item.Role) {
             if (actors.hasOwnProperty(item.Role[0].tag)) {
@@ -431,8 +352,83 @@ const parseMediaPayload = (data) => {
                 actors[item.Role[0].tag] = 1;
                 item.lastViewedAt ? actorsWatched[item.Role[0].tag] = 1 : actorsWatched[item.Role[0].tag] = 0;
             }
-        } else {
-            // no actors
+        }
+
+        /////////////////////////////////
+        // begin aggregating library-type-specific data
+        /////////////////////////////////
+
+        if (type === 'movie') {
+            /////////////////////////////////
+            // track duration of this item
+            if (!isNaN(item.duration)) {
+                durationSum = durationSum + (item.duration/60000);
+                // track longest duration for a movie in the library (runtime for movie, number of episodes for tv)
+                if (longestDuration === 0 || item.duration > longestDuration) {
+                    longestDuration = item.duration;
+                    longestTitle = item.title;
+                }
+            }
+            /////////////////////////////////
+            // track resolutions and containers
+            if (item.Media) {
+                item.Media.forEach((media) => {
+                    if (media.videoResolution) {
+                        if (resolutions.hasOwnProperty(media.videoResolution)) {
+                            // if resolution exists in the dictionary already,
+                            // find the resolution and increment the count
+                            resolutions[media.videoResolution]++;
+                            // track the watched count for that resolution
+                            item.lastViewedAt ? resolutionsWatched[media.videoResolution]++ : resolutionsWatched[media.videoResolution];
+                        } else {
+                            resolutions[media.videoResolution] = 1;
+                            item.lastViewedAt ? resolutionsWatched[media.videoResolution] = 1 : resolutionsWatched[media.videoResolution] = 0;
+                        }
+                    }
+                    if (media.container) {
+                        if (containers.hasOwnProperty(media.container)) {
+                            // if container exists in the dictionary already,
+                            // find the container and increment the count
+                            containers[media.container]++;
+                            // track the watched count for that container
+                            item.lastViewedAt ? containersWatched[media.container]++ : containersWatched[media.container];
+                        } else {
+                            containers[media.container] = 1;
+                            item.lastViewedAt ? containersWatched[media.container] = 1 : containersWatched[media.container] = 0;
+                        }
+                    }
+                });
+            }
+            /////////////////////////////////
+            // track directors
+            if (item.Director) {
+                if (directors.hasOwnProperty(item.Director[0].tag)) {
+                    // if director exists in the dictionary already,
+                    // find the director and increment the count
+                    directors[item.Director[0].tag]++;
+                    // track the watched count for that director
+                    item.lastViewedAt ? directorsWatched[item.Director[0].tag]++ : directorsWatched[item.Director[0].tag];
+                } else {
+                    directors[item.Director[0].tag] = 1;
+                    item.lastViewedAt ? directorsWatched[item.Director[0].tag] = 1 : directorsWatched[item.Director[0].tag] = 0;
+                }
+            }
+        } else if (type === 'show') {
+            /////////////////////////////////
+            // track overall library season and episode counts
+            seasonSum = seasonSum + item.childCount;
+            episodeSum = episodeSum + parseInt(item.leafCount);
+            /////////////////////////////////
+            // approximate duration for this particular item
+            if (!isNaN(item.duration)) {
+                // multiply the avg episode length by the number of episodes to approximate total duration
+                durationSum = durationSum + (item.duration/60000 * item.leafCount);
+                // track longest duration for a show in the library (runtime for movie, number of episodes for tv)
+                if (longestDuration === 0 || item.leafCount > longestDuration) {
+                    longestDuration = item.leafCount;
+                    longestTitle = item.title;
+                }
+            }
         }
 
         //////////////////////////
