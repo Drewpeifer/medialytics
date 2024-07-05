@@ -271,7 +271,7 @@ const parseMediaPayload = (data) => {
             oldestTitle = item.title + ' (' + new Date(item.originallyAvailableAt).toLocaleDateString().replace(/\//g,'-') + ')';
             oldestReleaseDate = item.originallyAvailableAt;
         }
-        // track dateAdded (date added to server)
+        // track dateAdded (date added to file system)
         if (item.addedAt) {
             // convert unix timestamp to date and parse for values to concatenate and push
             let itemDate = new Date(item.addedAt * 1000);
