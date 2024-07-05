@@ -11,7 +11,7 @@ recentlyAddedUrl = serverIp + '/library/recentlyAdded?X-Plex-Container-Start=0&X
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
 // be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
 decadePrefixes = ["191", "192", "193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
-decades = ["1910s", "1920s", "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],// used for UI/chart display
+decades = ["2020s", "2010s", "2000s", "1990s", "1980s", "1970s", "1960s", "1950s", "1940s", "1930s", "1920s", "1910s"],// used for UI/chart display
 debugMode = false;// set to true to enable console logging
 
 let availableLibraries = [],// the list of libraries returned by your server
@@ -678,7 +678,6 @@ const parseMediaPayload = (data) => {
             // reversing everything here makes the most recent decade appear first (left) in the chart,
             // which makes changing the chart limit a lot easier to manage
             // (sorting by highest count seems more confusing than chronologically in this case)
-            decades.reverse();
             releaseDateCounts.reverse().unshift("releaseDateCounts");
             decadesWatchedCounts.reverse().unshift("Watched");
             decadesUnwatchedCounts.reverse().unshift("Unwatched");
@@ -839,9 +838,9 @@ const parseMediaPayload = (data) => {
                 actorCounts: actorCounts,
                 actorsWatchedCounts: actorsWatchedCounts,
                 actorsUnwatchedCounts: sortedActorsUnwatchedCounts,
-                topWriter: writers[0][0],
-                topWriterCount: writers[0][1].toLocaleString(),
-                totalWriterCount: Object.keys(writers).length.toLocaleString(),
+                topWriter: Object.keys(writers).length > 0 ? writers[0][0] : "",
+                topWriterCount: Object.keys(writers).length > 0 ? writers[0][1].toLocaleString() : 0,
+                totalWriterCount: Object.keys(writers).length > 0 ? Object.keys(writers).length.toLocaleString() : 0,
                 writerList: writerList,
                 writerCounts: writerCounts,
                 writersWatchedCounts: sortedWritersWatchedCounts,
