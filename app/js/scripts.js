@@ -79,6 +79,13 @@ actorCounts = [],
 actorsWatched = {},
 actorsWatchedCounts = [],
 actorsUnwatchedCounts = [],
+// writers
+writers = {},
+writerList = [],
+writerCounts = [],
+writersWatched = {},
+writersWatchedCounts = [],
+writersUnwatchedCounts = [],
 // durations, library size, and unmatched items
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
@@ -107,7 +114,9 @@ newDirectorLimit = directorLimit,
 actorLimit = 20,
 newActorLimit = actorLimit,
 decadeLimit = 20,
-newDecadeLimit = decadeLimit;
+newDecadeLimit = decadeLimit
+writerLimit = 20,
+newWriterLimit = writerLimit;
 
 /////////////////////////////////
 // reset library stats
@@ -170,6 +179,13 @@ const resetLibraryStats = () => {
     actorsWatchedCounts = [],
     actorsUnwatchedCounts = [],
     actorToggle = "",
+    writers = {},
+    writerList = [],
+    writerCounts = [],
+    writersWatched = {},
+    writersWatchedCounts = [],
+    writersUnwatchedCounts = [],
+    writerToggle = "",
     durationSum = 0,
     seasonSum = 0,
     episodeCounts = [],
@@ -342,15 +358,18 @@ const parseMediaPayload = (data) => {
         /////////////////////////////////
         // track actors
         if (item.Role) {
-            if (actors.hasOwnProperty(item.Role[0].tag)) {
-                // if actor exists in the dictionary already,
-                // find the actor and increment the count
-                actors[item.Role[0].tag]++;
-                // track the watched count for that actor
-                item.lastViewedAt ? actorsWatched[item.Role[0].tag]++ : actorsWatched[item.Role[0].tag];
-            } else {
-                actors[item.Role[0].tag] = 1;
-                item.lastViewedAt ? actorsWatched[item.Role[0].tag] = 1 : actorsWatched[item.Role[0].tag] = 0;
+            // loop through each role
+            for (let i = 0; i < item.Role.length; i++) {
+                if (actors.hasOwnProperty(item.Role[i].tag)) {
+                    // if actor exists in the dictionary already,
+                    // find the actor and increment the count
+                    actors[item.Role[i].tag]++;
+                    // track the watched count for that actor
+                    item.lastViewedAt ? actorsWatched[item.Role[i].tag]++ : actorsWatched[item.Role[i].tag];
+                } else {
+                    actors[item.Role[i].tag] = 1;
+                    item.lastViewedAt ? actorsWatched[item.Role[i].tag] = 1 : actorsWatched[item.Role[i].tag] = 0;
+                }
             }
         }
 
@@ -411,6 +430,24 @@ const parseMediaPayload = (data) => {
                 } else {
                     directors[item.Director[0].tag] = 1;
                     item.lastViewedAt ? directorsWatched[item.Director[0].tag] = 1 : directorsWatched[item.Director[0].tag] = 0;
+                }
+            }
+            /////////////////////////////////
+            // track writers
+            if (item.Writer) {
+
+                // loop through each writer
+                for (let i = 0; i < item.Writer.length; i++) {
+                    if (writers.hasOwnProperty(item.Writer[i].tag)) {
+                        // if writer exists in the dictionary already,
+                        // find the writer and increment the count
+                        writers[item.Writer[i].tag]++;
+                        // track the watched count for that writer
+                        item.lastViewedAt ? writersWatched[item.Writer[i].tag]++ : writersWatched[item.Writer[i].tag];
+                    } else {
+                        writers[item.Writer[i].tag] = 1;
+                        item.lastViewedAt ? writersWatched[item.Writer[i].tag] = 1 : writersWatched[item.Writer[i].tag] = 0;
+                    }
                 }
             }
         } else if (type === 'show') {
@@ -562,6 +599,7 @@ const parseMediaPayload = (data) => {
                 return genreCounts[index] - count;
             });
             sortedGenresUnwatchedCounts[0] = "Unwatched";
+
             ////////////////////////
             // items by studio chart
             let sortedStudios = [],
@@ -704,6 +742,36 @@ const parseMediaPayload = (data) => {
             });
             sortedActorsUnwatchedCounts[0] = "Unwatched";
 
+            ////////////////////////
+            // items by writer chart
+            let sortedWriters = [],
+                sortedWritersWatchedCounts = [];
+            
+            // choosing not to report on undefined entries
+            delete writers['undefined'];
+            // sort the writers object by value
+            writers = Object.entries(writers).sort((a, b) => b[1] - a[1]);
+
+            // split the sorted writer dictionary into an array of writers and an array of counts
+            for (writer in writers) {
+                writerList.push(writers[writer][0]);
+                writerCounts.push(writers[writer][1]);
+            }
+            writerCounts.unshift("writerCounts");
+
+            // for every writer in writerList, find the corresponding count in writersWatched and push it to the sortedWritersWatchedCounts array
+            writerList.forEach((writer) => {
+                sortedWritersWatchedCounts.push(writersWatched[writer]);
+            });
+            sortedWritersWatchedCounts.unshift("Watched");
+
+            // copy sortedWritersWatchedCounts to sortedWritersUnwatchedCounts and set each value to the difference between the watched and total count for that writer
+            let sortedWritersUnwatchedCounts = sortedWritersWatchedCounts.slice();
+            sortedWritersUnwatchedCounts = sortedWritersUnwatchedCounts.map((count, index) => {
+                return writerCounts[index] - count;
+            });
+            sortedWritersUnwatchedCounts[0] = "Unwatched";
+
             // reset all selectedLibraryStats
             app.selectedLibraryStats = {};
             // build the stats object for the selected library
@@ -769,6 +837,13 @@ const parseMediaPayload = (data) => {
                 actorCounts: actorCounts,
                 actorsWatchedCounts: actorsWatchedCounts,
                 actorsUnwatchedCounts: sortedActorsUnwatchedCounts,
+                topWriter: writers[0][0],
+                topWriterCount: writers[0][1].toLocaleString(),
+                totalWriterCount: Object.keys(writers).length.toLocaleString(),
+                writerList: writerList,
+                writerCounts: writerCounts,
+                writersWatchedCounts: sortedWritersWatchedCounts,
+                writersUnwatchedCounts: sortedWritersUnwatchedCounts,
                 type: type,
                 increment: type === 'movie'? 'movie' : 'show',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
@@ -790,6 +865,8 @@ const parseMediaPayload = (data) => {
                 newDirectorLimit: newDirectorLimit,
                 actorLimit: actorLimit,
                 newActorLimit: newActorLimit,
+                writerLimit: writerLimit,
+                newWriterLimit: newWriterLimit,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
                 firstAdded : firstAdded,
@@ -835,7 +912,8 @@ const app = new Vue({
         studioToggle: "pie",
         directorToggle: "pie",
         actorToggle: "pie",
-        decadeToggle: "pie"
+        decadeToggle: "pie",
+        writerToggle: "pie",
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -946,6 +1024,7 @@ const app = new Vue({
             this.renderStudioChart('bar');
             this.renderDirectorChart('bar');
             this.renderActorChart('bar');
+            this.renderWriterChart('bar');
         },
         renderGenreChart: function (type) {
             if (type == 'bar') {
@@ -1019,6 +1098,15 @@ const app = new Vue({
                 console.error('Invalid chart type');
             }
         },
+        renderWriterChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-writer', app.selectedLibraryStats.writersUnwatchedCounts.slice(0, app.selectedLibraryStats.writerLimit + 1), app.selectedLibraryStats.writerList.slice(0, app.selectedLibraryStats.writerLimit), true, app.selectedLibraryStats.writersWatchedCounts.slice(0, app.selectedLibraryStats.writerLimit + 1));
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-writer', app.selectedLibraryStats.writerCounts.slice(0, app.selectedLibraryStats.writerLimit + 1), app.selectedLibraryStats.writerList.slice(0, app.selectedLibraryStats.writerLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
         renderWatchedGauge: function () {
             c3.generate({
                 bindto: '.watched-gauge',
@@ -1079,6 +1167,9 @@ const app = new Vue({
                     break;
                 case 'actor':
                     app[`${limitType}Toggle`] == 'bar' ? app.renderActorChart('pie') : app.renderActorChart('bar');
+                    break;
+                case 'writer':
+                    app[`${limitType}Toggle`] == 'bar' ? app.renderWriterChart('pie') : app.renderWriterChart('bar');
                     break;
                 default:
                     console.error('Invalid limit type');
