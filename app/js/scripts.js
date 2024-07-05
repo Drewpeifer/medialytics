@@ -421,15 +421,18 @@ const parseMediaPayload = (data) => {
             /////////////////////////////////
             // track directors
             if (item.Director) {
-                if (directors.hasOwnProperty(item.Director[0].tag)) {
-                    // if director exists in the dictionary already,
-                    // find the director and increment the count
-                    directors[item.Director[0].tag]++;
-                    // track the watched count for that director
-                    item.lastViewedAt ? directorsWatched[item.Director[0].tag]++ : directorsWatched[item.Director[0].tag];
-                } else {
-                    directors[item.Director[0].tag] = 1;
-                    item.lastViewedAt ? directorsWatched[item.Director[0].tag] = 1 : directorsWatched[item.Director[0].tag] = 0;
+                // loop through each director
+                for (let i = 0; i < item.Director.length; i++) {
+                    if (directors.hasOwnProperty(item.Director[i].tag)) {
+                        // if director exists in the dictionary already,
+                        // find the director and increment the count
+                        directors[item.Director[i].tag]++;
+                        // track the watched count for that director
+                        item.lastViewedAt ? directorsWatched[item.Director[i].tag]++ : directorsWatched[item.Director[i].tag];
+                    } else {
+                        directors[item.Director[i].tag] = 1;
+                        item.lastViewedAt ? directorsWatched[item.Director[i].tag] = 1 : directorsWatched[item.Director[i].tag] = 0;
+                    }
                 }
             }
             /////////////////////////////////
