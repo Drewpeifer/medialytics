@@ -745,8 +745,7 @@ const parseMediaPayload = (data) => {
 
             ////////////////////////
             // items by writer chart
-            let sortedWriters = [],
-                sortedWritersWatchedCounts = [];
+            let sortedWritersWatchedCounts = [];
             
             // choosing not to report on undefined entries
             delete writers['undefined'];
