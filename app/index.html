@@ -276,7 +276,7 @@
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
-                            <div class="row">
+                            <div  v-if="selectedLibraryStats.increment === 'movie'" class="row">
                                 <p><strong>Total Writers:</strong> {{ selectedLibraryStats.totalWriterCount }}</p>
                                 <div class="chart-toggle">
                                     <input type="checkbox"
@@ -300,7 +300,10 @@
                                 <p><strong>Top Writer:</strong> {{ selectedLibraryStats.topWriter }} ({{ selectedLibraryStats.topWriterCount }})</p>
                             </div>
                             <div class="row">
-                                <div class="chart items-by-writer"></div>
+                                <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
+                                    Only available for movie libraries
+                                </div>
+                                <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-writer"></div>
                             </div>
                         </div>
                     </div>
