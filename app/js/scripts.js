@@ -845,7 +845,6 @@ const parseMediaPayload = (data) => {
                 writersWatchedCounts: sortedWritersWatchedCounts,
                 writersUnwatchedCounts: sortedWritersUnwatchedCounts,
                 type: type,
-                increment: type === 'movie'? 'movie' : 'show',
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
                 seasonSum: seasonSum,
                 episodeSum: episodeSum,

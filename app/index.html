@@ -82,7 +82,7 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content" v-if="!libraryStatsLoading">
                             <div class="row">
-                                <p v-if="selectedLibraryStats.increment === 'movie'"><strong>Total Size:</strong> {{ selectedLibraryStats.totalItems.toLocaleString() }} movies</p>
+                                <p v-if="selectedLibraryStats.type === 'movie'"><strong>Total Size:</strong> {{ selectedLibraryStats.totalItems.toLocaleString() }} movies</p>
                                 <p v-else>
                                     <strong>Total Size:</strong>
                                     {{ selectedLibraryStats.totalItems.toLocaleString() }} shows /
@@ -100,15 +100,15 @@
                                 <p><strong>Total Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
                             </div>
                             <div class="row">
-                                <p v-if="selectedLibraryStats.increment === 'movie'">
-                                    <strong>Longest {{ selectedLibraryStats.increment }}:</strong>
+                                <p v-if="selectedLibraryStats.type === 'movie'">
+                                    <strong>Longest {{ selectedLibraryStats.type }}:</strong>
                                     {{ selectedLibraryStats.longestTitle }} ({{ Math.floor(selectedLibraryStats.longestDuration / 60000) }} mins)
                                 </p>
                                 <p v-else>
-                                    <strong>Longest {{ selectedLibraryStats.increment }}:</strong>
+                                    <strong>Longest {{ selectedLibraryStats.type }}:</strong>
                                     {{ selectedLibraryStats.longestTitle }} ({{ selectedLibraryStats.longestDuration.toLocaleString() }} episodes)
                                 </p>
-                                <p><strong>Oldest {{ selectedLibraryStats.increment }}:</strong> {{ selectedLibraryStats.oldestTitle }}</p>
+                                <p><strong>Oldest {{ selectedLibraryStats.type }}:</strong> {{ selectedLibraryStats.oldestTitle }}</p>
                             </div>
                             <div class="row">
                                 <p><strong>Earliest Addition:</strong> {{ selectedLibraryStats.firstAdded }} ({{ selectedLibraryStats.firstAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
@@ -129,7 +129,7 @@
                     <div class="card half">
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div v-else class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Genre (Top {{ selectedLibraryStats.genreLimit }})</p>
+                            <p>{{ selectedLibraryStats.type }}s per Genre (Top {{ selectedLibraryStats.genreLimit }})</p>
                         </div>
                         <div class="content">
                             <div class="row">
@@ -163,7 +163,7 @@
                     <!-- items by country chart -->
                     <div class="card half">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Country (Top {{ selectedLibraryStats.countryLimit }})</p>
+                            <p>{{ selectedLibraryStats.type }}s per Country (Top {{ selectedLibraryStats.countryLimit }})</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
@@ -200,7 +200,7 @@
                     <!-- items by decade chart -->
                     <div class="card half">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Decade</p>
+                            <p>{{ selectedLibraryStats.type }}s per Decade</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
@@ -235,7 +235,7 @@
                     <!-- items by studio chart -->
                     <div class="card half">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Studio (Top {{ selectedLibraryStats.studioLimit }})</p>
+                            <p>{{ selectedLibraryStats.type }}s per Studio (Top {{ selectedLibraryStats.studioLimit }})</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
@@ -272,11 +272,11 @@
                 <!-- items by writer chart -->
                     <div class="card full">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Writer (Top {{ selectedLibraryStats.studioLimit }})</p>
+                            <p>{{ selectedLibraryStats.type }}s per Writer (Top {{ selectedLibraryStats.studioLimit }})</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
-                            <div  v-if="selectedLibraryStats.increment === 'movie'" class="row">
+                            <div  v-if="selectedLibraryStats.type === 'movie'" class="row">
                                 <p><strong>Total Writers:</strong> {{ selectedLibraryStats.totalWriterCount }}</p>
                                 <div class="chart-toggle">
                                     <input type="checkbox"
@@ -300,10 +300,10 @@
                                 <p><strong>Top Writer:</strong> {{ selectedLibraryStats.topWriter }} ({{ selectedLibraryStats.topWriterCount }})</p>
                             </div>
                             <div class="row">
-                                <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
+                                <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
                                     Only available for movie libraries
                                 </div>
-                                <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-writer"></div>
+                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-writer"></div>
                             </div>
                         </div>
                     </div>
@@ -312,7 +312,7 @@
                     <!-- items by actor chart -->
                     <div class="card half">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Actor (Top {{ selectedLibraryStats.studioLimit }})</p>
+                            <p>{{ selectedLibraryStats.type }}s per Actor (Top {{ selectedLibraryStats.studioLimit }})</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
@@ -347,11 +347,11 @@
                     <!-- items by director chart -->
                     <div class="card half">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Director (Top {{ selectedLibraryStats.studioLimit }})</p>
+                            <p>{{ selectedLibraryStats.type }}s per Director (Top {{ selectedLibraryStats.studioLimit }})</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
-                            <div v-if="selectedLibraryStats.increment === 'movie'" class="row">
+                            <div v-if="selectedLibraryStats.type === 'movie'" class="row">
                                 <p><strong>Total Directors:</strong> {{ selectedLibraryStats.totalDirectorCount }}</p>
                                 <div class="chart-toggle">
                                     <input type="checkbox"
@@ -375,10 +375,10 @@
                                 <p><strong>Top Director:</strong> {{ selectedLibraryStats.topDirector }} ({{ selectedLibraryStats.topDirectorCount }})</p>
                             </div>
                             <div class="row">
-                                <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
+                                <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
                                     Only available for movie libraries
                                 </div>
-                                <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-director"></div>
+                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-director"></div>
                             </div>
                         </div>
                     </div>
@@ -388,10 +388,10 @@
                     <div class="card half">
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div v-else class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Resolution (Top {{ selectedLibraryStats.resolutionLimit }})</p>
+                            <p>{{ selectedLibraryStats.type }}s per Resolution (Top {{ selectedLibraryStats.resolutionLimit }})</p>
                         </div>
                         <div class="content">
-                            <div v-if="selectedLibraryStats.increment === 'movie'" class="row">
+                            <div v-if="selectedLibraryStats.type === 'movie'" class="row">
                                 <p><strong>Total Resolutions:</strong> {{ selectedLibraryStats.totalResolutionCount }}</p>
                                 <div class="chart-toggle">
                                     <input type="checkbox"
@@ -415,10 +415,10 @@
                                 <p><strong>Top Resolution:</strong> {{ selectedLibraryStats.topResolution }} ({{ selectedLibraryStats.topResolutionCount }})</p>
                             </div>
                             <div class="row">
-                                <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
+                                <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
                                     Only available for movie libraries
                                 </div>
-                                <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-resolution"></div>
+                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-resolution"></div>
                             </div>
                         </div>
                     </div>
@@ -426,10 +426,10 @@
                     <div class="card half">
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div v-else class="header">
-                            <p>{{ selectedLibraryStats.increment }}s per Container (Top {{ selectedLibraryStats.containerLimit }})</p>
+                            <p>{{ selectedLibraryStats.type }}s per Container (Top {{ selectedLibraryStats.containerLimit }})</p>
                         </div>
                         <div class="content">
-                            <div v-if="selectedLibraryStats.increment === 'movie'" class="row">
+                            <div v-if="selectedLibraryStats.type === 'movie'" class="row">
                                 <p><strong>Total Containers:</strong> {{ selectedLibraryStats.totalContainerCount }}</p>
                                 <div class="chart-toggle">
                                     <input type="checkbox"
@@ -453,10 +453,10 @@
                                 <p><strong>Top Container:</strong> {{ selectedLibraryStats.topContainer }} ({{ selectedLibraryStats.topContainerCount }})</p>
                             </div>
                             <div class="row">
-                                <div :class="{hidden : selectedLibraryStats.increment == 'movie'}">
+                                <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
                                     Only available for movie libraries
                                 </div>
-                                <div :class="{hidden : selectedLibraryStats.increment != 'movie'}" class="chart items-by-container"></div>
+                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-container"></div>
                             </div>
                         </div>
                     </div>
