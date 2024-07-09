@@ -192,7 +192,7 @@ const resetLibraryStats = () => {
     writersUnwatchedCounts = [],
     writerToggle = "",
     ratingsList = [],
-    ratingsContent = [],
+    ratingsContent = ['TV-G', 'G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'PG', 'PG-13', 'TV-14', 'TV-MA', 'R', 'NC-17', 'X', 'Unrated' ],
     ratingsHighest = {},
     ratingsLowest = {},
     durationSum = 0,
@@ -992,13 +992,13 @@ const app = new Vue({
                     range: ratingsContent,
                     gridcolor: "#888",
                     showgrid: true,
-                    showline: false,
+                    categoryarray: ratingsContent,
+                    categoryorder: 'array',
                 },
                 yaxis: {
                     range: [0, 11],
                     gridcolor: "#888",
                     showgrid: true,
-                    showline: false,
                     zeroline: false,
                 },
                 font: {
@@ -1007,7 +1007,7 @@ const app = new Vue({
                 plot_bgcolor: '#222',
                 paper_bgcolor: '#222',
                 hoverlabel: {
-                    bordercolor: '#fff'
+                    bordercolor: '#fff',
                     font: {
                         color: '#fff',
                         weight: 'bold',
