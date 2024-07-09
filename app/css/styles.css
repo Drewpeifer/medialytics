@@ -90,11 +90,8 @@ h3 {
     margin: 0 10px;
     line-height: 24px;
 }
-.full {
+.full .chart {
     min-width: 98%;
-}
-.half {
-    width: 47%;
 }
 
 /* controls */
