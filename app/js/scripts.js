@@ -90,7 +90,7 @@ writersUnwatchedCounts = [],
 ratingsList = [],// list of objects that represent a movie / point on the scatter plot
 ratingsContent = [],// list of unique content ratings
 ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
-ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'TV-14', 'TV-MA'],
+ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-PG', 'TV-14', 'TV-MA'],
 ratingsHighest = {},
 ratingsLowest = {},
 // durations, library size, and unmatched items
@@ -388,6 +388,11 @@ const parseMediaPayload = (data) => {
         /////////////////////////////////
         // track ratings
         if (item.audienceRating) {
+            // already ignoring items with no audienceRating, but if the item has no contentRating, or if
+            // the contentRating is Not Rated or Unrated, set to "NR"
+            if (!item.contentRating || item.contentRating == 'Not Rated' || item.contentRating == 'Unrated') {
+                item.contentRating = 'NR';
+            }
             // create ratings object and push it to ratingsList
             ratingsObj = {
                 x: [item.contentRating],
@@ -908,8 +913,8 @@ const parseMediaPayload = (data) => {
                 writersWatchedCounts: sortedWritersWatchedCounts,
                 writersUnwatchedCounts: sortedWritersUnwatchedCounts,
                 ratingsList: ratingsList,
-                ratingsHighest: ratingsHighest.title,
-                ratingsLowest: ratingsLowest.title,
+                ratingsHighest: `${ratingsHighest.text} - ${ratingsHighest.y} / ${ratingsHighest.x}`,
+                ratingsLowest: `${ratingsLowest.text} - ${ratingsLowest.y} / ${ratingsLowest.x}`,
                 type: type,
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
                 seasonSum: seasonSum,
