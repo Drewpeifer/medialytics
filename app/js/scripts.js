@@ -251,7 +251,6 @@ const getLibraryData = async (libraryKey) => {
         app.libraryStatsLoading = false;
         return response.data.MediaContainer;
     });
-
     if (debugMode) {
         console.log('Library Data: ', libraryData);
     }
@@ -394,7 +393,7 @@ const parseMediaPayload = (data) => {
                 name: ``,
                 text: [`${item.title} (${item.year})`],
                 marker: {
-                    size: 15,
+                    size: 10,
                     color: item.lastViewedAt ? chartColors[0] : chartColors[1]
                 }
             }
@@ -644,7 +643,7 @@ const parseMediaPayload = (data) => {
             ////////////////////////
             // items by studio chart
             let sortedStudios = [],
-                sortedStudiosWatchedCounts = [];
+            sortedStudiosWatchedCounts = [];
             // choosing not to report on undefined entries
             delete studios['undefined'];
             for (studio in studios) {
@@ -785,7 +784,7 @@ const parseMediaPayload = (data) => {
             ////////////////////////
             // items by writer chart
             let sortedWritersWatchedCounts = [];
-            
+
             // choosing not to report on undefined entries
             delete writers['undefined'];
             // sort the writers object by value
@@ -981,22 +980,42 @@ const app = new Vue({
     methods: {
         renderScatterChart: function (ratingsList, ratingsContent) {
             if (debugMode) {
-                console.log('rendering ratings chart: ', ratingsList)
+                console.log('rendering ratings chart: ', ratingsList);
                 console.dir(ratingsContent);
             }
             let layout = {
+                showlegend: false,
+                margin: {
+                    pad: 10,
+                },
                 xaxis: {
-                    range: ratingsContent
+                    range: ratingsContent,
+                    gridcolor: "#888",
+                    showgrid: true,
+                    showline: false,
                 },
                 yaxis: {
-                    range: [0, 11]
+                    range: [0, 11],
+                    gridcolor: "#888",
+                    showgrid: true,
+                    showline: false,
+                    zeroline: false,
                 },
-                showlegend: false,
-                paper_bgcolor: '#222',
+                font: {
+                    color: '#fff',
+                },
                 plot_bgcolor: '#222',
+                paper_bgcolor: '#222',
+                hoverlabel: {
+                    bordercolor: '#fff'
+                    font: {
+                        color: '#fff',
+                        weight: 'bold',
+                    },
+                },
             };
 
-            Plotly.newPlot('items-by-rating', ratingsList, layout, {displayModeBar: false});
+            Plotly.newPlot('items-by-rating', ratingsList, layout);
         },
         renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = []) {
             if (debugMode) {
@@ -1212,34 +1231,34 @@ const app = new Vue({
             // render the new chart
             switch (limitType) {
                 case 'genre':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderGenreChart('pie') : app.renderGenreChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderGenreChart('pie') : app.renderGenreChart('bar');
+                break;
                 case 'country':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderCountryChart('pie') : app.renderCountryChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderCountryChart('pie') : app.renderCountryChart('bar');
+                break;
                 case 'studio':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderStudioChart('pie') : app.renderStudioChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderStudioChart('pie') : app.renderStudioChart('bar');
+                break;
                 case 'resolution':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderResolutionChart('pie') : app.renderResolutionChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderResolutionChart('pie') : app.renderResolutionChart('bar');
+                break;
                 case 'container':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderContainerChart('pie') : app.renderContainerChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderContainerChart('pie') : app.renderContainerChart('bar');
+                break;
                 case 'decade':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderDecadeChart('pie') : app.renderDecadeChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderDecadeChart('pie') : app.renderDecadeChart('bar');
+                break;
                 case 'director':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderDirectorChart('pie') : app.renderDirectorChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderDirectorChart('pie') : app.renderDirectorChart('bar');
+                break;
                 case 'actor':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderActorChart('pie') : app.renderActorChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderActorChart('pie') : app.renderActorChart('bar');
+                break;
                 case 'writer':
-                    app[`${limitType}Toggle`] == 'bar' ? app.renderWriterChart('pie') : app.renderWriterChart('bar');
-                    break;
+                app[`${limitType}Toggle`] == 'bar' ? app.renderWriterChart('pie') : app.renderWriterChart('bar');
+                break;
                 default:
-                    console.error('Invalid limit type');
+                console.error('Invalid limit type');
             }
         }
     }
