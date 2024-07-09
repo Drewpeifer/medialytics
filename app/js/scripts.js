@@ -88,7 +88,9 @@ writersWatchedCounts = [],
 writersUnwatchedCounts = [],
 // items by rating
 ratingsList = [],// list of objects that represent a movie / point on the scatter plot
-ratingsContent = ['TV-G', 'G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'PG', 'PG-13', 'TV-14', 'TV-MA', 'R', 'NC-17', 'X', 'Unrated' ],// list of all content ratings that occur with a standard list first and then uniques appended
+ratingsContent = [],// list of unique content ratings
+ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
+ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'TV-14', 'TV-MA'],
 ratingsHighest = {},
 ratingsLowest = {},
 // durations, library size, and unmatched items
@@ -192,7 +194,9 @@ const resetLibraryStats = () => {
     writersUnwatchedCounts = [],
     writerToggle = "",
     ratingsList = [],
-    ratingsContent = ['TV-G', 'G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'PG', 'PG-13', 'TV-14', 'TV-MA', 'R', 'NC-17', 'X', 'Unrated' ],
+    ratingsContent = [],
+    ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
+    ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'TV-14', 'TV-MA'],
     ratingsHighest = {},
     ratingsLowest = {},
     durationSum = 0,
@@ -394,11 +398,12 @@ const parseMediaPayload = (data) => {
                 text: [`${item.title} (${item.year})`],
                 marker: {
                     size: 10,
-                    color: item.lastViewedAt ? chartColors[0] : chartColors[1]
+                    color: item.lastViewedAt ? chartColors[0] : chartColors[1],
+                    opacity: Math.random() * (.7) + .3
                 }
             }
             ratingsList.push(ratingsObj);
-            // if ratingsContent list doesn't contain contentRating, push it
+            // if content rating list doesn't contain contentRating, push it to list
             if (item.contentRating && !ratingsContent.includes(item.contentRating)) {
                 ratingsContent.push(item.contentRating);
             }
@@ -812,8 +817,23 @@ const parseMediaPayload = (data) => {
 
             ////////////////////////
             // items by rating chart
-            console.log('ratingsList:');
-            console.dir(ratingsList);
+            // ratingsContent is an array of all unique content ratings for this library in random order, but we
+            // want them to be in a specific order, so we merge them with the curated lists of ratings for movies and tv
+            // with the unqiue values appended to the end
+            if (type === 'movie') {
+                // for each item in ratingsContent, push it to ratingsMovies if it does not already exist
+                ratingsContent.forEach((rating) => {
+                    if (!ratingsMovies.includes(rating)) {
+                        ratingsMovies.push(rating);
+                    }
+                });
+            } else if (type === 'show') {
+                ratingsContent.forEach((rating) => {
+                    if (!ratingsTV.includes(rating)) {
+                        ratingsTV.push(rating);
+                    }
+                });
+            }
 
             // reset all selectedLibraryStats
             app.selectedLibraryStats = {};
@@ -978,21 +998,21 @@ const app = new Vue({
         });
     },
     methods: {
-        renderScatterChart: function (ratingsList, ratingsContent) {
+        renderScatterChart: function (type, ratingsList) {
             if (debugMode) {
                 console.log('rendering ratings chart: ', ratingsList);
-                console.dir(ratingsContent);
             }
-            let layout = {
+            let ratingsSuperset = type === 'movie' ? ratingsMovies : ratingsTV,
+                layout = {
                 showlegend: false,
                 margin: {
                     pad: 10,
                 },
                 xaxis: {
-                    range: ratingsContent,
+                    range: ratingsSuperset,
                     gridcolor: "#888",
                     showgrid: true,
-                    categoryarray: ratingsContent,
+                    categoryarray: ratingsSuperset,
                     categoryorder: 'array',
                 },
                 yaxis: {
@@ -1013,9 +1033,16 @@ const app = new Vue({
                         weight: 'bold',
                     },
                 },
+                hoverdistance: 1,
+                scattermode: 'group',
+                scattergap: .7
+            };
+            let config = {
+                displaylogo: false,
+                modeBarButtonsToRemove: ['lasso2d', 'toImage'],
             };
 
-            Plotly.newPlot('items-by-rating', ratingsList, layout);
+            Plotly.newPlot('items-by-rating', ratingsList, layout, config);
         },
         renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = []) {
             if (debugMode) {
@@ -1099,7 +1126,7 @@ const app = new Vue({
                 }
             });
         },
-        renderDefaultCharts: function () {
+        renderDefaultCharts: function (type) {
             // render charts
             this.renderGenreChart('bar');
             this.renderCountryChart('bar');
@@ -1110,7 +1137,7 @@ const app = new Vue({
             this.renderDirectorChart('bar');
             this.renderActorChart('bar');
             this.renderWriterChart('bar');
-            this.renderScatterChart(ratingsList, ratingsContent);
+            this.renderScatterChart(type, ratingsList);
         },
         renderGenreChart: function (type) {
             if (type == 'bar') {
