@@ -86,6 +86,11 @@ writerCounts = [],
 writersWatched = {},
 writersWatchedCounts = [],
 writersUnwatchedCounts = [],
+// items by rating
+ratingsList = [],// list of objects that represent a movie / point on the scatter plot
+ratingsContent = ['TV-G', 'G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'PG', 'PG-13', 'TV-14', 'TV-MA', 'R', 'NC-17', 'X', 'Unrated' ],// list of all content ratings that occur with a standard list first and then uniques appended
+ratingsHighest = {},
+ratingsLowest = {},
 // durations, library size, and unmatched items
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
@@ -186,6 +191,10 @@ const resetLibraryStats = () => {
     writersWatchedCounts = [],
     writersUnwatchedCounts = [],
     writerToggle = "",
+    ratingsList = [],
+    ratingsContent = [],
+    ratingsHighest = {},
+    ratingsLowest = {},
     durationSum = 0,
     seasonSum = 0,
     episodeCounts = [],
@@ -371,6 +380,36 @@ const parseMediaPayload = (data) => {
                     item.lastViewedAt ? actorsWatched[role.tag] = 1 : actorsWatched[role.tag] = 0;
                 }
             });
+        }
+
+        /////////////////////////////////
+        // track ratings
+        if (item.audienceRating) {
+            // create ratings object and push it to ratingsList
+            ratingsObj = {
+                x: [item.contentRating],
+                y: [item.audienceRating],
+                mode: 'markers',
+                type: 'scatter',
+                name: ``,
+                text: [`${item.title} (${item.year})`],
+                marker: {
+                    size: 15,
+                    color: item.lastViewedAt ? chartColors[0] : chartColors[1]
+                }
+            }
+            ratingsList.push(ratingsObj);
+            // if ratingsContent list doesn't contain contentRating, push it
+            if (item.contentRating && !ratingsContent.includes(item.contentRating)) {
+                ratingsContent.push(item.contentRating);
+            }
+            // track highest and lowest rated items
+            if (ratingsHighest.y === undefined || item.audienceRating > ratingsHighest.y) {
+                ratingsHighest = ratingsObj;
+            }
+            if (ratingsLowest.y === undefined || item.audienceRating < ratingsLowest.y) {
+                ratingsLowest = ratingsObj;
+            }
         }
 
         /////////////////////////////////
@@ -772,6 +811,11 @@ const parseMediaPayload = (data) => {
             });
             sortedWritersUnwatchedCounts[0] = "Unwatched";
 
+            ////////////////////////
+            // items by rating chart
+            console.log('ratingsList:');
+            console.dir(ratingsList);
+
             // reset all selectedLibraryStats
             app.selectedLibraryStats = {};
             // build the stats object for the selected library
@@ -844,6 +888,9 @@ const parseMediaPayload = (data) => {
                 writerCounts: writerCounts,
                 writersWatchedCounts: sortedWritersWatchedCounts,
                 writersUnwatchedCounts: sortedWritersUnwatchedCounts,
+                ratingsList: ratingsList,
+                ratingsHighest: ratingsHighest.title,
+                ratingsLowest: ratingsLowest.title,
                 type: type,
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
                 seasonSum: seasonSum,
@@ -932,6 +979,25 @@ const app = new Vue({
         });
     },
     methods: {
+        renderScatterChart: function (ratingsList, ratingsContent) {
+            if (debugMode) {
+                console.log('rendering ratings chart: ', ratingsList)
+                console.dir(ratingsContent);
+            }
+            let layout = {
+                xaxis: {
+                    range: ratingsContent
+                },
+                yaxis: {
+                    range: [0, 11]
+                },
+                showlegend: false,
+                paper_bgcolor: '#222',
+                plot_bgcolor: '#222',
+            };
+
+            Plotly.newPlot('items-by-rating', ratingsList, layout, {displayModeBar: false});
+        },
         renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = []) {
             if (debugMode) {
                 console.log('rendering chart: ', selector, dataColumns, categories, rotated, stackGroup)
@@ -945,7 +1011,8 @@ const app = new Vue({
                         stackGroup
                     ],
                     type: 'bar',
-                    groups: [[ dataColumns[0], stackGroup[0] ]]
+                    groups: [[ dataColumns[0], stackGroup[0] ]],
+                    order: null
                 },
                 axis: {
                     rotated: rotated,
@@ -1024,6 +1091,7 @@ const app = new Vue({
             this.renderDirectorChart('bar');
             this.renderActorChart('bar');
             this.renderWriterChart('bar');
+            this.renderScatterChart(ratingsList, ratingsContent);
         },
         renderGenreChart: function (type) {
             if (type == 'bar') {
