@@ -403,8 +403,7 @@ const parseMediaPayload = (data) => {
                 text: [`${item.title} (${item.year})`],
                 marker: {
                     size: 10,
-                    color: item.lastViewedAt ? chartColors[0] : chartColors[1],
-                    opacity: Math.random() * (.7) + .3
+                    color: item.lastViewedAt ? chartColors[1] : chartColors[0],
                 }
             }
             ratingsList.push(ratingsObj);
@@ -1014,6 +1013,7 @@ const app = new Vue({
                     pad: 10,
                 },
                 xaxis: {
+                    title: 'Content Rating',
                     range: ratingsSuperset,
                     gridcolor: "#888",
                     showgrid: true,
@@ -1021,6 +1021,7 @@ const app = new Vue({
                     categoryorder: 'array',
                 },
                 yaxis: {
+                    title: 'Audience Rating (TMDB)',
                     range: [0, 11],
                     gridcolor: "#888",
                     showgrid: true,
@@ -1040,7 +1041,11 @@ const app = new Vue({
                 },
                 hoverdistance: 1,
                 scattermode: 'group',
-                scattergap: .7
+                scattergap: .5,
+                modebar: {
+                    color: '#f2f2f2',
+                    activecolor: chartColors[2],
+                }
             };
             let config = {
                 displaylogo: false,
@@ -1063,7 +1068,6 @@ const app = new Vue({
                     ],
                     type: 'bar',
                     groups: [[ dataColumns[0], stackGroup[0] ]],
-                    order: null
                 },
                 axis: {
                     rotated: rotated,
