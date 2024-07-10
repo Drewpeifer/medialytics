@@ -1,11 +1,11 @@
-# Medialytics 2.3
+# Medialytics 2.3.5
 ### A free analytics tool for Plex server content
 
 --------
 # What is Medialytics?
 Plex itself, as well as other tools, generate statistics regarding your server activity (most watched, most active, etc.)
 but they don't report much on the nature of your media content itself. Medialytics is a small client-side app that
-runs in the browser and generates statistics specifically about the content of your server, e.g. top production studio across a libary.
+runs in the browser and generates statistics specifically about the content of your server, e.g. top production studio across a library.
 
 ![header](https://i.imgur.com/t7IFigr.png)
 
@@ -14,11 +14,12 @@ runs in the browser and generates statistics specifically about the content of y
 ![visualizations-2](https://i.imgur.com/CCmDkSo.png)
 
 ## Main features
-* Charts for genre, country, decade, studio, resolution*, container* (file type), actor, and director* analysis
+* Bar charts for genre, country, decade, studio, resolution*, container* (file type), actor, writer*, and director* analysis
+* Scatter chart of audience rating (TMDB) vs content rating
 * Statistics for size and duration of entire library
 * Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
+* Watched/unwatched comparison across entire library and within each chart
 * Detects unmatched library items
-* Watched/unwatched comparison across genres, countries, decades, studios, resolutions*, and containers*
 
 _Items marked with "*" are only available for Movie libraries_
 
@@ -35,7 +36,7 @@ longer this call may take**. The response is then parsed, stats are aggregated, 
 
 ## What is it built with?
 Version 2.0 was rebuilt with [Vue 2](https://v2.vuejs.org/), [Axios](https://axios-http.com/docs/api_intro) for API calls,
-and I am still using the robust [D3](https://d3js.org/)/[C3](https://c3js.org/) libraries for charts.
+and charts are built with [D3](https://d3js.org/)/[C3](https://c3js.org/) and [plotly.js](https://plotly.com/javascript/).
 
 # SECURITY WARNING:
 This application relies upon using the private Plex token of your server, which you do **not** want to share
@@ -151,5 +152,5 @@ For anyone who wishes to fork and modify this repo, here are some links you may 
 1. [Plex token docs](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/) (for token management)
 1. [Vue 2 docs](https://v2.vuejs.org/) (for general app logic and architecture)
 1. [Axios docs](https://axios-http.com/docs/api_intro) (for API calls)
-1. [D3.js](https://d3js.org/) and [C3.js](https://c3js.org/) docs (for customizing and adding new charts)
+1. [D3.js](https://d3js.org/) / [C3.js](https://c3js.org/) / [plotly.js](https://plotly.com/javascript/) for editing charts
 1. [Guide to Flexbox](https://css-tricks.com/snippets/css/a-guide-to-flexbox/) (for UI editing)
