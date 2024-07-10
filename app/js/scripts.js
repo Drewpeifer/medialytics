@@ -1175,7 +1175,8 @@ const app = new Vue({
                             return `${categories[index]} (${parseInt(stackGroup[index + 1]) + parseInt(dataColumns[index + 1])})`;
                         },
                         value: function (val, ratio, id, index) {
-                            return id.includes('Unwatched') ? `Unwatched : ${val}` : `Watched : ${val}`;
+                            let watchRatio = (val / (parseInt(stackGroup[index + 1]) + parseInt(dataColumns[index + 1])) * 100).toFixed(1);
+                            return id.includes('Unwatched') ? `Unwatched : ${val} (${watchRatio}%)` : `Watched : ${val} (${watchRatio}%)`;
                         },
                     }
                 }
