@@ -86,13 +86,20 @@ writerCounts = [],
 writersWatched = {},
 writersWatchedCounts = [],
 writersUnwatchedCounts = [],
-// items by rating
+// items by rating (scatter)
 ratingsList = [],// list of objects that represent a movie / point on the scatter plot
 ratingsContent = [],// list of unique content ratings
 ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
 ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-PG', 'TV-14', 'TV-MA'],
 ratingsHighest = {},
 ratingsLowest = {},
+// items by content rating (bar)
+contentRatings = {},
+contentRatingList = [],
+contentRatingCounts = [],
+contentRatingsWatched = {},
+contentRatingsWatchedCounts = [],
+contentRatingsUnwatchedCounts = [],
 // durations, library size, and unmatched items
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
@@ -123,7 +130,9 @@ newActorLimit = actorLimit,
 decadeLimit = 20,
 newDecadeLimit = decadeLimit
 writerLimit = 20,
-newWriterLimit = writerLimit;
+newWriterLimit = writerLimit,
+contentRatingLimit = 20,
+newContentRatingLimit = contentRatingLimit;
 
 /////////////////////////////////
 // reset library stats
@@ -193,6 +202,13 @@ const resetLibraryStats = () => {
     writersWatchedCounts = [],
     writersUnwatchedCounts = [],
     writerToggle = "",
+    contentRatings = {},
+    contentRatingList = [],
+    contentRatingCounts = [],
+    contentRatingsWatched = {},
+    contentRatingsWatchedCounts = [],
+    contentRatingsUnwatchedCounts = [],
+    contentRatingToggle = "",
     ratingsList = [],
     ratingsContent = [],
     ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
@@ -386,7 +402,7 @@ const parseMediaPayload = (data) => {
         }
 
         /////////////////////////////////
-        // track ratings
+        // track audienceRating
         if (item.audienceRating) {
             // already ignoring items with no audienceRating, but if the item has no contentRating, or if
             // the contentRating is Not Rated or Unrated, set to "NR"
@@ -402,7 +418,7 @@ const parseMediaPayload = (data) => {
                 name: ``,
                 text: [`${item.title} (${item.year})`],
                 marker: {
-                    size: 10,
+                    size: 5,
                     color: item.lastViewedAt ? chartColors[1] : chartColors[0],
                 }
             }
@@ -417,6 +433,30 @@ const parseMediaPayload = (data) => {
             }
             if (ratingsLowest.y === undefined || item.audienceRating < ratingsLowest.y) {
                 ratingsLowest = ratingsObj;
+            }
+        }
+        /////////////////////////////////
+        // track content rating
+        if (item.contentRating) {
+            // if contentRating exists in the dictionary already,
+            // find the contentRating and increment the count
+            if (contentRatings.hasOwnProperty(item.contentRating)) {
+                contentRatings[item.contentRating]++;
+                // track the watched count for that contentRating
+                item.lastViewedAt ? contentRatingsWatched[item.contentRating]++ : contentRatingsWatched[item.contentRating];
+            } else {
+                contentRatings[item.contentRating] = 1;
+                item.lastViewedAt ? contentRatingsWatched[item.contentRating] = 1 : contentRatingsWatched[item.contentRating] = 0;
+            }
+        } else {
+            // increment the "NR" count for items with no contentRating
+            if (contentRatings.hasOwnProperty('NR')) {
+                contentRatings['NR']++;
+                // track the watched count for that contentRating
+                item.lastViewedAt ? contentRatingsWatched['NR']++ : contentRatingsWatched['NR'];
+            } else {
+                contentRatings['NR'] = 1;
+                item.lastViewedAt ? contentRatingsWatched['NR'] = 1 : contentRatingsWatched['NR'] = 0;
             }
         }
 
@@ -820,7 +860,7 @@ const parseMediaPayload = (data) => {
             sortedWritersUnwatchedCounts[0] = "Unwatched";
 
             ////////////////////////
-            // items by rating chart
+            // items by audienceRating VS contentRating chart (scatter)
             // ratingsContent is an array of all unique content ratings for this library in random order, but we
             // want them to be in a specific order, so we merge them with the curated lists of ratings for movies and tv
             // with the unqiue values appended to the end
@@ -838,6 +878,38 @@ const parseMediaPayload = (data) => {
                     }
                 });
             }
+
+            ////////////////////////
+            // items by contentRating chart (bar)
+            let sortedContentRatings = [],
+            sortedContentRatingsWatchedCounts = [];
+            // choosing not to report on undefined entries
+            delete contentRatings['undefined'];
+            for (contentRating in contentRatings) {
+                sortedContentRatings.push([contentRating, contentRatings[contentRating]]);
+            }
+            sortedContentRatings.sort(function(a, b) {
+                return b[1] - a[1];
+            });
+            // split the sorted content ratings dictionary into an array of content ratings and an array of counts
+            for (property in sortedContentRatings) {
+                contentRatingList.push(sortedContentRatings[property][0]);
+                contentRatingCounts.push(sortedContentRatings[property][1]);
+            }
+            contentRatingCounts.unshift("contentRatingCounts");
+            console.log('contentRatingList: ', contentRatingList);
+            console.log('contentRatingCounts: ', contentRatingCounts);
+            // for every content rating in contentRatingList, find the corresponding count in contentRatingsWatched and push it to the sortedContentRatingsWatchedCounts array
+            contentRatingList.forEach((contentRating) => {
+                sortedContentRatingsWatchedCounts.push(contentRatingsWatched[contentRating]);
+            });
+            sortedContentRatingsWatchedCounts.unshift("Watched");
+            // copy sortedContentRatingsWatchedCounts to sortedContentRatingsUnwatchedCounts and set each value to the difference between the watched and total count for that content rating
+            let sortedContentRatingsUnwatchedCounts = sortedContentRatingsWatchedCounts.slice();
+            sortedContentRatingsUnwatchedCounts = sortedContentRatingsUnwatchedCounts.map((count, index) => {
+                return contentRatingCounts[index] - count;
+            });
+            sortedContentRatingsUnwatchedCounts[0] = "Unwatched";
 
             // reset all selectedLibraryStats
             app.selectedLibraryStats = {};
@@ -914,6 +986,13 @@ const parseMediaPayload = (data) => {
                 ratingsList: ratingsList,
                 ratingsHighest: `${ratingsHighest.text} - ${ratingsHighest.y} / ${ratingsHighest.x}`,
                 ratingsLowest: `${ratingsLowest.text} - ${ratingsLowest.y} / ${ratingsLowest.x}`,
+                topContentRating: contentRatingList[0],
+                topContentRatingCount: contentRatingCounts[1].toLocaleString(),
+                totalContentRatingCount: Object.keys(contentRatings).length.toLocaleString(),
+                contentRatingList: contentRatingList,
+                contentRatingCounts: contentRatingCounts,
+                contentRatingsWatchedCounts: sortedContentRatingsWatchedCounts,
+                contentRatingsUnwatchedCounts: sortedContentRatingsUnwatchedCounts,
                 type: type,
                 totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
                 seasonSum: seasonSum,
@@ -936,6 +1015,8 @@ const parseMediaPayload = (data) => {
                 newActorLimit: newActorLimit,
                 writerLimit: writerLimit,
                 newWriterLimit: newWriterLimit,
+                contentRatingLimit: contentRatingLimit,
+                newContentRatingLimit: newContentRatingLimit,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
                 firstAdded : firstAdded,
@@ -983,6 +1064,7 @@ const app = new Vue({
         actorToggle: "pie",
         decadeToggle: "pie",
         writerToggle: "pie",
+        contentRatingToggle: "pie"
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -1002,7 +1084,7 @@ const app = new Vue({
         });
     },
     methods: {
-        renderScatterChart: function (type, ratingsList) {
+        renderScatterChart: function (type, ratingsList, selector) {
             if (debugMode) {
                 console.log('rendering ratings chart: ', ratingsList);
             }
@@ -1052,7 +1134,7 @@ const app = new Vue({
                 modeBarButtonsToRemove: ['lasso2d', 'toImage'],
             };
 
-            Plotly.newPlot('items-by-rating', ratingsList, layout, config);
+            Plotly.newPlot(selector, ratingsList, layout, config);
         },
         renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = []) {
             if (debugMode) {
@@ -1146,7 +1228,8 @@ const app = new Vue({
             this.renderDirectorChart('bar');
             this.renderActorChart('bar');
             this.renderWriterChart('bar');
-            this.renderScatterChart(type, ratingsList);
+            this.renderContentRatingChart('bar');
+            this.renderScatterChart(type, ratingsList, 'items-by-rating');
         },
         renderGenreChart: function (type) {
             if (type == 'bar') {
@@ -1229,6 +1312,15 @@ const app = new Vue({
                 console.error('Invalid chart type');
             }
         },
+        renderContentRatingChart: function (type) {
+            if (type == 'bar') {
+                app.renderBarChart('.items-by-content-rating', app.selectedLibraryStats.contentRatingsUnwatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit + 1), app.selectedLibraryStats.contentRatingList.slice(0, app.selectedLibraryStats.contentRatingLimit), true, app.selectedLibraryStats.contentRatingsWatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit + 1));
+            } else if (type == 'pie') {
+                app.renderPieChart('.items-by-content-rating', app.selectedLibraryStats.contentRatingCounts.slice(0, app.selectedLibraryStats.contentRatingLimit + 1), app.selectedLibraryStats.contentRatingList.slice(0, app.selectedLibraryStats.contentRatingLimit));
+            } else {
+                console.error('Invalid chart type');
+            }
+        },
         renderWatchedGauge: function () {
             c3.generate({
                 bindto: '.watched-gauge',
@@ -1292,6 +1384,9 @@ const app = new Vue({
                 break;
                 case 'writer':
                 app[`${limitType}Toggle`] == 'bar' ? app.renderWriterChart('pie') : app.renderWriterChart('bar');
+                break;
+                case 'contentRating':
+                app[`${limitType}Toggle`] == 'bar' ? app.renderContentRatingChart('pie') : app.renderContentRatingChart('bar');
                 break;
                 default:
                 console.error('Invalid limit type');
