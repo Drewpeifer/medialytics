@@ -294,8 +294,80 @@
                     </div>
                 </div>
                 <div class="row">
-                <!-- items by writer chart -->
-                    <div class="card full">
+                    <!-- items by content rating -->
+                    <div class="card half">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.type }}s per Content Rating (Top {{ selectedLibraryStats.contentRatingLimit }})</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <p><strong>Total Content Ratings:</strong> {{ selectedLibraryStats.totalContentRatingCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="contentRatingToggle"
+                                        v-on:click="renderContentRatingChart(contentRatingToggle)"
+                                        v-model="contentRatingToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="contentRatingToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="contentRatingLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="contentRatingLimit"
+                                        v-model="newContentRatingLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('contentRating', newContentRatingLimit)">Update</button>
+                                </div>
+                                <p><strong>Top Content Rating:</strong> {{ selectedLibraryStats.topContentRating }} ({{ selectedLibraryStats.topContentRatingCount }})</p>
+                            </div>
+                            <div class="row">
+                                <div class="chart items-by-content-rating"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- items by actor chart -->
+                    <div class="card half">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.type }}s per Actor (Top {{ selectedLibraryStats.studioLimit }})</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <p><strong>Total Actors:</strong> {{ selectedLibraryStats.totalActorCount }}</p>
+                                <div class="chart-toggle">
+                                    <input type="checkbox"
+                                        id="actorToggle"
+                                        v-on:click="renderActorChart(actorToggle)"
+                                        v-model="actorToggle"
+                                        true-value="pie"
+                                        false-value="bar"
+                                        checked>
+                                    <label for="actorToggle"></label>
+                                </div>
+                                <div class="chart-limit">
+                                    <label for="actorLimit">Limit:&nbsp;</label>
+                                    <input type="number"
+                                        id="actorLimit"
+                                        v-model="newActorLimit"
+                                        min="1"
+                                        step="1">
+                                    <button v-on:click="updateLimit('actor', newActorLimit)">Update</button>
+                                </div>
+                                <p><strong>Top Actor:</strong> {{ selectedLibraryStats.topActor }} ({{ selectedLibraryStats.topActorCount }})</p>
+                            </div>
+                            <div class="row">
+                                <div class="chart items-by-actor"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- items by writer chart -->
+                    <div class="card half">
                         <div class="header">
                             <p>{{ selectedLibraryStats.type }}s per Writer (Top {{ selectedLibraryStats.studioLimit }})</p>
                         </div>
@@ -329,43 +401,6 @@
                                     Only available for movie libraries
                                 </div>
                                 <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-writer"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <!-- items by actor chart -->
-                    <div class="card half">
-                        <div class="header">
-                            <p>{{ selectedLibraryStats.type }}s per Actor (Top {{ selectedLibraryStats.studioLimit }})</p>
-                        </div>
-                        <div v-if="libraryStatsLoading" class="loader"></div>
-                        <div class="content">
-                            <div class="row">
-                                <p><strong>Total Actors:</strong> {{ selectedLibraryStats.totalActorCount }}</p>
-                                <div class="chart-toggle">
-                                    <input type="checkbox"
-                                        id="actorToggle"
-                                        v-on:click="renderActorChart(actorToggle)"
-                                        v-model="actorToggle"
-                                        true-value="pie"
-                                        false-value="bar"
-                                        checked>
-                                    <label for="actorToggle"></label>
-                                </div>
-                                <div class="chart-limit">
-                                    <label for="actorLimit">Limit:&nbsp;</label>
-                                    <input type="number"
-                                        id="actorLimit"
-                                        v-model="newActorLimit"
-                                        min="1"
-                                        step="1">
-                                    <button v-on:click="updateLimit('actor', newActorLimit)">Update</button>
-                                </div>
-                                <p><strong>Top Actor:</strong> {{ selectedLibraryStats.topActor }} ({{ selectedLibraryStats.topActorCount }})</p>
-                            </div>
-                            <div class="row">
-                                <div class="chart items-by-actor"></div>
                             </div>
                         </div>
                     </div>
