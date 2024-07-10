@@ -257,13 +257,13 @@ h3 {
     display: inline-block;
     vertical-align: middle;
     margin: 5px 10px;
-    border-radius: 25%;
+    border-radius: 50%;
     height: 10px;
     width: 10px;
-    background: #D62828;
+    background: #F75C03;
 }
 .legend p span.watched {
-    background: #F75C03;
+    background: #D62828;
 }
 
 /* sweet loading spinner from css-tricks */

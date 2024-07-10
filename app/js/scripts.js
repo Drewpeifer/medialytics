@@ -419,7 +419,7 @@ const parseMediaPayload = (data) => {
                 text: [`${item.title} (${item.year})`],
                 marker: {
                     size: 5,
-                    color: item.lastViewedAt ? chartColors[1] : chartColors[0],
+                    color: item.lastViewedAt ? chartColors[0] : chartColors[1],
                 }
             }
             ratingsList.push(ratingsObj);
@@ -1131,6 +1131,7 @@ const app = new Vue({
             };
             let config = {
                 displaylogo: false,
+                displayModeBar: true,
                 modeBarButtonsToRemove: ['lasso2d', 'toImage'],
             };
 
@@ -1150,6 +1151,7 @@ const app = new Vue({
                     ],
                     type: 'bar',
                     groups: [[ dataColumns[0], stackGroup[0] ]],
+                    order: null,
                 },
                 axis: {
                     rotated: rotated,
@@ -1233,7 +1235,7 @@ const app = new Vue({
         },
         renderGenreChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-genre',app.selectedLibraryStats.genresUnwatchedCounts.slice(0, app.selectedLibraryStats.genreLimit + 1), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit), true, app.selectedLibraryStats.genresWatchedCounts.slice(0, app.selectedLibraryStats.genreLimit + 1))
+                app.renderBarChart('.items-by-genre',app.selectedLibraryStats.genresWatchedCounts.slice(0, app.selectedLibraryStats.genreLimit + 1), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit), true, app.selectedLibraryStats.genresUnwatchedCounts.slice(0, app.selectedLibraryStats.genreLimit + 1))
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-genre', app.selectedLibraryStats.genreCounts.slice(0, app.selectedLibraryStats.genreLimit + 1), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit));
             } else {
@@ -1242,7 +1244,7 @@ const app = new Vue({
         },
         renderCountryChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-country', app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit), true, app.selectedLibraryStats.countriesWatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1))
+                app.renderBarChart('.items-by-country', app.selectedLibraryStats.countriesWatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit), true, app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, app.selectedLibraryStats.countryLimit + 1))
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-country', app.selectedLibraryStats.countryCounts.slice(0, app.selectedLibraryStats.countryLimit + 1), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit));
             } else {
@@ -1251,7 +1253,7 @@ const app = new Vue({
         },
         renderResolutionChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-resolution', app.selectedLibraryStats.resolutionsUnwatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit), false, app.selectedLibraryStats.resolutionsWatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1))
+                app.renderBarChart('.items-by-resolution', app.selectedLibraryStats.resolutionsWatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit), false, app.selectedLibraryStats.resolutionsUnwatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1))
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-resolution', app.selectedLibraryStats.resolutionCounts.slice(0, app.selectedLibraryStats.resolutionLimit + 1), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit));
             } else {
@@ -1260,7 +1262,7 @@ const app = new Vue({
         },
         renderContainerChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-container', app.selectedLibraryStats.containersUnwatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit), false, app.selectedLibraryStats.containersWatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1))
+                app.renderBarChart('.items-by-container', app.selectedLibraryStats.containersWatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit), false, app.selectedLibraryStats.containersUnwatchedCounts.slice(0, app.selectedLibraryStats.containerLimit + 1))
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-container', app.selectedLibraryStats.containerCounts.slice(0, app.selectedLibraryStats.containerLimit + 1), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit));
             } else {
@@ -1269,7 +1271,7 @@ const app = new Vue({
         },
         renderDecadeChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-decade', app.selectedLibraryStats.decadesUnwatchedCounts.slice((app), app.selectedLibraryStats.decadeLimit + 1), decades.slice(0, app.selectedLibraryStats.decadeLimit), false, app.selectedLibraryStats.decadesWatchedCounts.slice(0, app.selectedLibraryStats.decadeLimit + 1));
+                app.renderBarChart('.items-by-decade', app.selectedLibraryStats.decadesWatchedCounts.slice((app), app.selectedLibraryStats.decadeLimit + 1), decades.slice(0, app.selectedLibraryStats.decadeLimit), false, app.selectedLibraryStats.decadesUnwatchedCounts.slice(0, app.selectedLibraryStats.decadeLimit + 1));
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-decade', app.selectedLibraryStats.releaseDateCounts.slice(0, app.selectedLibraryStats.decadeLimit + 1), decades.slice(0, app.selectedLibraryStats.decadeLimit));
             } else {
@@ -1278,7 +1280,7 @@ const app = new Vue({
         },
         renderStudioChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-studio', app.selectedLibraryStats.studiosUnwatchedCounts.slice(0, app.selectedLibraryStats.studioLimit + 1), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit + 1), true, app.selectedLibraryStats.studiosWatchedCounts.slice(0, app.selectedLibraryStats.studioLimit + 1));
+                app.renderBarChart('.items-by-studio', app.selectedLibraryStats.studiosWatchedCounts.slice(0, app.selectedLibraryStats.studioLimit + 1), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit + 1), true, app.selectedLibraryStats.studiosUnwatchedCounts.slice(0, app.selectedLibraryStats.studioLimit + 1));
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-studio', app.selectedLibraryStats.studioCounts.slice(0, app.selectedLibraryStats.studioLimit + 1), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit));
             } else {
@@ -1287,7 +1289,7 @@ const app = new Vue({
         },
         renderDirectorChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-director', app.selectedLibraryStats.directorsUnwatchedCounts.slice(0, app.selectedLibraryStats.directorLimit + 1), app.selectedLibraryStats.directorList.slice(0, app.selectedLibraryStats.directorLimit + 1), true, app.selectedLibraryStats.directorsWatchedCounts.slice(0, app.selectedLibraryStats.directorLimit + 1));
+                app.renderBarChart('.items-by-director', app.selectedLibraryStats.directorsWatchedCounts.slice(0, app.selectedLibraryStats.directorLimit + 1), app.selectedLibraryStats.directorList.slice(0, app.selectedLibraryStats.directorLimit + 1), true, app.selectedLibraryStats.directorsUnwatchedCounts.slice(0, app.selectedLibraryStats.directorLimit + 1));
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-director', app.selectedLibraryStats.directorCounts.slice(0, app.selectedLibraryStats.directorLimit + 1), app.selectedLibraryStats.directorList.slice(0, app.selectedLibraryStats.directorLimit));
             } else {
@@ -1296,7 +1298,7 @@ const app = new Vue({
         },
         renderActorChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-actor', app.selectedLibraryStats.actorsUnwatchedCounts.slice(0, app.selectedLibraryStats.actorLimit + 1), app.selectedLibraryStats.actorList.slice(0, app.selectedLibraryStats.actorLimit), true, app.selectedLibraryStats.actorsWatchedCounts.slice(0, app.selectedLibraryStats.actorLimit + 1));
+                app.renderBarChart('.items-by-actor', app.selectedLibraryStats.actorsWatchedCounts.slice(0, app.selectedLibraryStats.actorLimit + 1), app.selectedLibraryStats.actorList.slice(0, app.selectedLibraryStats.actorLimit), true, app.selectedLibraryStats.actorsUnwatchedCounts.slice(0, app.selectedLibraryStats.actorLimit + 1));
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-actor', app.selectedLibraryStats.actorCounts.slice(0, app.selectedLibraryStats.actorLimit + 1), app.selectedLibraryStats.actorList.slice(0, app.selectedLibraryStats.actorLimit));
             } else {
@@ -1305,7 +1307,7 @@ const app = new Vue({
         },
         renderWriterChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-writer', app.selectedLibraryStats.writersUnwatchedCounts.slice(0, app.selectedLibraryStats.writerLimit + 1), app.selectedLibraryStats.writerList.slice(0, app.selectedLibraryStats.writerLimit), true, app.selectedLibraryStats.writersWatchedCounts.slice(0, app.selectedLibraryStats.writerLimit + 1));
+                app.renderBarChart('.items-by-writer', app.selectedLibraryStats.writersWatchedCounts.slice(0, app.selectedLibraryStats.writerLimit + 1), app.selectedLibraryStats.writerList.slice(0, app.selectedLibraryStats.writerLimit), true, app.selectedLibraryStats.writersUnwatchedCounts.slice(0, app.selectedLibraryStats.writerLimit + 1));
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-writer', app.selectedLibraryStats.writerCounts.slice(0, app.selectedLibraryStats.writerLimit + 1), app.selectedLibraryStats.writerList.slice(0, app.selectedLibraryStats.writerLimit));
             } else {
@@ -1314,7 +1316,7 @@ const app = new Vue({
         },
         renderContentRatingChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('.items-by-content-rating', app.selectedLibraryStats.contentRatingsUnwatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit + 1), app.selectedLibraryStats.contentRatingList.slice(0, app.selectedLibraryStats.contentRatingLimit), true, app.selectedLibraryStats.contentRatingsWatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit + 1));
+                app.renderBarChart('.items-by-content-rating', app.selectedLibraryStats.contentRatingsWatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit + 1), app.selectedLibraryStats.contentRatingList.slice(0, app.selectedLibraryStats.contentRatingLimit), true, app.selectedLibraryStats.contentRatingsUnwatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit + 1));
             } else if (type == 'pie') {
                 app.renderPieChart('.items-by-content-rating', app.selectedLibraryStats.contentRatingCounts.slice(0, app.selectedLibraryStats.contentRatingLimit + 1), app.selectedLibraryStats.contentRatingList.slice(0, app.selectedLibraryStats.contentRatingLimit));
             } else {
