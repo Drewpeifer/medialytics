@@ -181,7 +181,7 @@
                                 <p><strong>Top Genre:</strong> {{ selectedLibraryStats.topGenre }} ({{ selectedLibraryStats.topGenreCount }})</p>
                             </div>
                             <div class="row">
-                                <div class="chart items-by-genre"></div>
+                                <div id="items-by-genre" class="chart items-by-genre"></div>
                             </div>
                         </div>
                     </div>
@@ -216,7 +216,7 @@
                                 <p><strong>Top Country:</strong> {{ selectedLibraryStats.topCountry }} ({{ selectedLibraryStats.topCountryCount }})</p>
                             </div>
                             <div class="row">
-                                <div class="chart items-by-country"></div>
+                                <div id="items-by-country" class="chart items-by-country"></div>
                             </div>
                         </div>
                     </div>
@@ -253,7 +253,7 @@
                                 <p><strong>Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
                             </div>
                             <div class="row">
-                                <div class="chart items-by-decade"></div>
+                                <div id="items-by-decade" class="chart items-by-decade"></div>
                             </div>
                         </div>
                     </div>
@@ -288,7 +288,7 @@
                                 <p><strong>Top Studio:</strong> {{ selectedLibraryStats.topStudio }} ({{ selectedLibraryStats.topStudioCount }})</p>
                             </div>
                             <div class="row">
-                                <div class="chart items-by-studio"></div>
+                                <div id="items-by-studio" class="chart items-by-studio"></div>
                             </div>
                         </div>
                     </div>
@@ -325,7 +325,7 @@
                                 <p><strong>Top Content Rating:</strong> {{ selectedLibraryStats.topContentRating }} ({{ selectedLibraryStats.topContentRatingCount }})</p>
                             </div>
                             <div class="row">
-                                <div class="chart items-by-content-rating"></div>
+                                <div id="items-by-content-rating" class="chart items-by-content-rating"></div>
                             </div>
                         </div>
                     </div>
@@ -360,7 +360,7 @@
                                 <p><strong>Top Actor:</strong> {{ selectedLibraryStats.topActor }} ({{ selectedLibraryStats.topActorCount }})</p>
                             </div>
                             <div class="row">
-                                <div class="chart items-by-actor"></div>
+                                <div id="items-by-actor" class="chart items-by-actor"></div>
                             </div>
                         </div>
                     </div>
@@ -400,7 +400,7 @@
                                 <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
                                     Only available for movie libraries
                                 </div>
-                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-writer"></div>
+                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" id="items-by-writer" class="chart items-by-writer"></div>
                             </div>
                         </div>
                     </div>
@@ -438,7 +438,7 @@
                                 <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
                                     Only available for movie libraries
                                 </div>
-                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-director"></div>
+                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" id="items-by-director" class="chart items-by-director"></div>
                             </div>
                         </div>
                     </div>
@@ -478,7 +478,7 @@
                                 <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
                                     Only available for movie libraries
                                 </div>
-                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-resolution"></div>
+                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" id="items-by-resolution" class="chart items-by-resolution"></div>
                             </div>
                         </div>
                     </div>
@@ -516,7 +516,7 @@
                                 <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
                                     Only available for movie libraries
                                 </div>
-                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" class="chart items-by-container"></div>
+                                <div :class="{hidden : selectedLibraryStats.type == 'show'}" id="items-by-container" class="chart items-by-container"></div>
                             </div>
                         </div>
                     </div>
