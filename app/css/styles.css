@@ -160,10 +160,6 @@ h3 {
 #items-by-rating.chart {
     min-height:500px;
 }
-.chart svg {
-    position: relative;
-    left: -20px;/* QAD temp fix for eggregious left-padding d3 adds to SVG */
-}
 .c3-axis-x path,
 .c3-axis-x line,
 .c3-axis-y path,

@@ -492,15 +492,15 @@ const parseMediaPayload = (data) => {
                         }
                     }
                     if (media.container) {
-                        if (containers.hasOwnProperty(media.container)) {
+                        if (containers.hasOwnProperty(media.container.toUpperCase())) {
                             // if container exists in the dictionary already,
                             // find the container and increment the count
-                            containers[media.container]++;
+                            containers[media.container.toUpperCase()]++;
                             // track the watched count for that container
-                            item.lastViewedAt ? containersWatched[media.container]++ : containersWatched[media.container];
+                            item.lastViewedAt ? containersWatched[media.container.toUpperCase()]++ : containersWatched[media.container.toUpperCase()];
                         } else {
-                            containers[media.container] = 1;
-                            item.lastViewedAt ? containersWatched[media.container] = 1 : containersWatched[media.container] = 0;
+                            containers[media.container.toUpperCase()] = 1;
+                            item.lastViewedAt ? containersWatched[media.container.toUpperCase()] = 1 : containersWatched[media.container.toUpperCase()] = 0;
                         }
                     }
                 });
@@ -641,6 +641,7 @@ const parseMediaPayload = (data) => {
             }
             // for every container in containerList, find the corresponding count in containersWatched and push it to the sortedContainersWatchedCounts array
             containerList.forEach((container) => {
+                // make containers all caps
                 sortedContainersWatchedCounts.push(containersWatched[container]);
             });
             // copy sortedContainersWatchedCounts to sortedContainersUnwatchedCounts and set each value to the difference between the watched and total count for that container
@@ -1115,22 +1116,32 @@ const app = new Vue({
                 console.log('rendering chart: ', selector, dataColumns, categories, rotated, stackGroup)
             }
             var trace1 = {
-                x: categories,
-                y: dataColumns,
+                x: rotated ? dataColumns : categories,
+                y: rotated ? categories : dataColumns,
                 name: 'Watched',
-                type: 'bar'
+                type: 'bar',
+                orientation: rotated ? 'h' : 'v'
             };
 
             var trace2 = {
-                x: categories,
-                y: stackGroup,
+                x: rotated ? stackGroup : categories,
+                y: rotated ? categories : stackGroup,
                 name: 'Unwatched',
-                type: 'bar'
+                type: 'bar',
+                orientation: rotated ? 'h' : 'v'
             };
 
             var data = [trace1, trace2];
 
-            var layout = {barmode: 'stack'};
+            var layout = {
+                barmode: 'stack',
+                showlegend: false,
+                paper_bgcolor: '#222',
+                plot_bgcolor: '#222',
+                font: {
+                    color: '#fff',
+                }
+            };
 
             Plotly.newPlot(selector, data, layout);
             // c3.generate({
