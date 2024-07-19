@@ -667,7 +667,6 @@ const parseMediaPayload = (data) => {
                 genreList.push(sortedGenres[genre][0]);
                 genreCounts.push(sortedGenres[genre][1]);
             }
-
             // for every genre in genreList, find the corresponding count in genresWatched and push it to the sortedGenresWatchedCounts array
             genreList.forEach((genre) => {
                 sortedGenresWatchedCounts.push(genresWatched[genre]);
@@ -894,14 +893,14 @@ const parseMediaPayload = (data) => {
                 displayHours: totalHours - (totalDays*24),
                 displayMins: totalMins - (totalHours*60),
                 topGenre: genreList[0],
-                topGenreCount: genreCounts[1].toLocaleString(),
+                topGenreCount: genreCounts[0].toLocaleString(),
                 totalGenreCount: Object.keys(genres).length.toLocaleString(),
                 genreList: genreList,
                 genreCounts: genreCounts,
                 genresWatchedCounts : sortedGenresWatchedCounts,
                 genresUnwatchedCounts : sortedGenresUnwatchedCounts,
                 topCountry: countryList[0],
-                topCountryCount: countryCounts[1].toLocaleString(),
+                topCountryCount: countryCounts[0].toLocaleString(),
                 totalCountryCount: Object.keys(countries).length.toLocaleString(),
                 countryCounts: countryCounts,
                 countryList: countryList,
@@ -912,7 +911,7 @@ const parseMediaPayload = (data) => {
                 resolutionsWatchedCounts : sortedResolutionsWatchedCounts,
                 resolutionsUnwatchedCounts : sortedResolutionsUnwatchedCounts,
                 topResolution: sortedResolutions.length > 1 ? resolutionList[0].toUpperCase() : "",
-                topResolutionCount: sortedResolutions.length > 1 ? resolutionCounts[1].toLocaleString() : "",
+                topResolutionCount: sortedResolutions.length > 1 ? resolutionCounts[0].toLocaleString() : "",
                 totalResolutionCount: Object.keys(resolutions).length.toLocaleString(),
                 containerCounts: containerCounts,
                 containerList: containerList,
@@ -920,7 +919,7 @@ const parseMediaPayload = (data) => {
                 containersUnwatchedCounts : sortedContainersUnwatchedCounts,
                 totalContainerCount: Object.keys(containers).length.toLocaleString(),
                 topContainer: sortedContainers.length > 1 ? containerList[0].toUpperCase() : "",
-                topContainerCount: sortedContainers.length > 1 ? containerCounts[1].toLocaleString() : "",
+                topContainerCount: sortedContainers.length > 1 ? containerCounts[0].toLocaleString() : "",
                 topDecade: topDecade,
                 topDecadeCount: topDecadeCount,
                 totalDecadeCount: decades.length,
@@ -930,7 +929,7 @@ const parseMediaPayload = (data) => {
                 decadesUnwatchedCounts : decadesUnwatchedCounts,
                 studios: studios,
                 topStudio: studioList[0],
-                topStudioCount: studioCounts[1].toLocaleString(),
+                topStudioCount: studioCounts[0].toLocaleString(),
                 totalStudioCount: Object.keys(studios).length.toLocaleString(),
                 studioList: studioList,
                 studioCounts: studioCounts,
@@ -961,7 +960,7 @@ const parseMediaPayload = (data) => {
                 ratingsHighest: `${ratingsHighest.text} - ${ratingsHighest.y} / ${ratingsHighest.x}`,
                 ratingsLowest: `${ratingsLowest.text} - ${ratingsLowest.y} / ${ratingsLowest.x}`,
                 topContentRating: contentRatingList[0],
-                topContentRatingCount: contentRatingCounts[1].toLocaleString(),
+                topContentRatingCount: contentRatingCounts[0].toLocaleString(),
                 totalContentRatingCount: Object.keys(contentRatings).length.toLocaleString(),
                 contentRatingList: contentRatingList,
                 contentRatingCounts: contentRatingCounts,
@@ -1230,8 +1229,7 @@ const app = new Vue({
               }];
 
               var layout = {
-                height: 400,
-                width: 500
+
               };
 
               Plotly.react(selector, data, layout);
