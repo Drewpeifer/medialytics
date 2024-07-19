@@ -1107,6 +1107,7 @@ const app = new Vue({
                 displaylogo: false,
                 displayModeBar: true,
                 modeBarButtonsToRemove: ['lasso2d', 'toImage'],
+                responsive: true
             };
 
             Plotly.newPlot(selector, ratingsList, layout, config);
@@ -1115,12 +1116,20 @@ const app = new Vue({
             if (debugMode) {
                 console.log('rendering chart: ', selector, dataColumns, categories, rotated, stackGroup)
             }
+            if (rotated) {
+                dataColumns = dataColumns.reverse();
+                stackGroup = stackGroup.reverse();
+                categories = categories.reverse();
+            }
             var trace1 = {
                 x: rotated ? dataColumns : categories,
                 y: rotated ? categories : dataColumns,
                 name: 'Watched',
                 type: 'bar',
-                orientation: rotated ? 'h' : 'v'
+                orientation: rotated ? 'h' : 'v',
+                marker: {
+                    color: chartColors[0]
+                }
             };
 
             var trace2 = {
@@ -1128,7 +1137,10 @@ const app = new Vue({
                 y: rotated ? categories : stackGroup,
                 name: 'Unwatched',
                 type: 'bar',
-                orientation: rotated ? 'h' : 'v'
+                orientation: rotated ? 'h' : 'v',
+                marker: {
+                    color: chartColors[1]
+                }
             };
 
             var data = [trace1, trace2];
@@ -1136,14 +1148,28 @@ const app = new Vue({
             var layout = {
                 barmode: 'stack',
                 showlegend: false,
-                paper_bgcolor: '#222',
-                plot_bgcolor: '#222',
+                margin: {
+                    pad: 10,
+                },
+                modebar: {
+                    color: '#f2f2f2',
+                    activecolor: chartColors[2],
+                },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
                 font: {
                     color: '#fff',
                 }
             };
 
-            Plotly.newPlot(selector, data, layout);
+            var config = {
+                respnsive: true,
+                displaylogo: false,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'toImage'],
+            };
+
+            Plotly.newPlot(selector, data, layout, config);
             // c3.generate({
             //     bindto: selector,
             //     x: 'x',
@@ -1251,7 +1277,7 @@ const app = new Vue({
         },
         renderGenreChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-genre',app.selectedLibraryStats.genresWatchedCounts.slice(0, app.selectedLibraryStats.genreLimit), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit), true, app.selectedLibraryStats.genresUnwatchedCounts.slice(0, app.selectedLibraryStats.genreLimit))
+                app.renderBarChart('items-by-genre',app.selectedLibraryStats.genresWatchedCounts.slice(0, app.selectedLibraryStats.genreLimit), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit), false, app.selectedLibraryStats.genresUnwatchedCounts.slice(0, app.selectedLibraryStats.genreLimit))
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-genre', app.selectedLibraryStats.genreCounts.slice(0, app.selectedLibraryStats.genreLimit), app.selectedLibraryStats.genreList.slice(0, app.selectedLibraryStats.genreLimit));
             } else {
@@ -1260,7 +1286,7 @@ const app = new Vue({
         },
         renderCountryChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-country', app.selectedLibraryStats.countriesWatchedCounts.slice(0, app.selectedLibraryStats.countryLimit), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit), true, app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, app.selectedLibraryStats.countryLimit))
+                app.renderBarChart('items-by-country', app.selectedLibraryStats.countriesWatchedCounts.slice(0, app.selectedLibraryStats.countryLimit), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit), false, app.selectedLibraryStats.countriesUnwatchedCounts.slice(0, app.selectedLibraryStats.countryLimit))
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-country', app.selectedLibraryStats.countryCounts.slice(0, app.selectedLibraryStats.countryLimit), app.selectedLibraryStats.countryList.slice(0, app.selectedLibraryStats.countryLimit));
             } else {
@@ -1296,7 +1322,7 @@ const app = new Vue({
         },
         renderStudioChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-studio', app.selectedLibraryStats.studiosWatchedCounts.slice(0, app.selectedLibraryStats.studioLimit), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit), true, app.selectedLibraryStats.studiosUnwatchedCounts.slice(0, app.selectedLibraryStats.studioLimit));
+                app.renderBarChart('items-by-studio', app.selectedLibraryStats.studiosWatchedCounts.slice(0, app.selectedLibraryStats.studioLimit), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit), false, app.selectedLibraryStats.studiosUnwatchedCounts.slice(0, app.selectedLibraryStats.studioLimit));
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-studio', app.selectedLibraryStats.studioCounts.slice(0, app.selectedLibraryStats.studioLimit), app.selectedLibraryStats.studioList.slice(0, app.selectedLibraryStats.studioLimit));
             } else {
@@ -1305,7 +1331,7 @@ const app = new Vue({
         },
         renderDirectorChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-director', app.selectedLibraryStats.directorsWatchedCounts.slice(0, app.selectedLibraryStats.directorLimit), app.selectedLibraryStats.directorList.slice(0, app.selectedLibraryStats.directorLimit), true, app.selectedLibraryStats.directorsUnwatchedCounts.slice(0, app.selectedLibraryStats.directorLimit));
+                app.renderBarChart('items-by-director', app.selectedLibraryStats.directorsWatchedCounts.slice(0, app.selectedLibraryStats.directorLimit), app.selectedLibraryStats.directorList.slice(0, app.selectedLibraryStats.directorLimit), false, app.selectedLibraryStats.directorsUnwatchedCounts.slice(0, app.selectedLibraryStats.directorLimit));
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-director', app.selectedLibraryStats.directorCounts.slice(0, app.selectedLibraryStats.directorLimit), app.selectedLibraryStats.directorList.slice(0, app.selectedLibraryStats.directorLimit));
             } else {
@@ -1314,7 +1340,7 @@ const app = new Vue({
         },
         renderActorChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-actor', app.selectedLibraryStats.actorsWatchedCounts.slice(0, app.selectedLibraryStats.actorLimit), app.selectedLibraryStats.actorList.slice(0, app.selectedLibraryStats.actorLimit), true, app.selectedLibraryStats.actorsUnwatchedCounts.slice(0, app.selectedLibraryStats.actorLimit));
+                app.renderBarChart('items-by-actor', app.selectedLibraryStats.actorsWatchedCounts.slice(0, app.selectedLibraryStats.actorLimit), app.selectedLibraryStats.actorList.slice(0, app.selectedLibraryStats.actorLimit), false, app.selectedLibraryStats.actorsUnwatchedCounts.slice(0, app.selectedLibraryStats.actorLimit));
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-actor', app.selectedLibraryStats.actorCounts.slice(0, app.selectedLibraryStats.actorLimit), app.selectedLibraryStats.actorList.slice(0, app.selectedLibraryStats.actorLimit));
             } else {
@@ -1323,7 +1349,7 @@ const app = new Vue({
         },
         renderWriterChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-writer', app.selectedLibraryStats.writersWatchedCounts.slice(0, app.selectedLibraryStats.writerLimit), app.selectedLibraryStats.writerList.slice(0, app.selectedLibraryStats.writerLimit), true, app.selectedLibraryStats.writersUnwatchedCounts.slice(0, app.selectedLibraryStats.writerLimit));
+                app.renderBarChart('items-by-writer', app.selectedLibraryStats.writersWatchedCounts.slice(0, app.selectedLibraryStats.writerLimit), app.selectedLibraryStats.writerList.slice(0, app.selectedLibraryStats.writerLimit), false, app.selectedLibraryStats.writersUnwatchedCounts.slice(0, app.selectedLibraryStats.writerLimit));
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-writer', app.selectedLibraryStats.writerCounts.slice(0, app.selectedLibraryStats.writerLimit), app.selectedLibraryStats.writerList.slice(0, app.selectedLibraryStats.writerLimit));
             } else {
@@ -1332,7 +1358,7 @@ const app = new Vue({
         },
         renderContentRatingChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-content-rating', app.selectedLibraryStats.contentRatingsWatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit), app.selectedLibraryStats.contentRatingList.slice(0, app.selectedLibraryStats.contentRatingLimit), true, app.selectedLibraryStats.contentRatingsUnwatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit));
+                app.renderBarChart('items-by-content-rating', app.selectedLibraryStats.contentRatingsWatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit), app.selectedLibraryStats.contentRatingList.slice(0, app.selectedLibraryStats.contentRatingLimit), false, app.selectedLibraryStats.contentRatingsUnwatchedCounts.slice(0, app.selectedLibraryStats.contentRatingLimit));
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-content-rating', app.selectedLibraryStats.contentRatingCounts.slice(0, app.selectedLibraryStats.contentRatingLimit), app.selectedLibraryStats.contentRatingList.slice(0, app.selectedLibraryStats.contentRatingLimit));
             } else {
@@ -1361,7 +1387,7 @@ const app = new Vue({
                     show: false
                 },
                 color: {
-                    pattern: ['#F75C03'], // the three color levels for the percentage values.
+                    pattern: [chartColors[0]], // the three color levels for the percentage values.
                 },
                 size: {
                     height: 75,
