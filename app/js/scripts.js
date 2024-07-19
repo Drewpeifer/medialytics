@@ -128,7 +128,7 @@ newDirectorLimit = directorLimit,
 actorLimit = 20,
 newActorLimit = actorLimit,
 decadeLimit = 20,
-newDecadeLimit = decadeLimit
+newDecadeLimit = decadeLimit,
 writerLimit = 20,
 newWriterLimit = writerLimit,
 contentRatingLimit = 20,
@@ -1162,53 +1162,13 @@ const app = new Vue({
             };
 
             var config = {
-                respnsive: true,
+                responsive: true,
                 displaylogo: false,
                 displayModeBar: true,
                 modeBarButtonsToRemove: ['lasso2d', 'toImage'],
             };
 
             Plotly.newPlot(selector, data, layout, config);
-            // c3.generate({
-            //     bindto: selector,
-            //     x: 'x',
-            //     data: {
-            //         columns: [
-            //             dataColumns,
-            //             stackGroup
-            //         ],
-            //         type: 'bar',
-            //         groups: [[ dataColumns[0], stackGroup[0] ]],
-            //         order: null,
-            //     },
-            //     axis: {
-            //         rotated: rotated,
-            //         x: {
-            //             type: 'category',
-            //             categories: categories,
-            //             tick: {
-            //                 multiline: false,
-            //             }
-            //         }
-            //     },
-            //     legend: {
-            //         hide: false,
-            //     },
-            //     color: {
-            //         pattern: chartColors
-            //     },
-            //     tooltip: {
-            //         format: {
-            //             title: function(x, index) {
-            //                 return `${categories[index]} (${parseInt(stackGroup[index + 1]) + parseInt(dataColumns[index + 1])})`;
-            //             },
-            //             value: function (val, ratio, id, index) {
-            //                 let watchRatio = (val / (parseInt(stackGroup[index + 1]) + parseInt(dataColumns[index + 1])) * 100).toFixed(1);
-            //                 return id.includes('Unwatched') ? `Unwatched : ${val} (${watchRatio}%)` : `Watched : ${val} (${watchRatio}%)`;
-            //             },
-            //         }
-            //     }
-            // });
         },
         renderPieChart: function (selector, dataColumns, categories = []) {
             if (debugMode) {
@@ -1225,39 +1185,35 @@ const app = new Vue({
             var data = [{
                 values: dataColumns,
                 labels: categories,
-                type: 'pie'
+                hoverinfo: 'label+value+percent',
+                textinfo: 'label',
+                type: 'pie',
+                marker: {
+                    colors: chartColors
+                }
               }];
 
               var layout = {
-
+                margin: {
+                    pad: 10,
+                },
+                modebar: {
+                    color: '#f2f2f2',
+                    activecolor: chartColors[2],
+                },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: {
+                    color: '#fff',
+                }
               };
 
-              Plotly.react(selector, data, layout);
+              var config = {
+                responsive: true,
+                displayModeBar: false,
+              }
 
-            // c3.generate({
-            //     bindto: selector,
-            //     data: {
-            //         columns: pieColumns,
-            //         type : 'pie'
-            //     },
-            //     pie: {
-            //         label: {
-            //             format: function (value, ratio, id) {
-            //                 return value;
-            //             }
-            //         }
-            //     },
-            //     color: {
-            //         pattern: chartColors
-            //     },
-            //     tooltip: {
-            //         format: {
-            //             value: function (value, ratio, id) {
-            //                 return id + ' : ' + value;
-            //             }
-            //         }
-            //     }
-            // });
+              Plotly.react(selector, data, layout, config);
         },
         renderDefaultCharts: function (type) {
             // render charts

@@ -195,6 +195,9 @@ h3 {
     overflow: visible;
     top: -30px;
 }
+.card.full .js-plotly-plot .plotly .main-svg {
+    top: 0;
+}
 .card.full .js-plotly-plot .plotly .modebar {
     position: relative;
     left: 45%;
