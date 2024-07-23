@@ -5,7 +5,7 @@ const serverToken = 'SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
 serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
 libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
 // chart color theme
-chartColors = ['#D62828', '#fc9803', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
+chartColors = ['#D62828', '#FC9803', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
 recentLimit = 20,
 recentlyAddedUrl = serverIp + '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
