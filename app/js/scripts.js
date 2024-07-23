@@ -480,15 +480,15 @@ const parseMediaPayload = (data) => {
             if (item.Media) {
                 item.Media.forEach((media) => {
                     if (media.videoResolution) {
-                        if (resolutions.hasOwnProperty(media.videoResolution)) {
+                        if (resolutions.hasOwnProperty(media.videoResolution.toUpperCase())) {
                             // if resolution exists in the dictionary already,
                             // find the resolution and increment the count
-                            resolutions[media.videoResolution]++;
+                            resolutions[media.videoResolution.toUpperCase()]++;
                             // track the watched count for that resolution
-                            item.lastViewedAt ? resolutionsWatched[media.videoResolution]++ : resolutionsWatched[media.videoResolution];
+                            item.lastViewedAt ? resolutionsWatched[media.videoResolution.toUpperCase()]++ : resolutionsWatched[media.videoResolution.toUpperCase()];
                         } else {
-                            resolutions[media.videoResolution] = 1;
-                            item.lastViewedAt ? resolutionsWatched[media.videoResolution] = 1 : resolutionsWatched[media.videoResolution] = 0;
+                            resolutions[media.videoResolution.toUpperCase()] = 1;
+                            item.lastViewedAt ? resolutionsWatched[media.videoResolution.toUpperCase()] = 1 : resolutionsWatched[media.videoResolution.toUpperCase()] = 0;
                         }
                     }
                     if (media.container) {
