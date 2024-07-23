@@ -1233,6 +1233,42 @@ const app = new Vue({
 
             Plotly.react(selector, data, layout, config);
         },
+        renderWatchedGauge: function () {
+            let data = [
+                {
+                    domain: { x: [0, 2], y: [0, 10] },
+                    value: Math.floor(app.selectedLibraryStats.watchedCount),
+                    title: { text: "" },
+                    type: "indicator",
+                    mode: "gauge",
+                    gauge: {
+                        axis: {
+                            range: [null, parseInt(app.selectedLibraryStats.totalItems.replace(/,/g, ''))]
+                        },
+                        bar: { color: chartColors[0] },
+                        bgcolor: chartColors[1],
+                    }
+                }
+            ];
+
+            let layout = {
+                width: 300,
+                height: 150,
+                margin: { t: 0, b: 0 },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: {
+                    color: '#fff',
+                }
+            };
+
+            let config = {
+                responsive: true,
+                displayModeBar: false,
+            }
+
+            Plotly.newPlot('watched-gauge', data, layout, config);
+        },
         renderDefaultCharts: function (type) {
             // render charts
             this.renderGenreChart('bar');
@@ -1336,36 +1372,6 @@ const app = new Vue({
             } else {
                 console.error('Invalid chart type');
             }
-        },
-        renderWatchedGauge: function () {
-            c3.generate({
-                bindto: '.watched-gauge',
-                data: {
-                    columns: [
-                        ['Watched:', Math.floor((app.selectedLibraryStats.watchedCount / parseInt(app.selectedLibraryStats.totalItems.replace(/,/g, ''))) * 100)]
-                    ],
-                    type: 'gauge'
-                },
-                gauge: {
-                    label: {
-                        format: function(value, ratio) {
-                            return '';
-                        },
-                        show: false // to turn off the min/max labels.
-                    },
-                    width: 20 // for adjusting arc thickness
-                },
-                legend: {
-                    show: false
-                },
-                color: {
-                    pattern: [chartColors[0]], // the three color levels for the percentage values.
-                },
-                size: {
-                    height: 75,
-                    width: 150
-                }
-            });
         },
         updateLimit: function (limitType, updatedLimit) {
             // limitType is a string like "genre" and updatedLimit is a number

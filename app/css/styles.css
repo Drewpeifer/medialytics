@@ -228,6 +228,12 @@ h3 {
 .legend p span.watched {
     background: #D62828;
 }
+#watched-gauge.js-plotly-plot .plotly .svg-container {
+    margin: 0 auto;
+}
+#watched-gauge.js-plotly-plot .plotly .main-svg {
+    top: 0;
+}
 /* plotly tooltips */
 .hoverlayer .name,
 .hoverlayer rect {

@@ -92,11 +92,11 @@
                                 </p>
                                 <p class="watched">
                                     <strong>Watched:</strong>
-                                    <span class="watched-gauge"></span>
                                     <span>
                                         {{ selectedLibraryStats.watchedCount.toLocaleString() }} / {{ selectedLibraryStats.totalItems }}
                                         ({{ Math.floor((selectedLibraryStats.watchedCount / parseInt(selectedLibraryStats.totalItems.replace(/,/g, ''))) * 100) }}&#37;)
                                     </span>
+                                    <span id="watched-gauge" class="watched-gauge"></span>
                                 </p>
                                 <p><strong>Total Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
                             </div>
