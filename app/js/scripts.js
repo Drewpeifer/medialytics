@@ -275,7 +275,6 @@ const getLibraryData = async (libraryKey) => {
         console.log('Library Data: ', libraryData);
     }
     resetLibraryStats();
-    app.renderWatchedGauge();
     return libraryData;
 }
 
@@ -1225,42 +1224,6 @@ const app = new Vue({
             }
 
             Plotly.react(selector, data, layout, config);
-        },
-        renderWatchedGauge: function () {
-            let data = [
-                {
-                    domain: { x: [0, 2], y: [0, 10] },
-                    value: Math.floor(app.selectedLibraryStats.watchedCount),
-                    title: { text: "" },
-                    type: "indicator",
-                    mode: "gauge",
-                    gauge: {
-                        axis: {
-                            range: [null, parseInt(app.selectedLibraryStats.totalItems.replace(/,/g, ''))]
-                        },
-                        bar: { color: chartColors[0] },
-                        bgcolor: chartColors[1],
-                    }
-                }
-            ];
-
-            let layout = {
-                width: 300,
-                height: 150,
-                margin: { t: 0, b: 0 },
-                paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                font: {
-                    color: '#fff',
-                }
-            };
-
-            let config = {
-                responsive: true,
-                displayModeBar: false,
-            }
-
-            Plotly.newPlot('watched-gauge', data, layout, config);
         },
         renderDefaultCharts: function (type) {
             // render charts

@@ -160,11 +160,6 @@ h3 {
 #items-by-rating.chart {
     min-height:500px;
 }
-/* gauge chart */
-.watched span,
-.watched strong {
-    display: block;
-}
 /* chart toggle buttons */
 .chart-toggle input {
     display:none;
@@ -224,12 +219,6 @@ h3 {
 }
 .legend p span.watched {
     background: #D62828;
-}
-#watched-gauge.js-plotly-plot .plotly .svg-container {
-    margin: 0 auto;
-}
-#watched-gauge.js-plotly-plot .plotly .main-svg {
-    top: 0;
 }
 /* plotly tooltips */
 .hoverlayer .name,
