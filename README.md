@@ -1,4 +1,4 @@
-# Medialytics 2.3.5
+# Medialytics 2.3.6
 ### A free analytics tool for Plex server content
 
 --------
@@ -14,7 +14,7 @@ runs in the browser and generates statistics specifically about the content of y
 ![visualizations-2](https://i.imgur.com/CCmDkSo.png)
 
 ## Main features
-* Bar charts for genre, country, decade, studio, resolution*, container* (file type), actor, writer*, and director* analysis
+* Bar charts for genre, country, decade, studio, content rating, resolution*, container* (file type), actor, writer*, and director* analysis
 * Scatter chart of audience rating (TMDB) vs content rating
 * Statistics for size and duration of entire library
 * Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
@@ -36,7 +36,7 @@ longer this call may take**. The response is then parsed, stats are aggregated, 
 
 ## What is it built with?
 Version 2.0 was rebuilt with [Vue 2](https://v2.vuejs.org/), [Axios](https://axios-http.com/docs/api_intro) for API calls,
-and charts are built with [D3](https://d3js.org/)/[C3](https://c3js.org/) and [plotly.js](https://plotly.com/javascript/).
+and charts are built with [D3](https://d3js.org/) and [plotly.js](https://plotly.com/javascript/).
 
 # SECURITY WARNING:
 This application relies upon using the private Plex token of your server, which you do **not** want to share
@@ -152,5 +152,5 @@ For anyone who wishes to fork and modify this repo, here are some links you may 
 1. [Plex token docs](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/) (for token management)
 1. [Vue 2 docs](https://v2.vuejs.org/) (for general app logic and architecture)
 1. [Axios docs](https://axios-http.com/docs/api_intro) (for API calls)
-1. [D3.js](https://d3js.org/) / [C3.js](https://c3js.org/) / [plotly.js](https://plotly.com/javascript/) for editing charts
+1. [D3.js](https://d3js.org/) / [plotly.js](https://plotly.com/javascript/) for editing charts
 1. [Guide to Flexbox](https://css-tricks.com/snippets/css/a-guide-to-flexbox/) (for UI editing)
