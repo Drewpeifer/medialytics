@@ -165,9 +165,6 @@ h3 {
 .watched strong {
     display: block;
 }
-.c3-chart-arcs-background {
-    fill: #F75C03;
-}
 /* chart toggle buttons */
 .chart-toggle input {
     display:none;
