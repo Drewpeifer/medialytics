@@ -1158,6 +1158,9 @@ const app = new Vue({
                 plot_bgcolor: 'transparent',
                 font: {
                     color: '#fff',
+                },
+                xaxis: {
+                    type: 'category',
                 }
             };
 
