@@ -1085,15 +1085,8 @@ const app = new Vue({
                 font: {
                     color: '#fff',
                 },
-                plot_bgcolor: '#222',
-                paper_bgcolor: '#222',
-                hoverlabel: {
-                    bordercolor: '#fff',
-                    font: {
-                        color: '#fff',
-                        weight: 'bold',
-                    },
-                },
+                plot_bgcolor: 'transparent',
+                paper_bgcolor: 'transparent',
                 hoverdistance: 1,
                 scattermode: 'group',
                 scattergap: .5,
