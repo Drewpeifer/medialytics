@@ -1062,7 +1062,7 @@ const app = new Vue({
                 console.log('rendering ratings chart: ', ratingsList);
             }
             let ratingsSuperset = type === 'movie' ? ratingsMovies : ratingsTV,
-                layout = {
+            layout = {
                 showlegend: false,
                 margin: {
                     pad: 10,
@@ -1209,9 +1209,9 @@ const app = new Vue({
                 marker: {
                     colors: chartColors
                 }
-              }];
+            }];
 
-              let layout = {
+            let layout = {
                 margin: {
                     pad: 10,
                 },
@@ -1224,14 +1224,14 @@ const app = new Vue({
                 font: {
                     color: '#fff',
                 }
-              };
+            };
 
-              let config = {
+            let config = {
                 responsive: true,
                 displayModeBar: false,
-              }
+            }
 
-              Plotly.react(selector, data, layout, config);
+            Plotly.react(selector, data, layout, config);
         },
         renderDefaultCharts: function (type) {
             // render charts
