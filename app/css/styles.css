@@ -228,6 +228,11 @@ h3 {
 .legend p span.watched {
     background: #D62828;
 }
+/* plotly tooltips */
+.hoverlayer .name,
+.hoverlayer rect {
+    display: none;
+}
 
 /* sweet loading spinner from css-tricks */
 .loader {

@@ -1120,7 +1120,12 @@ const app = new Vue({
                 stackGroup = stackGroup.reverse();
                 categories = categories.reverse();
             }
-            var trace1 = {
+            // store the total for each column so we can show the ratio in tooltip
+            let totalColumns = [];
+            dataColumns.forEach((column, index) => {
+                totalColumns.push(column + stackGroup[index]);
+            });
+            let trace1 = {
                 x: rotated ? dataColumns : categories,
                 y: rotated ? categories : dataColumns,
                 name: 'Watched',
@@ -1128,10 +1133,15 @@ const app = new Vue({
                 orientation: rotated ? 'h' : 'v',
                 marker: {
                     color: chartColors[0]
-                }
+                },
+                hoverinfo: 'text',
+                textposition: 'none',// this prevents the text from being shown on the bars
+                text: totalColumns.map((total, index) => {
+                    return `${categories[index]}<br />${dataColumns[index]} / ${total} Watched`
+                })
             };
 
-            var trace2 = {
+            let trace2 = {
                 x: rotated ? stackGroup : categories,
                 y: rotated ? categories : stackGroup,
                 name: 'Unwatched',
@@ -1139,12 +1149,17 @@ const app = new Vue({
                 orientation: rotated ? 'h' : 'v',
                 marker: {
                     color: chartColors[1]
-                }
+                },
+                hoverinfo: 'text',
+                textposition: 'none',// this prevents the text from being shown on the bars
+                text: totalColumns.map((total, index) => {
+                    return `${categories[index]}<br />${stackGroup[index]} / ${total} Unwatched`
+                })
             };
 
-            var data = [trace1, trace2];
+            let data = [trace1, trace2];
 
-            var layout = {
+            let layout = {
                 barmode: 'stack',
                 showlegend: false,
                 margin: {
@@ -1164,7 +1179,7 @@ const app = new Vue({
                 }
             };
 
-            var config = {
+            let config = {
                 responsive: true,
                 displaylogo: false,
                 displayModeBar: true,
@@ -1185,7 +1200,7 @@ const app = new Vue({
             } else {
                 pieColumns = dataColumns;
             }
-            var data = [{
+            let data = [{
                 values: dataColumns,
                 labels: categories,
                 hoverinfo: 'label+value+percent',
@@ -1196,7 +1211,7 @@ const app = new Vue({
                 }
               }];
 
-              var layout = {
+              let layout = {
                 margin: {
                     pad: 10,
                 },
@@ -1211,7 +1226,7 @@ const app = new Vue({
                 }
               };
 
-              var config = {
+              let config = {
                 responsive: true,
                 displayModeBar: false,
               }
