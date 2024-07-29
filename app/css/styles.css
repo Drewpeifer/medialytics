@@ -21,13 +21,6 @@ strong, a {
     margin: 3px 0;
     text-transform: capitalize;
 }
-.library-stats p {
-    margin: 5px 25px;
-}
-.library-stats p strong {
-    display: block;
-    white-space: nowrap;
-}
 h3 {
     font-size: 14px;
     margin: 5px 0 10px 0;
@@ -36,16 +29,32 @@ h3 {
 .warning {
     color: red;
 }
-.library-list p {
+.library-list .row,
+.library-stats .row {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.library-list.collapsed .row {
+    flex-direction: column;
+}
+.library-list .row p {
+    margin: 5px 25px;
     padding: 5px;
 }
-.library-list p.selected {
+.library-stats .row p {
+    min-width: 30%
+}
+.library-list .row p.selected {
     border: 1px solid white;
     border-radius: 5px;
     background: #444;
     padding: 5px;
 }
-
+.library-stats .row p strong {
+    display: block;
+    white-space: nowrap;
+}
 /* cards */
 .card {
     background: #444;
@@ -93,9 +102,6 @@ h3 {
     flex-direction: row;
     justify-content: space-evenly;
     margin: 10px 0;
-}
-.library-stats .content .row {
-    justify-content: center;
 }
 .library-info .card p {
     min-width: 30%;

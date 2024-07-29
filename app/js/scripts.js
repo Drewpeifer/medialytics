@@ -226,7 +226,8 @@ const resetLibraryStats = () => {
     lastAdded = "",
     lastAddedDate = "",
     unmatchedItems = [],
-    watchedCount = 0;
+    watchedCount = 0,
+    type = "";
 }
 
 /////////////////////////////////
@@ -965,8 +966,8 @@ const parseMediaPayload = (data) => {
                 contentRatingCounts: contentRatingCounts,
                 contentRatingsWatchedCounts: sortedContentRatingsWatchedCounts,
                 contentRatingsUnwatchedCounts: sortedContentRatingsUnwatchedCounts,
-                type: type,
-                totalDuration: totalDays + " Days, " + displayHours + " Hours and " + displayMins + " Mins",
+                type: type.length > 0 ? type : "",
+                totalDuration: totalDays + " Days, " + displayHours + " Hours, " + displayMins + " Mins",
                 seasonSum: seasonSum,
                 episodeSum: episodeSum,
                 studioLimit: studioLimit,
