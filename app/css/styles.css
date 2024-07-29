@@ -124,39 +124,6 @@ h3 {
     padding:2px 5px;
     margin:0 5px;
 }
-
-/* recently added */
-.recently-added .content .row {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x: auto;
-}
-.recently-added .content .entry {
-    height: 180px;
-    width: 130px;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-.recently-added .entry img {
-    height: 100%;
-    width: 100%;
-}
-.recently-added .entry .info {
-    font-size: 14px;
-    text-align: center;
-    margin: 5px 0;
-    padding: 5px;
-    border: #fff 1px solid;
-    background: rgba(0,0,0,0.5);
-    position: relative;
-    top: -50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display:none;
-}
-.recently-added .entry:hover .info {
-    display: block;
-}
 /* charts */
 .chart {
     font-size:12px;

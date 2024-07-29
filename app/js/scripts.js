@@ -6,8 +6,6 @@ serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
 libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
 // chart color theme
 chartColors = ['#D62828', '#FC9803', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
-recentLimit = 20,
-recentlyAddedUrl = serverIp + '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + recentLimit + '&X-Plex-Token=' + serverToken,
 // below are the decade arrays used for the items by decade chart, any data outside of these decades will
 // be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
 decadePrefixes = ["191", "192", "193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
@@ -19,7 +17,6 @@ selectedLibrary = "",// the library currently selected by the user
 selectedLibraryKey = "",// the key of the library currently selected by the user
 selectedLibraryStats = {},// a large object containing all the stats for the selected library
 libraryStatsLoading = false,// used to trigger loading animations
-recentlyAdded = [],// the list of recently added items returned by your server
 watchedCount = 0,// total watched items in a library
 // genres
 genres = {},// this stores genre: count, and is then split into the two following arrays
@@ -112,7 +109,7 @@ seasonSum = 0,
 episodeCounts = [],
 episodeSum = 0,
 unmatchedItems = [],
-// below are the limits for displaying data in the charts, e.g. "Top X Countries", and the recently added list
+// below are the limits for displaying data in the charts, e.g. "Top X Countries"
 countryLimit = 20,
 newCountryLimit = countryLimit,// "new" variations are used for the UI to track changes to limit / Top X
 genreLimit = 20,
@@ -246,15 +243,6 @@ const parseLibraryList = (data) => {
         }
     });
     return libraries;
-}
-
-/////////////////////////////////
-// generate recently added list (for the entire server)
-const getRecentlyAdded = async () => {
-    let recentlyAdded = await axios.get(recentlyAddedUrl).then((response) => {
-        return response.data.MediaContainer.Metadata;
-    });
-    return recentlyAdded;
 }
 
 /////////////////////////////////
@@ -1027,7 +1015,6 @@ const app = new Vue({
         selectedLibrary: selectedLibrary,
         selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
-        recentlyAdded: recentlyAdded,
         resolutionToggle: "pie",
         containerToggle: "pie",
         genreToggle: "pie",
@@ -1050,10 +1037,6 @@ const app = new Vue({
                 console.log('Server Token: ', serverToken);
                 console.log('Available Libraries: ', app.availableLibraries);
             }
-        }).then(() => {
-            getRecentlyAdded().then((data) => {
-                app.recentlyAdded = data;
-            });
         });
     },
     methods: {

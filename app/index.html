@@ -34,33 +34,6 @@
             </div>
             <p>Targeted Server:</p>
             <p><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></p>
-            <div class="card recently-added">
-                <div class="header">
-                    <p>Recently Added</p>
-                </div>
-                <div class="content">
-                    <div class="row">
-                        <div class="entry" v-for="item in recentlyAdded" v-bind:key="item.key">
-                            <template v-if="item.type === 'movie'">
-                                <img v-bind:src="serverIp + item.thumb + '?X-Plex-Token=' + serverToken"
-                                v-bind:alt="item.title" />
-                                <div class="info">
-                                    <p class="title">{{ item.title }}</p>
-                                    <p class="year">({{ item.year }})</p>
-                                </div>
-                            </template>
-                            <template v-else>
-                                <img v-bind:src="serverIp + item.parentThumb + '?X-Plex-Token=' + serverToken"
-                                v-bind:alt="item.parentTitle" />
-                                <div class="info">
-                                    <p class="title">{{ item.parentTitle }} / {{ item.title }}</p>
-                                    <p class="year">({{ item.parentYear }})</p>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="row">
                 <div class="card library-list" :class="{ collapsed : selectedLibrary.length > 0 }">
                     <div class="header">
