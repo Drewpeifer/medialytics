@@ -211,6 +211,10 @@ h3 {
 }
 .js-plotly-plot .plotly .modebar .modebar-group {
     background-color: transparent !important;
+    display: inline-block;
+}
+.js-plotly-plot .plotly .modebar .modebar-group a {
+    margin: 2px;
 }
 .legend {
     margin-top: -20px;
