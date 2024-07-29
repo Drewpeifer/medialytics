@@ -75,6 +75,7 @@ h3 {
     flex-direction: column;
     border-radius: 0 0 5px 5px;
     height: 100%;
+    overflow: hidden;
 }
 .card.half {
     flex-grow: 0;
