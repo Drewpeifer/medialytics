@@ -28,7 +28,7 @@ _Items marked with "*" are only available for Movie libraries_
 as the content within each library. Medialytics parses that XML feed and performs calculations on the content to
 aggregate and display statistics.
 
-When the page loads, two API calls are made to your server: one returns available libraries, the other returns a list of recently added media.
+When the page loads, a single API call is made to your server to return a list of available libraries.
 After selecting an available library, a call will be made to the corresponding endpoint that returns that library's data. **The larger the library, the
 longer this call may take**. The response is then parsed, stats are aggregated, and (depending on the library type) the UI displays relevant data and charts.
 
