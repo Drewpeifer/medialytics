@@ -1087,7 +1087,7 @@ const app = new Vue({
 
             Plotly.newPlot(selector, ratingsList, layout, config);
         },
-        renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = []) {
+        renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = [], shortLabels = false) {
             if (debugMode) {
                 console.log('rendering chart: ', selector, dataColumns, categories, rotated, stackGroup)
             }
@@ -1152,6 +1152,7 @@ const app = new Vue({
                 },
                 xaxis: {
                     type: 'category',
+                    tickangle: shortLabels ? 0 : 30,
                 }
             };
 
@@ -1243,7 +1244,7 @@ const app = new Vue({
         },
         renderResolutionChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-resolution', app.selectedLibraryStats.resolutionsWatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit), false, app.selectedLibraryStats.resolutionsUnwatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit))
+                app.renderBarChart('items-by-resolution', app.selectedLibraryStats.resolutionsWatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit), false, app.selectedLibraryStats.resolutionsUnwatchedCounts.slice(0, app.selectedLibraryStats.resolutionLimit), true)
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-resolution', app.selectedLibraryStats.resolutionCounts.slice(0, app.selectedLibraryStats.resolutionLimit), app.selectedLibraryStats.resolutionList.slice(0, app.selectedLibraryStats.resolutionLimit));
             } else {
@@ -1252,7 +1253,7 @@ const app = new Vue({
         },
         renderContainerChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-container', app.selectedLibraryStats.containersWatchedCounts.slice(0, app.selectedLibraryStats.containerLimit), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit), false, app.selectedLibraryStats.containersUnwatchedCounts.slice(0, app.selectedLibraryStats.containerLimit))
+                app.renderBarChart('items-by-container', app.selectedLibraryStats.containersWatchedCounts.slice(0, app.selectedLibraryStats.containerLimit), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit), false, app.selectedLibraryStats.containersUnwatchedCounts.slice(0, app.selectedLibraryStats.containerLimit), true)
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-container', app.selectedLibraryStats.containerCounts.slice(0, app.selectedLibraryStats.containerLimit), app.selectedLibraryStats.containerList.slice(0, app.selectedLibraryStats.containerLimit));
             } else {
@@ -1261,7 +1262,7 @@ const app = new Vue({
         },
         renderDecadeChart: function (type) {
             if (type == 'bar') {
-                app.renderBarChart('items-by-decade', app.selectedLibraryStats.decadesWatchedCounts.slice((app), app.selectedLibraryStats.decadeLimit), decades.slice(0, app.selectedLibraryStats.decadeLimit), false, app.selectedLibraryStats.decadesUnwatchedCounts.slice(0, app.selectedLibraryStats.decadeLimit));
+                app.renderBarChart('items-by-decade', app.selectedLibraryStats.decadesWatchedCounts.slice((app), app.selectedLibraryStats.decadeLimit), decades.slice(0, app.selectedLibraryStats.decadeLimit), false, app.selectedLibraryStats.decadesUnwatchedCounts.slice(0, app.selectedLibraryStats.decadeLimit), true);
             } else if (type == 'pie') {
                 app.renderPieChart('items-by-decade', app.selectedLibraryStats.releaseDateCounts.slice(0, app.selectedLibraryStats.decadeLimit), decades.slice(0, app.selectedLibraryStats.decadeLimit));
             } else {
