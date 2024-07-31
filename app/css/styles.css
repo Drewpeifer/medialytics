@@ -59,6 +59,10 @@ h3 {
     display: block;
     white-space: nowrap;
 }
+.library-info .card p {
+    margin: 0 10px;
+    line-height: 24px;
+}
 /* cards */
 .card {
     background: #444;
@@ -106,11 +110,6 @@ h3 {
     flex-direction: row;
     justify-content: space-evenly;
     margin: 10px 0;
-}
-.library-info .card p {
-    min-width: 30%;
-    margin: 0 10px;
-    line-height: 24px;
 }
 
 /* controls */
