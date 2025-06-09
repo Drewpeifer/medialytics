@@ -121,6 +121,24 @@
                         </div>
                     </div>
                 </div>
+                <!-- items added over time-->
+                <div class="row">
+                    <div class="card full">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.type }} Additions Over Time</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <p><strong>Date Range:</strong> {{ selectedLibraryStats.firstAddedDate ? selectedLibraryStats.firstAddedDate.toLocaleDateString().replace(/\//g,'-') : '' }} to {{ new Date().toLocaleDateString().replace(/\//g,'-') }}</p>
+                                <p><strong>Total Items:</strong> {{ selectedLibraryStats.totalItems }}</p>
+                            </div>
+                            <div class="row">
+                                <div id="items-added-over-time" class="chart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- items by genre chart -->
                 <div class="row">
                     <div class="card half">

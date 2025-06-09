@@ -117,6 +117,13 @@ contentRatingData = {
     watchedCounts: [],
     unwatchedCounts: []
 },
+// items added over time (line)
+addedOverTimeData = {
+    dates: {},// stores date: count
+    datesList: [],// sorted list of dates
+    counts: [],// counts corresponding to datesList
+    cumulativeCounts: []// cumulative counts for running total
+},
 // durations, library size, and unmatched items
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
@@ -283,6 +290,38 @@ const prepareCategoryChartData = (categoryData) => {
         watched: watchedCounts,
         unwatched: unwatchedCounts,
         sortedEntries: sortedEntries // Retaining for direct topX access if needed before selectedLibraryStats is built
+    };
+};
+
+const prepareAddedOverTimeData = (addedData) => {
+    // Sort dates and prepare arrays
+    const sortedDates = Object.keys(addedData.dates).sort();
+    const datesList = [];
+    const counts = [];
+    const cumulativeCounts = [];
+    let runningTotal = 0;
+
+    // If we have dates, fill in gaps from first to last date
+    if (sortedDates.length > 0) {
+        const startDate = new Date(sortedDates[0]);
+        const endDate = new Date(); // Current date
+
+        // Iterate through each day from start to end
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dateKey = d.toISOString().split('T')[0];
+            datesList.push(dateKey);
+
+            const dayCount = addedData.dates[dateKey] || 0;
+            counts.push(dayCount);
+            runningTotal += dayCount;
+            cumulativeCounts.push(runningTotal);
+        }
+    }
+
+    return {
+        datesList: datesList,
+        counts: counts,
+        cumulativeCounts: cumulativeCounts
     };
 };
 
@@ -533,6 +572,19 @@ const parseMediaPayload = (data) => {
         lastAddedDate = oldestAndLatestData.lastAddedDate;
 
         /////////////////////////////////
+        // track items added over time
+        if (item.addedAt) {
+            const addedDate = new Date(item.addedAt * 1000);
+            const dateKey = addedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+            if (addedOverTimeData.dates.hasOwnProperty(dateKey)) {
+                addedOverTimeData.dates[dateKey]++;
+            } else {
+                addedOverTimeData.dates[dateKey] = 1;
+            }
+        }
+
+        /////////////////////////////////
         // track studio, genres, countries, actors, content ratings
         processItemCounts(item, studioData, 'studio', true);
         processItemCounts(item, genreData, 'Genre');
@@ -665,6 +717,12 @@ const parseMediaPayload = (data) => {
             contentRatingData.chartCounts = preparedContentRatingData.counts;
             contentRatingData.chartWatchedCounts = preparedContentRatingData.watched;
             contentRatingData.chartUnwatchedCounts = preparedContentRatingData.unwatched;
+
+            // Prepare added over time data
+            const preparedAddedOverTimeData = prepareAddedOverTimeData(addedOverTimeData);
+            addedOverTimeData.datesList = preparedAddedOverTimeData.datesList;
+            addedOverTimeData.counts = preparedAddedOverTimeData.counts;
+            addedOverTimeData.cumulativeCounts = preparedAddedOverTimeData.cumulativeCounts;
 
             // Decade data processing
             const preparedDecadeData = prepareDecadeChartData(releaseDateData, decades, decadePrefixes);
@@ -825,7 +883,10 @@ const parseMediaPayload = (data) => {
                 lastAdded : lastAdded,
                 lastAddedDate : lastAddedDate,
                 unmatchedItems : unmatchedItems,
-                watchedCount : watchedCount
+                watchedCount : watchedCount,
+                addedOverTimeDates: addedOverTimeData.datesList,
+                addedOverTimeCounts: addedOverTimeData.counts,
+                addedOverTimeCumulative: addedOverTimeData.cumulativeCounts
             }
 
             // render charts
@@ -982,6 +1043,101 @@ const app = new Vue({
         renderContentRatingChart: function (type) {
             const chartType = type || this.contentRatingToggle;
             this.renderCategoricalChart('contentRating', chartType);
+        },
+        renderAddedOverTimeChart: function () {
+            if (this.debugMode) {
+                console.log('rendering added over time chart: ', this.selectedLibraryStats.addedOverTimeDates, this.selectedLibraryStats.addedOverTimeCounts);
+            }
+
+            if (!this.selectedLibraryStats.addedOverTimeDates || this.selectedLibraryStats.addedOverTimeDates.length === 0) {
+                console.warn('No data available for added over time chart');
+                return;
+            }
+
+            let trace1 = {
+                x: this.selectedLibraryStats.addedOverTimeDates,
+                y: this.selectedLibraryStats.addedOverTimeCumulative,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Cumulative Total',
+                line: {
+                    color: chartColors[0],
+                    width: 2
+                },
+                hovertemplate: '%{x}<br>Total: %{y}<extra></extra>',
+                yaxis: 'y'
+            };
+
+            let trace2 = {
+                x: this.selectedLibraryStats.addedOverTimeDates,
+                y: this.selectedLibraryStats.addedOverTimeCounts,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Daily Additions',
+                line: {
+                    color: chartColors[3],
+                    width: 2
+                },
+                hovertemplate: '%{x}<br>Added: %{y}<extra></extra>',
+                yaxis: 'y2'
+            };
+
+            let data = [trace1, trace2];
+
+            let layout = {
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: 1,
+                    bgcolor: 'transparent',
+                    bordercolor: '#888',
+                    borderwidth: 1
+                },
+                margin: {
+                    pad: 10,
+                    r: 80
+                },
+                xaxis: {
+                    title: 'Date',
+                    gridcolor: "#888",
+                    showgrid: false,
+                    type: 'date'
+                },
+                yaxis: {
+                    title: 'Cumulative Total',
+                    gridcolor: "#888",
+                    showgrid: true,
+                    zeroline: true,
+                    side: 'left'
+                },
+                yaxis2: {
+                    title: 'Daily Additions',
+                    gridcolor: "#888",
+                    showgrid: false,
+                    zeroline: true,
+                    overlaying: 'y',
+                    side: 'right',
+                    rangemode: 'tozero'
+                },
+                font: {
+                    color: '#fff',
+                },
+                plot_bgcolor: 'transparent',
+                paper_bgcolor: 'transparent',
+                modebar: {
+                    color: '#f2f2f2',
+                    activecolor: chartColors[2],
+                }
+            };
+
+            let config = {
+                displaylogo: false,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'toImage'],
+                responsive: true
+            };
+
+            Plotly.newPlot('items-added-over-time', data, layout, config);
         },
         // Core Plotly interaction methods
         renderScatterChart: function (type, ratingsList, selector) {
@@ -1172,6 +1328,10 @@ const app = new Vue({
                 this.renderScatterChart(this.selectedLibraryStats.type, this.selectedLibraryStats.ratingsList, 'items-by-rating');
             } else {
                 // console.warn('Scatter chart data not ready in selectedLibraryStats');
+            }
+            // Render added over time chart
+            if (this.selectedLibraryStats && this.selectedLibraryStats.addedOverTimeDates) {
+                this.renderAddedOverTimeChart();
             }
         },
         updateLimit: function (limitType, updatedLimit) {
