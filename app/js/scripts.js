@@ -161,35 +161,30 @@ const resetLibraryStats = () => {
     countryData.watched = {};
     countryData.watchedCounts = [];
     countryData.unwatchedCounts = [];
-    countryToggle = "";
     genreData.data = {};
     genreData.list = [];
     genreData.counts = [];
     genreData.watched = {};
     genreData.watchedCounts = [];
     genreData.unwatchedCounts = [];
-    genreToggle = "";
     resolutionData.data = {};
     resolutionData.list = [];
     resolutionData.counts = [];
     resolutionData.watched = {};
     resolutionData.watchedCounts = [];
     resolutionData.unwatchedCounts = [];
-    resolutionToggle = "";
     containerData.data = {};
     containerData.list = [];
     containerData.counts = [];
     containerData.watched = {};
     containerData.watchedCounts = [];
     containerData.unwatchedCounts = [];
-    containerToggle = "";
     studioData.data = {};
     studioData.list = [];
     studioData.counts = [];
     studioData.watched = {};
     studioData.watchedCounts = [];
     studioData.unwatchedCounts = [];
-    studioToggle = "";
     releaseDateData.list = [];
     releaseDateData.counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     releaseDateData.oldestTitle = "";
@@ -197,35 +192,30 @@ const resetLibraryStats = () => {
     releaseDateData.watchedList = [];
     releaseDateData.watchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     releaseDateData.unwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    decadeToggle = "";
     directorData.data = {};
     directorData.list = [];
     directorData.counts = [];
     directorData.watched = {};
     directorData.watchedCounts = [];
     directorData.unwatchedCounts = [];
-    directorToggle = "";
     actorData.data = {};
     actorData.list = [];
     actorData.counts = [];
     actorData.watched = {};
     actorData.watchedCounts = [];
     actorData.unwatchedCounts = [];
-    actorToggle = "";
     writerData.data = {};
     writerData.list = [];
     writerData.counts = [];
     writerData.watched = {};
     writerData.watchedCounts = [];
     writerData.unwatchedCounts = [];
-    writerToggle = "";
     contentRatingData.data = {};
     contentRatingData.list = [];
     contentRatingData.counts = [];
     contentRatingData.watched = {};
     contentRatingData.watchedCounts = [];
     contentRatingData.unwatchedCounts = [];
-    contentRatingToggle = "";
     ratingsList = [];
     ratingsContent = [],
     ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
@@ -358,7 +348,12 @@ const processItemCounts = (item, categoryData, itemPropertyKey, singleValue = fa
     if (property) {
         if (singleValue) {
             // Ensure property is treated as a direct value, e.g. item.studio or media.videoResolution
-            values.push(property.tag ? property.tag : property.toString().toUpperCase());
+            // but also ensure that only container and resolution are converted to uppercase (not studio, genre, etc.)
+            if (itemPropertyKey === 'container' || itemPropertyKey === 'videoResolution') {
+                values.push(property.toString().toUpperCase());
+            } else {
+                values.push(property.toString());
+            }
         } else {
             // Ensure property is an array and has .forEach, e.g. item.Genre
             if (Array.isArray(property)) {
@@ -860,16 +855,16 @@ const app = new Vue({
         selectedLibrary: selectedLibrary,
         selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
-        resolutionToggle: "pie",
-        containerToggle: "pie",
-        genreToggle: "pie",
-        countryToggle: "pie",
-        studioToggle: "pie",
-        directorToggle: "pie",
-        actorToggle: "pie",
-        decadeToggle: "pie",
-        writerToggle: "pie",
-        contentRatingToggle: "pie"
+        resolutionToggle: "bar",
+        containerToggle: "bar",
+        genreToggle: "bar",
+        countryToggle: "bar",
+        studioToggle: "bar",
+        directorToggle: "bar",
+        actorToggle: "bar",
+        decadeToggle: "bar",
+        writerToggle: "bar",
+        contentRatingToggle: "bar"
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -885,48 +880,11 @@ const app = new Vue({
         });
     },
     methods: {
-        // High-level methods
-        renderDefaultCharts: function () {
-            this.renderGenreChart(this.genreToggle);
-            this.renderCountryChart(this.countryToggle);
-            this.renderResolutionChart(this.resolutionToggle);
-            this.renderContainerChart(this.containerToggle);
-            this.renderDecadeChart(this.decadeToggle);
-            this.renderStudioChart(this.studioToggle);
-            this.renderDirectorChart(this.directorToggle);
-            this.renderActorChart(this.actorToggle);
-            this.renderWriterChart(this.writerToggle);
-            this.renderContentRatingChart(this.contentRatingToggle);
-            if (this.selectedLibraryStats && this.selectedLibraryStats.type && this.selectedLibraryStats.ratingsList) {
-                this.renderScatterChart(this.selectedLibraryStats.type, this.selectedLibraryStats.ratingsList, 'items-by-rating');
-            }
-        },
-        updateLimit: function (limitType, updatedLimit) {
-            this.selectedLibraryStats[`${limitType}Limit`] = parseInt(updatedLimit);
-            const toggleProperty = `${limitType}Toggle`;
-            const currentChartType = this[toggleProperty]; // e.g., this.genreToggle
-            const newChartType = currentChartType === 'bar' ? 'pie' : 'bar'; // Determine the *other* type to render
-
-            // Call the specific render<Topic>Chart method with the *new* chart type
-            // This preserves the behavior of switching chart type upon limit update.
-            // The specific render<Topic>Chart method will then call renderCategoricalChart.
-            switch (limitType) {
-                case 'genre': this.renderGenreChart(newChartType); break;
-                case 'country': this.renderCountryChart(newChartType); break;
-                case 'studio': this.renderStudioChart(newChartType); break;
-                case 'resolution': this.renderResolutionChart(newChartType); break;
-                case 'container': this.renderContainerChart(newChartType); break;
-                case 'decade': this.renderDecadeChart(newChartType); break;
-                case 'director': this.renderDirectorChart(newChartType); break;
-                case 'actor': this.renderActorChart(newChartType); break;
-                case 'writer': this.renderWriterChart(newChartType); break;
-                case 'contentRating': this.renderContentRatingChart(newChartType); break;
-                default: console.error('Invalid limit type');
-            }
-        },
         // Generic rendering helper
         renderCategoricalChart: function(categoryName, chartType) {
-            const selector = 'items-by-' + categoryName;
+            // Handle special case for contentRating to match HTML id
+            const selectorName = categoryName === 'contentRating' ? 'content-rating' : categoryName;
+            const selector = 'items-by-' + selectorName;
             let list, counts, watchedCounts, unwatchedCounts, limit;
             let shortLabels = false;
             const rotated = false;
@@ -941,8 +899,12 @@ const app = new Vue({
             } else {
                 const listProp = categoryName + 'List';
                 const countsProp = categoryName + 'Counts';
-                const watchedProp = categoryName + 'sWatchedCounts';
-                const unwatchedProp = categoryName + 'sUnwatchedCounts';
+                // Handle plural forms for watched/unwatched counts
+                const pluralCategory = categoryName === 'country' ? 'countries' :
+                                      categoryName === 'studio' ? 'studios' :
+                                      categoryName + 's';
+                const watchedProp = pluralCategory + 'WatchedCounts';
+                const unwatchedProp = pluralCategory + 'UnwatchedCounts';
                 const limitProp = categoryName + 'Limit';
 
                 list = this.selectedLibraryStats[listProp];
@@ -961,6 +923,12 @@ const app = new Vue({
                 return;
             }
 
+            // Ensure data exists and is valid
+            if (!list || list.length === 0) {
+                console.warn(`No data available for ${categoryName} chart`);
+                return;
+            }
+
             const currentList = list.slice(0, limit);
             const currentCounts = counts.slice(0, limit);
             const currentWatched = watchedCounts.slice(0, limit);
@@ -975,16 +943,46 @@ const app = new Vue({
             }
         },
         // Specific rendering wrappers
-        renderGenreChart: function (type) { this.renderCategoricalChart('genre', type); },
-        renderCountryChart: function (type) { this.renderCategoricalChart('country', type); },
-        renderResolutionChart: function (type) { this.renderCategoricalChart('resolution', type); },
-        renderContainerChart: function (type) { this.renderCategoricalChart('container', type); },
-        renderDecadeChart: function (type) { this.renderCategoricalChart('decade', type); },
-        renderStudioChart: function (type) { this.renderCategoricalChart('studio', type); },
-        renderDirectorChart: function (type) { this.renderCategoricalChart('director', type); },
-        renderActorChart: function (type) { this.renderCategoricalChart('actor', type); },
-        renderWriterChart: function (type) { this.renderCategoricalChart('writer', type); },
-        renderContentRatingChart: function (type) { this.renderCategoricalChart('contentRating', type); },
+        renderGenreChart: function (type) {
+            const chartType = type || this.genreToggle;
+            this.renderCategoricalChart('genre', chartType);
+        },
+        renderCountryChart: function (type) {
+            const chartType = type || this.countryToggle;
+            this.renderCategoricalChart('country', chartType);
+        },
+        renderResolutionChart: function (type) {
+            const chartType = type || this.resolutionToggle;
+            this.renderCategoricalChart('resolution', chartType);
+        },
+        renderContainerChart: function (type) {
+            const chartType = type || this.containerToggle;
+            this.renderCategoricalChart('container', chartType);
+        },
+        renderDecadeChart: function (type) {
+            const chartType = type || this.decadeToggle;
+            this.renderCategoricalChart('decade', chartType);
+        },
+        renderStudioChart: function (type) {
+            const chartType = type || this.studioToggle;
+            this.renderCategoricalChart('studio', chartType);
+        },
+        renderDirectorChart: function (type) {
+            const chartType = type || this.directorToggle;
+            this.renderCategoricalChart('director', chartType);
+        },
+        renderActorChart: function (type) {
+            const chartType = type || this.actorToggle;
+            this.renderCategoricalChart('actor', chartType);
+        },
+        renderWriterChart: function (type) {
+            const chartType = type || this.writerToggle;
+            this.renderCategoricalChart('writer', chartType);
+        },
+        renderContentRatingChart: function (type) {
+            const chartType = type || this.contentRatingToggle;
+            this.renderCategoricalChart('contentRating', chartType);
+        },
         // Core Plotly interaction methods
         renderScatterChart: function (type, ratingsList, selector) {
             if (this.debugMode) { // Use this.
@@ -1127,7 +1125,7 @@ const app = new Vue({
                 values: dataColumns,
                 labels: categories,
                 hoverinfo: 'label+value+percent',
-                textinfo: 'label',
+                textinfo: 'none',
                 type: 'pie',
                 marker: {
                     colors: chartColors
@@ -1156,59 +1154,10 @@ const app = new Vue({
 
             Plotly.react(selector, data, layout, config);
         },
-        renderCategoricalChart: function(categoryName, chartType) {
-            const selector = 'items-by-' + categoryName;
-            let list, counts, watchedCounts, unwatchedCounts, limit;
-            let shortLabels = false;
-            const rotated = false; // All existing bar charts for these categories are not rotated (orientation: 'v')
-
-            if (categoryName === 'decade') {
-                list = decades; // Global decades array for labels
-                counts = this.selectedLibraryStats.releaseDateCounts;
-                watchedCounts = this.selectedLibraryStats.decadesWatchedCounts;
-                unwatchedCounts = this.selectedLibraryStats.decadesUnwatchedCounts;
-                limit = this.selectedLibraryStats.decadeLimit;
-                shortLabels = true;
-            } else {
-                // Construct property names, e.g., genreList, genreCounts
-                const listProp = categoryName + 'List';
-                const countsProp = categoryName + 'Counts';
-                const watchedProp = categoryName + 'sWatchedCounts'; // e.g. genresWatchedCounts
-                const unwatchedProp = categoryName + 'sUnwatchedCounts'; // e.g. genresUnwatchedCounts
-                const limitProp = categoryName + 'Limit';
-
-                list = this.selectedLibraryStats[listProp];
-                counts = this.selectedLibraryStats[countsProp];
-                watchedCounts = this.selectedLibraryStats[watchedProp];
-                unwatchedCounts = this.selectedLibraryStats[unwatchedProp];
-                limit = this.selectedLibraryStats[limitProp];
-
-                if (categoryName === 'resolution' || categoryName === 'container') {
-                    shortLabels = true;
-                }
-            }
-
-            if (!list || !counts || !watchedCounts || !unwatchedCounts || typeof limit === 'undefined') {
-                console.error('Chart data or limit is missing for category:', categoryName, this.selectedLibraryStats);
-                return;
-            }
-
-            const currentList = list.slice(0, limit);
-            const currentCounts = counts.slice(0, limit);
-            const currentWatched = watchedCounts.slice(0, limit);
-            const currentUnwatched = unwatchedCounts.slice(0, limit);
-
-            if (chartType === 'bar') {
-                this.renderBarChart(selector, currentWatched, currentList, rotated, currentUnwatched, shortLabels);
-            } else if (chartType === 'pie') {
-                this.renderPieChart(selector, currentCounts, currentList);
-            } else {
-                console.error('Invalid chart type for renderCategoricalChart:', chartType);
-            }
-        },
-        renderDefaultCharts: function () { // Removed 'type' parameter
+        renderDefaultCharts: function () {
             // render charts
             this.renderGenreChart(this.genreToggle);
+            console.log('rendering genre chart with toggle: ', this.genreToggle);
             this.renderCountryChart(this.countryToggle);
             this.renderResolutionChart(this.resolutionToggle);
             this.renderContainerChart(this.containerToggle);
@@ -1223,39 +1172,6 @@ const app = new Vue({
                 this.renderScatterChart(this.selectedLibraryStats.type, this.selectedLibraryStats.ratingsList, 'items-by-rating');
             } else {
                 // console.warn('Scatter chart data not ready in selectedLibraryStats');
-            }
-        },
-        renderGenreChart: function (type) {
-            this.renderCategoricalChart('genre', type);
-        },
-        renderCountryChart: function (type) {
-            this.renderCategoricalChart('country', type);
-        },
-        renderResolutionChart: function (type) {
-            this.renderCategoricalChart('resolution', type);
-        },
-        renderContainerChart: function (type) {
-            this.renderCategoricalChart('container', type);
-        },
-        renderDecadeChart: function (type) {
-            this.renderCategoricalChart('decade', type);
-        },
-        renderStudioChart: function (type) {
-            this.renderCategoricalChart('studio', type);
-        },
-        renderDirectorChart: function (type) {
-            this.renderCategoricalChart('director', type);
-        },
-        renderActorChart: function (type) {
-            this.renderCategoricalChart('actor', type);
-        },
-        renderWriterChart: function (type) {
-            this.renderCategoricalChart('writer', type);
-        },
-        renderContentRatingChart: function (type) {
-            this.renderCategoricalChart('contentRating', type);
-            } else {
-                console.error('Invalid chart type');
             }
         },
         updateLimit: function (limitType, updatedLimit) {

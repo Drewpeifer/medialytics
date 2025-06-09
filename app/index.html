@@ -134,7 +134,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="genreToggle"
-                                        v-on:click="renderGenreChart(genreToggle)"
+                                        @change="renderGenreChart()"
                                         v-model="genreToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -169,7 +169,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="countryToggle"
-                                        v-on:click="renderCountryChart(countryToggle)"
+                                        @change="renderCountryChart()"
                                         v-model="countryToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -206,7 +206,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="decadeToggle"
-                                        v-on:click="renderDecadeChart(decadeToggle)"
+                                        @change="renderDecadeChart()"
                                         v-model="decadeToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -241,7 +241,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="studioToggle"
-                                        v-on:click="renderStudioChart(studioToggle)"
+                                        @change="renderStudioChart()"
                                         v-model="studioToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -278,7 +278,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="contentRatingToggle"
-                                        v-on:click="renderContentRatingChart(contentRatingToggle)"
+                                        @change="renderContentRatingChart()"
                                         v-model="contentRatingToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -313,7 +313,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="actorToggle"
-                                        v-on:click="renderActorChart(actorToggle)"
+                                        @change="renderActorChart()"
                                         v-model="actorToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -350,7 +350,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="writerToggle"
-                                        v-on:click="renderWriterChart(writerToggle)"
+                                        @change="renderWriterChart()"
                                         v-model="writerToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -388,7 +388,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="directorToggle"
-                                        v-on:click="renderDirectorChart(directorToggle)"
+                                        @change="renderDirectorChart()"
                                         v-model="directorToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -428,7 +428,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="resolutionToggle"
-                                        v-on:click="renderResolutionChart(resolutionToggle)"
+                                        @change="renderResolutionChart()"
                                         v-model="resolutionToggle"
                                         true-value="pie"
                                         false-value="bar"
@@ -466,7 +466,7 @@
                                 <div class="chart-toggle">
                                     <input type="checkbox"
                                         id="containerToggle"
-                                        v-on:click="renderContainerChart(containerToggle)"
+                                        @change="renderContainerChart()"
                                         v-model="containerToggle"
                                         true-value="pie"
                                         false-value="bar"
