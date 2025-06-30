@@ -65,8 +65,8 @@
                             <p class="watched">
                                 <strong>Watched:</strong>
                                 <span>
-                                    {{ selectedLibraryStats.watchedCount.toLocaleString() }} / {{ selectedLibraryStats.totalItems }}
-                                    ({{ Math.floor((selectedLibraryStats.watchedCount / parseInt(selectedLibraryStats.totalItems.replace(/,/g, ''))) * 100) }}&#37;)
+                                    {{ selectedLibraryStats.watchedCount ? selectedLibraryStats.watchedCount.toLocaleString() : '0' }} / {{ selectedLibraryStats.totalItems || '0' }}
+                                    ({{ watchedPercentage }}&#37;)
                                 </span>
                             </p>
                             <p><strong>Total Duration:</strong> {{ selectedLibraryStats.totalDuration }}</p>
@@ -135,6 +135,24 @@
                             </div>
                             <div class="row">
                                 <div id="items-added-over-time" class="chart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- items watched over time-->
+                <div class="row">
+                    <div class="card full">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.type }} Watch History Over Time</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <p><strong>Total Watched:</strong> {{ selectedLibraryStats.watchedCount }}</p>
+                                <p><strong>Watch Rate:</strong> {{ Math.floor((selectedLibraryStats.watchedCount / parseInt(selectedLibraryStats.totalItems.replace(/,/g, ''))) * 100) }}%</p>
+                            </div>
+                            <div class="row">
+                                <div id="items-watched-over-time" class="chart"></div>
                             </div>
                         </div>
                     </div>

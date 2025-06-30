@@ -137,6 +137,11 @@ h3 {
 #items-by-rating.chart {
     min-height:500px;
 }
+.infolayer .legend {
+    position:relative;
+    top: -10px;
+    margin-top: 0;
+}
 /* chart toggle buttons */
 .chart-toggle input {
     display:none;
@@ -145,7 +150,7 @@ h3 {
     height: 30px;
     width: 30px;
     display:inline-block;
-    background-image: url(../images/icon-bar_64.png);
+    background-image: url(../images/icon-pie_64.png);
     background-size: 90% 90%;
     background-position: top center;
     background-repeat: no-repeat;
@@ -153,7 +158,7 @@ h3 {
     position:relative;
 }
 .chart-toggle input:checked + label {
-    background-image: url(../images/icon-pie_64.png);
+    background-image: url(../images/icon-bar_64.png);
 }
 .chart-toggle input + label:hover {
     scale: 1.2;

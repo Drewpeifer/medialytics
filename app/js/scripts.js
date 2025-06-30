@@ -124,6 +124,13 @@ addedOverTimeData = {
     counts: [],// counts corresponding to datesList
     cumulativeCounts: []// cumulative counts for running total
 },
+// items watched over time (line)
+watchedOverTimeData = {
+    dates: {},// stores date: count
+    datesList: [],// sorted list of dates
+    counts: [],// counts corresponding to datesList
+    cumulativeCounts: []// cumulative counts for running total
+},
 // durations, library size, and unmatched items
 durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
 longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
@@ -223,6 +230,14 @@ const resetLibraryStats = () => {
     contentRatingData.watched = {};
     contentRatingData.watchedCounts = [];
     contentRatingData.unwatchedCounts = [];
+    addedOverTimeData.dates = {};
+    addedOverTimeData.datesList = [];
+    addedOverTimeData.counts = [];
+    addedOverTimeData.cumulativeCounts = [];
+    watchedOverTimeData.dates = {};
+    watchedOverTimeData.datesList = [];
+    watchedOverTimeData.counts = [];
+    watchedOverTimeData.cumulativeCounts = [];
     ratingsList = [];
     ratingsContent = [],
     ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
@@ -585,6 +600,19 @@ const parseMediaPayload = (data) => {
         }
 
         /////////////////////////////////
+        // track items watched over time
+        if (item.lastViewedAt) {
+            const watchedDate = new Date(item.lastViewedAt * 1000);
+            const dateKey = watchedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+            if (watchedOverTimeData.dates.hasOwnProperty(dateKey)) {
+                watchedOverTimeData.dates[dateKey]++;
+            } else {
+                watchedOverTimeData.dates[dateKey] = 1;
+            }
+        }
+
+        /////////////////////////////////
         // track studio, genres, countries, actors, content ratings
         processItemCounts(item, studioData, 'studio', true);
         processItemCounts(item, genreData, 'Genre');
@@ -723,6 +751,12 @@ const parseMediaPayload = (data) => {
             addedOverTimeData.datesList = preparedAddedOverTimeData.datesList;
             addedOverTimeData.counts = preparedAddedOverTimeData.counts;
             addedOverTimeData.cumulativeCounts = preparedAddedOverTimeData.cumulativeCounts;
+
+            // Prepare watched over time data
+            const preparedWatchedOverTimeData = prepareAddedOverTimeData(watchedOverTimeData);
+            watchedOverTimeData.datesList = preparedWatchedOverTimeData.datesList;
+            watchedOverTimeData.counts = preparedWatchedOverTimeData.counts;
+            watchedOverTimeData.cumulativeCounts = preparedWatchedOverTimeData.cumulativeCounts;
 
             // Decade data processing
             const preparedDecadeData = prepareDecadeChartData(releaseDateData, decades, decadePrefixes);
@@ -886,7 +920,10 @@ const parseMediaPayload = (data) => {
                 watchedCount : watchedCount,
                 addedOverTimeDates: addedOverTimeData.datesList,
                 addedOverTimeCounts: addedOverTimeData.counts,
-                addedOverTimeCumulative: addedOverTimeData.cumulativeCounts
+                addedOverTimeCumulative: addedOverTimeData.cumulativeCounts,
+                watchedOverTimeDates: watchedOverTimeData.datesList,
+                watchedOverTimeCounts: watchedOverTimeData.counts,
+                watchedOverTimeCumulative: watchedOverTimeData.cumulativeCounts
             }
 
             // render charts
@@ -926,6 +963,15 @@ const app = new Vue({
         decadeToggle: "bar",
         writerToggle: "bar",
         contentRatingToggle: "bar"
+    },
+    computed: {
+        watchedPercentage: function() {
+            if (!this.selectedLibraryStats || !this.selectedLibraryStats.totalItems || !this.selectedLibraryStats.watchedCount) {
+                return 0;
+            }
+            const totalItems = parseInt(this.selectedLibraryStats.totalItems.replace(/,/g, ''));
+            return Math.floor((this.selectedLibraryStats.watchedCount / totalItems) * 100);
+        }
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -1088,7 +1134,7 @@ const app = new Vue({
                 showlegend: true,
                 legend: {
                     x: 0,
-                    y: 1,
+                    y: 1.2,
                     bgcolor: 'transparent',
                     bordercolor: '#888',
                     borderwidth: 1
@@ -1138,6 +1184,101 @@ const app = new Vue({
             };
 
             Plotly.newPlot('items-added-over-time', data, layout, config);
+        },
+        renderWatchedOverTimeChart: function () {
+            if (this.debugMode) {
+                console.log('rendering watched over time chart: ', this.selectedLibraryStats.watchedOverTimeDates, this.selectedLibraryStats.watchedOverTimeCounts);
+            }
+
+            if (!this.selectedLibraryStats.watchedOverTimeDates || this.selectedLibraryStats.watchedOverTimeDates.length === 0) {
+                console.warn('No data available for watched over time chart');
+                return;
+            }
+
+            let watchedTrace1 = {
+                x: this.selectedLibraryStats.watchedOverTimeDates,
+                y: this.selectedLibraryStats.watchedOverTimeCumulative,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Cumulative Watched',
+                line: {
+                    color: chartColors[2],
+                    width: 2
+                },
+                hovertemplate: '%{x}<br>Total Watched: %{y}<extra></extra>',
+                yaxis: 'y'
+            };
+
+            let watchedTrace2 = {
+                x: this.selectedLibraryStats.watchedOverTimeDates,
+                y: this.selectedLibraryStats.watchedOverTimeCounts,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Daily Watches',
+                line: {
+                    color: chartColors[4],
+                    width: 2
+                },
+                hovertemplate: '%{x}<br>Watched: %{y}<extra></extra>',
+                yaxis: 'y2'
+            };
+
+            let watchedData = [watchedTrace1, watchedTrace2];
+
+            let watchedLayout = {
+                showlegend: true,
+                legend: {
+                    x: 0,
+                    y: 1.2,
+                    bgcolor: 'transparent',
+                    bordercolor: '#888',
+                    borderwidth: 1
+                },
+                margin: {
+                    pad: 10,
+                    r: 80
+                },
+                xaxis: {
+                    title: 'Date',
+                    gridcolor: "#888",
+                    showgrid: false,
+                    type: 'date'
+                },
+                yaxis: {
+                    title: 'Cumulative Watched',
+                    gridcolor: "#888",
+                    showgrid: true,
+                    zeroline: true,
+                    side: 'left'
+                },
+                yaxis2: {
+                    title: 'Daily Watches',
+                    gridcolor: "#888",
+                    showgrid: false,
+                    zeroline: true,
+                    overlaying: 'y',
+                    side: 'right',
+                    rangemode: 'tozero'
+                },
+                font: {
+                    color: '#fff',
+                },
+                plot_bgcolor: 'transparent',
+                paper_bgcolor: 'transparent',
+                modebar: {
+                    color: '#f2f2f2',
+                    activecolor: chartColors[2],
+                }
+            };
+
+            let watchedConfig = {
+                displaylogo: false,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'toImage'],
+                responsive: true
+            };
+
+            Plotly.newPlot('items-watched-over-time', watchedData, watchedLayout, watchedConfig);
         },
         // Core Plotly interaction methods
         renderScatterChart: function (type, ratingsList, selector) {
@@ -1311,28 +1452,53 @@ const app = new Vue({
             Plotly.react(selector, data, layout, config);
         },
         renderDefaultCharts: function () {
-            // render charts
-            this.renderGenreChart(this.genreToggle);
-            console.log('rendering genre chart with toggle: ', this.genreToggle);
-            this.renderCountryChart(this.countryToggle);
-            this.renderResolutionChart(this.resolutionToggle);
-            this.renderContainerChart(this.containerToggle);
-            this.renderDecadeChart(this.decadeToggle);
-            this.renderStudioChart(this.studioToggle);
-            this.renderDirectorChart(this.directorToggle);
-            this.renderActorChart(this.actorToggle);
-            this.renderWriterChart(this.writerToggle);
-            this.renderContentRatingChart(this.contentRatingToggle);
-            // Use selectedLibraryStats for scatter chart data
-            if (this.selectedLibraryStats && this.selectedLibraryStats.type && this.selectedLibraryStats.ratingsList) {
-                this.renderScatterChart(this.selectedLibraryStats.type, this.selectedLibraryStats.ratingsList, 'items-by-rating');
-            } else {
-                // console.warn('Scatter chart data not ready in selectedLibraryStats');
-            }
-            // Render added over time chart
-            if (this.selectedLibraryStats && this.selectedLibraryStats.addedOverTimeDates) {
-                this.renderAddedOverTimeChart();
-            }
+            // Ensure DOM is ready before rendering charts
+            this.$nextTick(() => {
+                // Check if the genre chart element exists before rendering
+                if (document.getElementById('items-by-genre')) {
+                    this.renderGenreChart(this.genreToggle);
+                    console.log('rendering genre chart with toggle: ', this.genreToggle);
+                }
+                if (document.getElementById('items-by-country')) {
+                    this.renderCountryChart(this.countryToggle);
+                }
+                if (document.getElementById('items-by-resolution')) {
+                    this.renderResolutionChart(this.resolutionToggle);
+                }
+                if (document.getElementById('items-by-container')) {
+                    this.renderContainerChart(this.containerToggle);
+                }
+                if (document.getElementById('items-by-decade')) {
+                    this.renderDecadeChart(this.decadeToggle);
+                }
+                if (document.getElementById('items-by-studio')) {
+                    this.renderStudioChart(this.studioToggle);
+                }
+                if (document.getElementById('items-by-director')) {
+                    this.renderDirectorChart(this.directorToggle);
+                }
+                if (document.getElementById('items-by-actor')) {
+                    this.renderActorChart(this.actorToggle);
+                }
+                if (document.getElementById('items-by-writer')) {
+                    this.renderWriterChart(this.writerToggle);
+                }
+                if (document.getElementById('items-by-content-rating')) {
+                    this.renderContentRatingChart(this.contentRatingToggle);
+                }
+                // Use selectedLibraryStats for scatter chart data
+                if (this.selectedLibraryStats && this.selectedLibraryStats.type && this.selectedLibraryStats.ratingsList && document.getElementById('items-by-rating')) {
+                    this.renderScatterChart(this.selectedLibraryStats.type, this.selectedLibraryStats.ratingsList, 'items-by-rating');
+                }
+                // Render added over time chart
+                if (this.selectedLibraryStats && this.selectedLibraryStats.addedOverTimeDates && document.getElementById('items-added-over-time')) {
+                    this.renderAddedOverTimeChart();
+                }
+                // Render watched over time chart
+                if (this.selectedLibraryStats && this.selectedLibraryStats.watchedOverTimeDates && document.getElementById('items-watched-over-time')) {
+                    this.renderWatchedOverTimeChart();
+                }
+            });
         },
         updateLimit: function (limitType, updatedLimit) {
             // limitType is a string like "genre" and updatedLimit is a number
