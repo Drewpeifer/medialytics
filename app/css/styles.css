@@ -102,7 +102,20 @@ h3 {
 .card.full {
     max-width: 98%;
 }
-
+/* info icons */
+.info-icon {
+    border-radius: 50%;
+    border: 2px solid #e2e2e2;
+    user-select: none;
+    display:inline-block;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 18px;
+    font-size: 14px;
+    color: #e2e2e2;
+    vertical-align: middle;
+}
 /* layout */
 .row {
     display: flex;
