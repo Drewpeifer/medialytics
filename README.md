@@ -1,4 +1,4 @@
-# Medialytics 2.3.6
+# Medialytics 2.4
 ### A free analytics tool for Plex server content
 
 --------
@@ -16,6 +16,7 @@ runs in the browser and generates statistics specifically about the content of y
 ## Main features
 * Bar + pie charts for genre, country, decade, studio, content rating, resolution*, container* (file type), actor, writer*, and director* analysis
 * Scatter chart of audience rating (TMDB) vs content rating
+* Line chart for additions over time **(new!)**
 * Statistics for size and duration of entire library
 * Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
 * Watched/unwatched comparison across entire library and within each chart
