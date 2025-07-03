@@ -14,7 +14,7 @@ runs in the browser and generates statistics specifically about the content of y
 ![visualizations-2](https://i.imgur.com/idnDNWJ.png)
 
 ## Main features
-* Bar + pie charts for genre, country, decade, studio, content rating, resolution*, container* (file type), actor, writer*, and director* analysis
+* Bar + pie charts for collections **(new!)**, genre, country, decade, studio, content rating, resolution*, container* (file type), actor, writer*, and director* analysis
 * Scatter chart of audience rating (TMDB) vs content rating
 * Line chart for additions over time **(new!)**
 * Statistics for size and duration of entire library

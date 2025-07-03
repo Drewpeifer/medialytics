@@ -141,6 +141,27 @@
                         </div>
                     </div>
                 </div>
+                <!-- collections chart -->
+                <div class="row">
+                    <div class="card full">
+                        <div class="header">
+                            <p>Collections in Library</p>
+                        </div>
+                        <div v-if="libraryStatsLoading || collectionsLoading" class="loader"></div>
+                        <div class="content" v-if="!libraryStatsLoading && !collectionsLoading">
+                            <div class="row">
+                                <p><strong>Total Collections:</strong> {{ collectionsData.totalCollections }}</p>
+                                <p><strong>Total Items in Collections:</strong> {{ collectionsData.totalItemsInCollections }}</p>
+                            </div>
+                            <div class="row">
+                                <p><strong>Largest Collection:</strong> {{ collectionsData.largestCollection }} ({{ collectionsData.largestCollectionCount }} items)</p>
+                            </div>
+                            <div class="row">
+                                <div id="collections-chart" class="chart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- items by genre chart -->
                 <div class="row">
                     <div class="card half">

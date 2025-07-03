@@ -143,6 +143,21 @@ seasonSum = 0,
 episodeCounts = [],
 episodeSum = 0,
 unmatchedItems = [],
+// collections data
+collectionsData = {
+    collections: [],
+    totalCollections: 0,
+    totalItemsInCollections: 0,
+    largestCollection: '',
+    largestCollectionCount: 0,
+    mostWatchedCollection: '',
+    mostWatchedPercentage: 0,
+    collectionNames: [],
+    collectionCounts: [],
+    collectionWatchedCounts: [],
+    collectionUnwatchedCounts: []
+},
+collectionsLoading = false,
 // below are the limits for displaying data in the charts, e.g. "Top X Countries"
 countryLimit = 20,
 newCountryLimit = countryLimit,// "new" variations are used for the UI to track changes to limit / Top X
@@ -531,16 +546,105 @@ const getLibraryData = async (libraryKey) => {
         }
     });
     app.libraryStatsLoading = true;
-    let libraryData = await axios.get(serverIp + '/library/sections/' + libraryKey + '/all?X-Plex-Token=' + serverToken).then((response) => {
-        parseMediaPayload(response);
-        app.libraryStatsLoading = false;
-        return response.data.MediaContainer;
-    });
+    app.collectionsLoading = true;
+
+    // Fetch library data and collections data in parallel
+    const [libraryResponse, collectionsResponse] = await Promise.all([
+        axios.get(serverIp + '/library/sections/' + libraryKey + '/all?X-Plex-Token=' + serverToken),
+        axios.get(serverIp + '/library/sections/' + libraryKey + '/collections?X-Plex-Token=' + serverToken)
+    ]);
+
+    // Process library data
+    parseMediaPayload(libraryResponse);
+    app.libraryStatsLoading = false;
+
+    // Process collections data
+    parseCollectionsPayload(collectionsResponse);
+    app.collectionsLoading = false;
+
     if (debugMode) {
-        console.log('Library Data: ', libraryData);
+        console.log('Library Data: ', libraryResponse.data.MediaContainer);
+        console.log('Collections Data: ', collectionsResponse.data.MediaContainer);
     }
+
     resetLibraryStats();
-    return libraryData;
+    return libraryResponse.data.MediaContainer;
+}
+
+/////////////////////////////////
+// parse through collections payload
+const parseCollectionsPayload = (response) => {
+    if (!response.data.MediaContainer || !response.data.MediaContainer.Metadata) {
+        app.collectionsData = {
+            collections: [],
+            totalCollections: 0,
+            totalItemsInCollections: 0,
+            largestCollection: '',
+            largestCollectionCount: 0,
+            mostWatchedCollection: '',
+            mostWatchedPercentage: 0,
+            collectionNames: [],
+            collectionCounts: [],
+            collectionWatchedCounts: [],
+            collectionUnwatchedCounts: []
+        };
+        return;
+    }
+
+    const collections = response.data.MediaContainer.Metadata;
+    const collectionDetails = [];
+
+    // Process each collection
+    collections.forEach((collection) => {
+        // The collections endpoint returns childCount (total items) and viewedLeafCount (watched items)
+        const totalCount = collection.childCount || 0;
+        const watchedCount = collection.viewedLeafCount || 0;
+        const unwatchedCount = totalCount - watchedCount;
+        const watchedPercentage = totalCount > 0 ? Math.round((watchedCount / totalCount) * 100) : 0;
+
+        collectionDetails.push({
+            name: collection.title,
+            totalCount: totalCount,
+            watchedCount: watchedCount,
+            unwatchedCount: unwatchedCount,
+            watchedPercentage: watchedPercentage
+        });
+    });
+
+    // Sort collections by total count (descending)
+    collectionDetails.sort((a, b) => b.totalCount - a.totalCount);
+
+    // Calculate statistics
+    const totalCollections = collectionDetails.length;
+    const totalItemsInCollections = collectionDetails.reduce((sum, col) => sum + col.totalCount, 0);
+    const largestCollection = collectionDetails.length > 0 ? collectionDetails[0] : null;
+    const mostWatchedCollection = collectionDetails.length > 0 ?
+        collectionDetails.reduce((max, col) => col.watchedPercentage > max.watchedPercentage ? col : max) : null;
+
+    // Prepare chart data
+    const collectionNames = collectionDetails.map(col => col.name);
+    const collectionCounts = collectionDetails.map(col => col.totalCount);
+    const collectionWatchedCounts = collectionDetails.map(col => col.watchedCount);
+    const collectionUnwatchedCounts = collectionDetails.map(col => col.unwatchedCount);
+
+    app.collectionsData = {
+        collections: collectionDetails,
+        totalCollections: totalCollections,
+        totalItemsInCollections: totalItemsInCollections,
+        largestCollection: largestCollection ? largestCollection.name : '',
+        largestCollectionCount: largestCollection ? largestCollection.totalCount : 0,
+        mostWatchedCollection: mostWatchedCollection ? mostWatchedCollection.name : '',
+        mostWatchedPercentage: mostWatchedCollection ? mostWatchedCollection.watchedPercentage : 0,
+        collectionNames: collectionNames,
+        collectionCounts: collectionCounts,
+        collectionWatchedCounts: collectionWatchedCounts,
+        collectionUnwatchedCounts: collectionUnwatchedCounts
+    };
+
+    // Render the collections chart immediately
+    app.$nextTick(() => {
+        app.renderCollectionsChart();
+    });
 }
 
 /////////////////////////////////
@@ -953,6 +1057,8 @@ const app = new Vue({
         selectedLibrary: selectedLibrary,
         selectedLibraryKey: selectedLibraryKey,
         selectedLibraryStats: selectedLibraryStats,
+        collectionsData: collectionsData,
+        collectionsLoading: collectionsLoading,
         resolutionToggle: "bar",
         containerToggle: "bar",
         genreToggle: "bar",
@@ -1450,6 +1556,22 @@ const app = new Vue({
             }
 
             Plotly.react(selector, data, layout, config);
+        },
+        renderCollectionsChart: function() {
+            if (!this.collectionsData.collectionNames || this.collectionsData.collectionNames.length === 0) {
+                console.warn('No collections data available for chart');
+                return;
+            }
+
+            // Use horizontal bar chart for collections
+            this.renderBarChart(
+                'collections-chart',
+                this.collectionsData.collectionWatchedCounts,
+                this.collectionsData.collectionNames,
+                false, // vertical
+                this.collectionsData.collectionUnwatchedCounts,
+                false // shortLabels
+            );
         },
         renderDefaultCharts: function () {
             // Ensure DOM is ready before rendering charts
