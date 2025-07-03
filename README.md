@@ -11,7 +11,7 @@ runs in the browser and generates statistics specifically about the content of y
 
 ![visualizations](https://i.imgur.com/zdtq7LF.png)
 
-![visualizetions-3](https://imgur.com/a/wA3SsaZ.png)
+![visualizetions-3](https://i.imgur.com/by1nUvT.png)
 
 ![visualizations-2](https://i.imgur.com/idnDNWJ.png)
 
