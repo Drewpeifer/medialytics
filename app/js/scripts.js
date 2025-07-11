@@ -554,6 +554,9 @@ const getLibraryData = async (libraryKey) => {
         axios.get(serverIp + '/library/sections/' + libraryKey + '/collections?X-Plex-Token=' + serverToken)
     ]);
 
+    // Store the raw library items for export
+    app.libraryItems = libraryResponse.data.MediaContainer.Metadata || [];
+
     // Process library data
     parseMediaPayload(libraryResponse);
     app.libraryStatsLoading = false;
@@ -1068,7 +1071,9 @@ const app = new Vue({
         actorToggle: "bar",
         decadeToggle: "bar",
         writerToggle: "bar",
-        contentRatingToggle: "bar"
+        contentRatingToggle: "bar",
+        exportingData: false,
+        libraryItems: [] // Store the raw library items for export
     },
     computed: {
         watchedPercentage: function() {
@@ -1662,6 +1667,60 @@ const app = new Vue({
                 default:
                 console.error('Invalid limit type');
             }
+        },
+        exportLibraryData: function() {
+            // Set exporting flag
+            this.exportingData = true;
+
+            // Helper function to escape CSV values
+            const escapeCSV = (value) => {
+                // Convert to string and check if it needs escaping
+                const str = String(value);
+                // Escape if contains comma, quote, or newline
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    // Escape quotes by doubling them
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            // Create CSV content
+            let csvContent = `Library Data for ${this.selectedLibrary}\n`;
+
+            // Sort items by title
+            const sortedItems = [...this.libraryItems].sort((a, b) => {
+                const titleA = a.title.toLowerCase();
+                const titleB = b.title.toLowerCase();
+                if (titleA < titleB) return -1;
+                if (titleA > titleB) return 1;
+                return 0;
+            });
+
+            // Add each item with year
+            sortedItems.forEach(item => {
+                const title = item.title;
+                const year = item.year || 'Unknown';
+                const fullEntry = `${title} (${year})`;
+                csvContent += escapeCSV(fullEntry) + '\n';
+            });
+
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Medialytics Export - ${this.selectedLibrary}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Reset exporting flag after a short delay
+            setTimeout(() => {
+                this.exportingData = false;
+            }, 1000);
         }
     }
 });

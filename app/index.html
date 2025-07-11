@@ -35,6 +35,15 @@
             </div>
             <p>Targeted Server:</p>
             <p><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></p>
+            <div v-if="selectedLibrary.length > 0 && !libraryStatsLoading" class="export-button-container">
+                <button
+                    class="export-button"
+                    v-on:click="exportLibraryData"
+                    title="Export a list of titles and release years as a CSV file"
+                    :disabled="exportingData">
+                    {{ exportingData ? 'Generating CSV...' : 'Export Title List' }}
+                </button>
+            </div>
             <div class="row">
                 <div class="card library-list" :class="{ collapsed : selectedLibrary.length > 0 }">
                     <div class="header">
