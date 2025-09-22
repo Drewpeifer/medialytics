@@ -1465,7 +1465,12 @@ const app = new Vue({
                 hoverinfo: 'text',
                 textposition: 'none',// this prevents the text from being shown on the bars
                 text: totalColumns.map((total, index) => {
-                    return `${categories[index]}<br />${dataColumns[index]} / ${total} Watched`
+                    // if this is the collections chart, just show the count
+                    if (selector === 'collections-chart') {
+                        return `${categories[index]}<br />${dataColumns[index]} Items`;
+                    } else {
+                        return `${categories[index]}<br />${dataColumns[index]} / ${total} Watched`
+                    }
                 })
             };
 
@@ -1481,7 +1486,12 @@ const app = new Vue({
                 hoverinfo: 'text',
                 textposition: 'none',// this prevents the text from being shown on the bars
                 text: totalColumns.map((total, index) => {
-                    return `${categories[index]}<br />${stackGroup[index]} / ${total} Unwatched`
+                    // if this is the collections chart, just show the count
+                    if (selector === 'collections-chart') {
+                        return `${categories[index]}<br />${stackGroup[index]} Items`;
+                    } else {
+                        return `${categories[index]}<br />${stackGroup[index]} / ${total} Unwatched`
+                    }
                 })
             };
 

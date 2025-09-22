@@ -34,7 +34,7 @@
                 <p>Debug mode enabled, open developer tools (F12) for more info</p>
             </div>
             <p>Targeted Server:</p>
-            <p><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></p>
+            <p class="ip-address"><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></p>
             <div v-if="selectedLibrary.length > 0 && !libraryStatsLoading" class="export-button-container">
                 <button
                     class="export-button"
