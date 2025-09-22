@@ -222,6 +222,9 @@ p.ip-address a {
 .legend p span.watched {
     background: #D62828;
 }
+.legend p span.legend-color {
+    background: inherit; /* This will be overridden by inline styles */
+}
 /* plotly tooltips */
 .hoverlayer .name,
 .hoverlayer rect {

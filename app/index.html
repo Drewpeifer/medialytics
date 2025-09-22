@@ -156,6 +156,24 @@
                 </div>
             </div>
             <div class="library-info" v-if="selectedLibrary.length > 0">
+                <!-- items by file size and resolution -->
+                <div class="row" v-if="selectedLibraryStats.type === 'movie'">
+                    <div class="card full">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.type }}s by Resolution and File Size</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row" v-if="selectedLibraryStats.type === 'movie'">
+                                <p><strong>Largest File:</strong> {{ selectedLibraryStats.largestFile }}</p>
+                                <p><strong>Smallest File:</strong> {{ selectedLibraryStats.smallestFile }}</p>
+                            </div>
+                            <div class="row">
+                                <div id="items-by-size" class="chart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- items by audience rating and content rating-->
                 <div class="row">
                     <div class="card full">
@@ -441,7 +459,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" v-if="selectedLibraryStats.type === 'movie'">
                     <!-- items by writer chart -->
                     <div class="card half">
                         <div class="header">
@@ -520,7 +538,7 @@
                     </div>
                 </div>
                 <!-- items by resolution chart -->
-                <div class="row">
+                <div class="row" v-if="selectedLibraryStats.type === 'movie'">
                     <div class="card half">
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div v-else class="header">
@@ -589,9 +607,6 @@
                                 <p><strong>Top Container:</strong> {{ selectedLibraryStats.topContainer }} ({{ selectedLibraryStats.topContainerCount }})</p>
                             </div>
                             <div class="row">
-                                <div :class="{hidden : selectedLibraryStats.type == 'movie'}">
-                                    Only available for movie libraries
-                                </div>
                                 <div :class="{hidden : selectedLibraryStats.type == 'show'}" id="items-by-container" class="chart items-by-container"></div>
                             </div>
                         </div>

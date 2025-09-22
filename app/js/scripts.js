@@ -117,6 +117,16 @@ contentRatingData = {
     watchedCounts: [],
     unwatchedCounts: []
 },
+// items by file size and resolution (treemap - movies only)
+fileSizeData = {
+    items: [], // Array of objects with {title, fileSize, resolution, watched}
+    resolutionColors: {}, // Map resolution to colors
+    totalFileSize: 0,
+    largestFile: '',
+    largestFileSize: 0,
+    smallestFile: '',
+    smallestFileSize: Number.MAX_SAFE_INTEGER
+},
 // items added over time (line)
 addedOverTimeData = {
     dates: {},// stores date: count
@@ -245,6 +255,13 @@ const resetLibraryStats = () => {
     contentRatingData.watched = {};
     contentRatingData.watchedCounts = [];
     contentRatingData.unwatchedCounts = [];
+    fileSizeData.items = [];
+    fileSizeData.resolutionColors = {};
+    fileSizeData.totalFileSize = 0;
+    fileSizeData.largestFile = '';
+    fileSizeData.largestFileSize = 0;
+    fileSizeData.smallestFile = '';
+    fileSizeData.smallestFileSize = Number.MAX_SAFE_INTEGER;
     addedOverTimeData.dates = {};
     addedOverTimeData.datesList = [];
     addedOverTimeData.counts = [];
@@ -510,6 +527,43 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
                     const syntheticContainerItem = { container: mediaItem.container, lastViewedAt: item.lastViewedAt };
                     processItemCounts(syntheticContainerItem, containerData, 'container', true);
                 }
+
+                // Collect file size data for treemap (movies only)
+                if (mediaItem.Part && mediaItem.Part[0] && mediaItem.Part[0].size) {
+                    const fileSize = parseInt(mediaItem.Part[0].size);
+                    const resolution = mediaItem.videoResolution ? mediaItem.videoResolution.toUpperCase() : 'UNKNOWN';
+                    const watched = item.lastViewedAt ? true : false;
+
+                    // Add to fileSizeData items array
+                    fileSizeData.items.push({
+                        title: item.title,
+                        year: item.year || '',
+                        fileSize: fileSize,
+                        resolution: resolution,
+                        watched: watched
+                    });
+
+                    // Track total file size
+                    fileSizeData.totalFileSize += fileSize;
+
+                    // Track largest file
+                    if (fileSize > fileSizeData.largestFileSize) {
+                        fileSizeData.largestFileSize = fileSize;
+                        fileSizeData.largestFile = `${item.title} (${item.year || 'Unknown'})`;
+                    }
+
+                    // Track smallest file
+                    if (fileSize < fileSizeData.smallestFileSize) {
+                        fileSizeData.smallestFileSize = fileSize;
+                        fileSizeData.smallestFile = `${item.title} (${item.year || 'Unknown'})`;
+                    }
+
+                    // Assign colors to resolutions
+                    if (!fileSizeData.resolutionColors[resolution]) {
+                        const colorIndex = Object.keys(fileSizeData.resolutionColors).length % chartColors.length;
+                        fileSizeData.resolutionColors[resolution] = chartColors[colorIndex];
+                    }
+                }
             });
         }
         processItemCounts(item, directorData, 'Director');
@@ -554,6 +608,9 @@ const getLibraryData = async (libraryKey) => {
         axios.get(serverIp + '/library/sections/' + libraryKey + '/collections?X-Plex-Token=' + serverToken)
     ]);
 
+    // Reset data before processing
+    resetLibraryStats();
+
     // Store the raw library items for export
     app.libraryItems = libraryResponse.data.MediaContainer.Metadata || [];
 
@@ -569,8 +626,6 @@ const getLibraryData = async (libraryKey) => {
         console.log('Library Data: ', libraryResponse.data.MediaContainer);
         console.log('Collections Data: ', collectionsResponse.data.MediaContainer);
     }
-
-    resetLibraryStats();
     return libraryResponse.data.MediaContainer;
 }
 
@@ -1030,7 +1085,12 @@ const parseMediaPayload = (data) => {
                 addedOverTimeCumulative: addedOverTimeData.cumulativeCounts,
                 watchedOverTimeDates: watchedOverTimeData.datesList,
                 watchedOverTimeCounts: watchedOverTimeData.counts,
-                watchedOverTimeCumulative: watchedOverTimeData.cumulativeCounts
+                watchedOverTimeCumulative: watchedOverTimeData.cumulativeCounts,
+                // File size data (movies only)
+                largestFile: type === 'movie' && fileSizeData.largestFile ? fileSizeData.largestFile : '',
+                smallestFile: type === 'movie' && fileSizeData.smallestFile !== 'Unknown (Unknown)' ? fileSizeData.smallestFile : '',
+                totalFileSize: type === 'movie' ? fileSizeData.totalFileSize : 0,
+                resolutionColors: type === 'movie' ? fileSizeData.resolutionColors : {}
             }
 
             // render charts
@@ -1622,6 +1682,155 @@ const app = new Vue({
                 false // shortLabels
             );
         },
+        renderTreemapChart: function() {
+            if (this.debugMode) {
+                console.log('=== TREEMAP CHART DEBUG ===');
+                console.log('Library type:', this.selectedLibraryStats.type);
+                console.log('fileSizeData:', fileSizeData);
+                console.log('fileSizeData.items length:', fileSizeData.items ? fileSizeData.items.length : 'undefined');
+                console.log('resolutionColors:', fileSizeData.resolutionColors);
+            }
+
+            // Only render for movie libraries
+            if (this.selectedLibraryStats.type !== 'movie') {
+                console.warn('Treemap chart only available for movie libraries');
+                return;
+            }
+
+            // Check if we have file size data
+            if (!fileSizeData.items || fileSizeData.items.length === 0) {
+                console.warn('No file size data available for treemap chart');
+                // Create a simple test chart to verify Plotly is working
+                const testData = [{
+                    type: 'treemap',
+                    labels: ['HD', 'Full HD Movie 1', 'Full HD Movie 2', 'SD', 'SD Movie 1'],
+                    values: ['3000', '1500', '1500', '1000', '1000'],
+                    parents: ['', 'HD', 'HD', '', 'SD'],
+                    textinfo: 'label+value'
+                }];
+
+                const testLayout = {
+                    margin: { t: 10, l: 10, r: 10, b: 10 },
+                    font: { color: '#fff', size: 12 },
+                    paper_bgcolor: 'transparent',
+                    plot_bgcolor: 'transparent'
+                };
+
+                Plotly.newPlot('items-by-size', testData, testLayout, { displaylogo: false, responsive: true });
+                return;
+            }
+
+            // Helper function to format file sizes
+            const formatFileSize = (bytes) => {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            };
+
+            // Prepare data for treemap - following Plotly docs pattern
+            const labels = [];
+            const values = [];
+            const parents = [];
+
+            // Get unique resolutions and calculate total size per resolution
+            const resolutionTotals = {};
+            fileSizeData.items.forEach(item => {
+                if (!resolutionTotals[item.resolution]) {
+                    resolutionTotals[item.resolution] = 0;
+                }
+                resolutionTotals[item.resolution] += item.fileSize;
+            });
+
+            // Add resolution groups as parent nodes with their total sizes
+            Object.keys(resolutionTotals).forEach(resolution => {
+                labels.push(resolution);
+                values.push(resolutionTotals[resolution].toString()); // Convert to string like the example
+                parents.push('');
+            });
+
+            // Add individual movies under their resolution groups
+            fileSizeData.items.forEach(item => {
+                const displayTitle = `${item.title}${item.year ? ` (${item.year})` : ''}`;
+                labels.push(displayTitle);
+                values.push(item.fileSize.toString()); // Convert to string like the example
+                parents.push(item.resolution);
+            });
+
+            // Create simple color array based on resolutions
+            const resolutionColors = Object.keys(resolutionTotals);
+            const colorscaleArray = resolutionColors.map((res, i) => [
+                i / Math.max(1, resolutionColors.length - 1),
+                fileSizeData.resolutionColors[res] || chartColors[i % chartColors.length]
+            ]);
+
+            // Create custom hover text with formatted file sizes
+            const customHoverText = labels.map((label, index) => {
+                const rawSize = parseInt(values[index]);
+                const formattedSize = formatFileSize(rawSize);
+                const parent = parents[index];
+
+                if (parent === '') {
+                    // This is a resolution group (parent)
+                    return `<b>${label} Resolution</b><br>Total Size: ${formattedSize}`;
+                } else {
+                    // This is an individual movie
+                    return `<b>${label}</b><br>Resolution: ${parent}<br>File Size: ${formattedSize}`;
+                }
+            });
+
+            const data = [{
+                type: 'treemap',
+                labels: labels,
+                values: values,
+                parents: parents,
+                textinfo: 'label',
+                hovertemplate: '%{customdata}<extra></extra>',
+                customdata: customHoverText,
+                marker: {
+                    colorscale: colorscaleArray,
+                    line: {
+                        width: 2,
+                        color: '#000'
+                    }
+                },
+                branchvalues: 'total'
+            }];
+
+            const layout = {
+                margin: {
+                    t: 10,
+                    l: 10,
+                    r: 10,
+                    b: 10
+                },
+                font: {
+                    color: '#fff',
+                    size: 12
+                },
+                showlegend: false,
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                modebar: {
+                    color: '#f2f2f2',
+                    activecolor: chartColors[2],
+                }
+            };
+
+            const config = {
+                displaylogo: false,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'toImage'],
+                responsive: true
+            };
+
+            if (this.debugMode) {
+                console.log('Treemap data:', { labels, values, parents });
+            }
+
+            Plotly.newPlot('items-by-size', data, layout, config);
+        },
         renderDefaultCharts: function () {
             // Ensure DOM is ready before rendering charts
             this.$nextTick(() => {
@@ -1668,6 +1877,10 @@ const app = new Vue({
                 // Render watched over time chart
                 if (this.selectedLibraryStats && this.selectedLibraryStats.watchedOverTimeDates && document.getElementById('items-watched-over-time')) {
                     this.renderWatchedOverTimeChart();
+                }
+                // Render treemap chart for movie libraries
+                if (this.selectedLibraryStats && this.selectedLibraryStats.type === 'movie' && document.getElementById('items-by-size')) {
+                    this.renderTreemapChart();
                 }
             });
         },
