@@ -253,6 +253,166 @@ p.ip-address a {
     to{transform: rotate(1turn)}
 }
 
+/* Clever loading animation for first library load */
+.first-load-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #000 0%, #111 50%, #000 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.8s ease-out;
+}
+
+.first-load-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.medialytics-logo {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #f2f2f2;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.medialytics-logo strong {
+    color: orange;
+}
+
+.data-visualization {
+    position: relative;
+    width: 300px;
+    height: 150px;
+}
+
+.chart-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 100%;
+    gap: 8px;
+}
+
+.bar {
+    width: 20px;
+    background: linear-gradient(to top, orange, #ff8c00);
+    border-radius: 4px 4px 0 0;
+    opacity: 0.3;
+    animation: barGrow 2s ease-in-out infinite;
+}
+
+.bar:nth-child(1) { animation-delay: 0s; height: 20%; }
+.bar:nth-child(2) { animation-delay: 0.1s; height: 60%; }
+.bar:nth-child(3) { animation-delay: 0.2s; height: 100%; }
+.bar:nth-child(4) { animation-delay: 0.3s; height: 40%; }
+.bar:nth-child(5) { animation-delay: 0.4s; height: 80%; }
+.bar:nth-child(6) { animation-delay: 0.5s; height: 70%; }
+.bar:nth-child(7) { animation-delay: 0.6s; height: 30%; }
+.bar:nth-child(8) { animation-delay: 0.7s; height: 90%; }
+.bar:nth-child(9) { animation-delay: 0.8s; height: 50%; }
+.bar:nth-child(10) { animation-delay: 0.9s; height: 35%; }
+
+@keyframes barGrow {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scaleY(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: scaleY(1);
+        box-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
+    }
+}
+
+.loading-text {
+    color: #f2f2f2;
+    font-size: 1.2rem;
+    text-align: center;
+    animation: textPulse 2s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.data-points {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.data-point {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: orange;
+    border-radius: 50%;
+    animation: dataFloat 4s ease-in-out infinite;
+    opacity: 0;
+}
+
+.data-point:nth-child(1) {
+    top: 20%; left: 10%;
+    animation-delay: 0s;
+}
+.data-point:nth-child(2) {
+    top: 60%; left: 25%;
+    animation-delay: 0.5s;
+}
+.data-point:nth-child(3) {
+    top: 30%; left: 70%;
+    animation-delay: 1s;
+}
+.data-point:nth-child(4) {
+    top: 80%; left: 60%;
+    animation-delay: 1.5s;
+}
+.data-point:nth-child(5) {
+    top: 10%; left: 85%;
+    animation-delay: 2s;
+}
+
+@keyframes dataFloat {
+    0%, 100% {
+        opacity: 0;
+        transform: translateY(0px) scale(1);
+    }
+    25% {
+        opacity: 1;
+        transform: translateY(-10px) scale(1.2);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(-5px) scale(1.1);
+    }
+    75% {
+        opacity: 1;
+        transform: translateY(-15px) scale(1.3);
+        box-shadow: 0 0 10px rgba(255, 165, 0, 0.8);
+    }
+}
+
+/* Hide the main content during first load */
+.first-loading .wrapper > *:not(.first-load-overlay) {
+    visibility: hidden;
+}
+
 /* visibility override since v-if doesn't work with svg */
 .hidden {
     display: none;

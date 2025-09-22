@@ -595,10 +595,43 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
     };
 };
 
+let isLoadingLibraryData = false;
+let isFirstLibraryLoad = true; // Track if this is the first library load
+
+/////////////////////////////////
+// Show first load animation
+const showFirstLoadAnimation = () => {
+    const overlay = document.getElementById('firstLoadOverlay');
+    if (overlay && isFirstLibraryLoad) {
+        overlay.style.display = 'flex';
+        document.body.classList.add('first-loading');
+    }
+}
+
+/////////////////////////////////
+// Hide first load animation
+const hideFirstLoadAnimation = () => {
+    const overlay = document.getElementById('firstLoadOverlay');
+    if (overlay) {
+        overlay.classList.add('fade-out');
+        document.body.classList.remove('first-loading');
+
+        // Remove the overlay completely after fade out
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 800); // Match the CSS transition duration
+    }
+}
 
 /////////////////////////////////
 // sets selectedLibrary, passes all data for that library to a parsing function
 const getLibraryData = async (libraryKey) => {
+    isLoadingLibraryData = true;
+
+    // Show first load animation only on the very first library load
+    if (isFirstLibraryLoad) {
+        showFirstLoadAnimation();
+    }
     app.availableLibraries.forEach((library) => {
         if (library.key == libraryKey) {
             app.selectedLibrary = library.title;
@@ -1104,6 +1137,17 @@ const parseMediaPayload = (data) => {
             }
 
             // render charts
+            isLoadingLibraryData = false;
+
+            // Hide first load animation if this was the first library load
+            if (isFirstLibraryLoad) {
+                // Add a small delay to show the animation completion
+                setTimeout(() => {
+                    hideFirstLoadAnimation();
+                    isFirstLibraryLoad = false; // Mark that we've completed the first load
+                }, 500);
+            }
+
             app.renderDefaultCharts();
 
             // if debug mode is enabled, log data into the console:
