@@ -165,8 +165,8 @@
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
                             <div class="row" v-if="selectedLibraryStats.type === 'movie'">
-                                <p><strong>Largest File:</strong> {{ selectedLibraryStats.largestFile }}</p>
-                                <p><strong>Smallest File:</strong> {{ selectedLibraryStats.smallestFile }}</p>
+                                <p><strong>Largest File:</strong> {{ selectedLibraryStats.largestFile }} - {{ formatFileSize(selectedLibraryStats.largestFileSize) }} ({{ selectedLibraryStats.largestFileResolution }})</p>
+                                <p><strong>Smallest File:</strong> {{ selectedLibraryStats.smallestFile }} - {{ formatFileSize(selectedLibraryStats.smallestFileSize) }} ({{ selectedLibraryStats.smallestFileResolution }})</p>
                             </div>
                             <div class="row">
                                 <div id="items-by-size" class="chart"></div>

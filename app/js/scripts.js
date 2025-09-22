@@ -124,8 +124,10 @@ fileSizeData = {
     totalFileSize: 0,
     largestFile: '',
     largestFileSize: 0,
+    largestFileResolution: '',
     smallestFile: '',
-    smallestFileSize: Number.MAX_SAFE_INTEGER
+    smallestFileSize: Number.MAX_SAFE_INTEGER,
+    smallestFileResolution: ''
 },
 // items added over time (line)
 addedOverTimeData = {
@@ -260,8 +262,10 @@ const resetLibraryStats = () => {
     fileSizeData.totalFileSize = 0;
     fileSizeData.largestFile = '';
     fileSizeData.largestFileSize = 0;
+    fileSizeData.largestFileResolution = '';
     fileSizeData.smallestFile = '';
     fileSizeData.smallestFileSize = Number.MAX_SAFE_INTEGER;
+    fileSizeData.smallestFileResolution = '';
     addedOverTimeData.dates = {};
     addedOverTimeData.datesList = [];
     addedOverTimeData.counts = [];
@@ -550,12 +554,14 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
                     if (fileSize > fileSizeData.largestFileSize) {
                         fileSizeData.largestFileSize = fileSize;
                         fileSizeData.largestFile = `${item.title} (${item.year || 'Unknown'})`;
+                        fileSizeData.largestFileResolution = resolution;
                     }
 
                     // Track smallest file
                     if (fileSize < fileSizeData.smallestFileSize) {
                         fileSizeData.smallestFileSize = fileSize;
                         fileSizeData.smallestFile = `${item.title} (${item.year || 'Unknown'})`;
+                        fileSizeData.smallestFileResolution = resolution;
                     }
 
                     // Assign colors to resolutions
@@ -1088,7 +1094,11 @@ const parseMediaPayload = (data) => {
                 watchedOverTimeCumulative: watchedOverTimeData.cumulativeCounts,
                 // File size data (movies only)
                 largestFile: type === 'movie' && fileSizeData.largestFile ? fileSizeData.largestFile : '',
+                largestFileSize: type === 'movie' ? fileSizeData.largestFileSize : 0,
+                largestFileResolution: type === 'movie' ? fileSizeData.largestFileResolution : '',
                 smallestFile: type === 'movie' && fileSizeData.smallestFile !== 'Unknown (Unknown)' ? fileSizeData.smallestFile : '',
+                smallestFileSize: type === 'movie' ? fileSizeData.smallestFileSize : 0,
+                smallestFileResolution: type === 'movie' ? fileSizeData.smallestFileResolution : '',
                 totalFileSize: type === 'movie' ? fileSizeData.totalFileSize : 0,
                 resolutionColors: type === 'movie' ? fileSizeData.resolutionColors : {}
             }
@@ -2139,6 +2149,13 @@ const app = new Vue({
                 this.exportingData = false;
                 this.closeExportModal();
             }, 1000);
+        },
+        formatFileSize: function(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
     }
 });
