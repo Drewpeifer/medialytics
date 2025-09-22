@@ -38,11 +38,65 @@
             <div v-if="selectedLibrary.length > 0 && !libraryStatsLoading" class="export-button-container">
                 <button
                     class="export-button"
-                    v-on:click="exportLibraryData"
-                    title="Export a list of titles and release years as a CSV file"
-                    :disabled="exportingData">
-                    {{ exportingData ? 'Generating CSV...' : 'Export Title List' }}
+                    v-on:click="openExportModal"
+                    title="Export library data as a CSV file with selected attributes">
+                    Export Title List
                 </button>
+            </div>
+
+            <!-- Export Modal -->
+            <div v-if="showExportModal" class="modal-overlay" v-on:click="closeExportModal">
+                <div class="modal-content" v-on:click.stop>
+                    <div class="modal-header">
+                        <h2>Export Library Data</h2>
+                        <button class="modal-close" v-on:click="closeExportModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="modal-description">Select the metadata attributes you want to include in your CSV export:</p>
+
+                        <div class="attribute-section">
+                            <h3>General Attributes</h3>
+                            <div class="checkbox-grid">
+                                <label v-for="attr in commonAttributes" :key="attr.key" class="checkbox-label">
+                                    <input type="checkbox" v-model="selectedAttributes" :value="attr.key">
+                                    <span class="checkmark"></span>
+                                    {{ attr.label }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div v-if="selectedLibraryStats.type === 'movie'" class="attribute-section">
+                            <h3>Movie-Specific Attributes</h3>
+                            <div class="checkbox-grid">
+                                <label v-for="attr in movieAttributes" :key="attr.key" class="checkbox-label">
+                                    <input type="checkbox" v-model="selectedAttributes" :value="attr.key">
+                                    <span class="checkmark"></span>
+                                    {{ attr.label }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div v-if="selectedLibraryStats.type === 'show'" class="attribute-section">
+                            <h3>TV Show-Specific Attributes</h3>
+                            <div class="checkbox-grid">
+                                <label v-for="attr in tvAttributes" :key="attr.key" class="checkbox-label">
+                                    <input type="checkbox" v-model="selectedAttributes" :value="attr.key">
+                                    <span class="checkmark"></span>
+                                    {{ attr.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="cancel-button" v-on:click="closeExportModal">Cancel</button>
+                        <button
+                            class="export-modal-button"
+                            v-on:click="exportSelectedData"
+                            :disabled="selectedAttributes.length === 0 || exportingData">
+                            {{ exportingData ? 'Generating CSV...' : 'Export CSV' }}
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="card library-list" :class="{ collapsed : selectedLibrary.length > 0 }">

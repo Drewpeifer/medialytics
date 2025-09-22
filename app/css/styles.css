@@ -282,3 +282,156 @@ p.ip-address a {
     color: #999;
     cursor: not-allowed;
 }
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #444;
+    border-radius: 5px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #666;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: orange;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #f2f2f2;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: orange;
+}
+
+.modal-body {
+    padding: 20px;
+    background-color: #222;
+}
+
+.modal-description {
+    margin-bottom: 20px;
+    color: #f2f2f2;
+}
+
+.attribute-section {
+    margin-bottom: 30px;
+}
+
+.attribute-section h3 {
+    color: orange;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border-bottom: 1px solid #666;
+    padding-bottom: 5px;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.checkbox-label:hover {
+    background-color: rgba(255, 165, 0, 0.1);
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    accent-color: orange;
+}
+
+.checkmark {
+    margin-left: 8px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #666;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.cancel-button {
+    background-color: #666;
+    color: #f2f2f2;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.cancel-button:hover {
+    background-color: #555;
+}
+
+.export-modal-button {
+    background-color: orange;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.export-modal-button:hover:not(:disabled) {
+    background-color: #ff8c00;
+    transform: scale(1.05);
+}
+
+.export-modal-button:disabled {
+    background-color: #666;
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
+}

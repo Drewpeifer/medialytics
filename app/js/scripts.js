@@ -1073,7 +1073,41 @@ const app = new Vue({
         writerToggle: "bar",
         contentRatingToggle: "bar",
         exportingData: false,
-        libraryItems: [] // Store the raw library items for export
+        libraryItems: [], // Store the raw library items for export
+        showExportModal: false,
+        selectedAttributes: [],
+        commonAttributes: [
+            { key: 'title', label: 'Title' },
+            { key: 'year', label: 'Year' },
+            { key: 'contentRating', label: 'Content Rating' },
+            { key: 'contentRatingAge', label: 'Content Rating Age' },
+            { key: 'summary', label: 'Summary' },
+            { key: 'audienceRating', label: 'Audience Rating' },
+            { key: 'tagline', label: 'Tagline' },
+            { key: 'duration', label: 'Duration' },
+            { key: 'originallyAvailableAt', label: 'Originally Available At' },
+            { key: 'addedAt', label: 'Added At' },
+            { key: 'updatedAt', label: 'Updated At' },
+            { key: 'lastViewedAt', label: 'Last Viewed At' }
+        ],
+        movieAttributes: [
+            { key: 'bitrate', label: 'Bitrate' },
+            { key: 'height', label: 'Height' },
+            { key: 'width', label: 'Width' },
+            { key: 'aspectRatio', label: 'Aspect Ratio' },
+            { key: 'audioCodec', label: 'Audio Codec' },
+            { key: 'videoCodec', label: 'Video Codec' },
+            { key: 'videoResolution', label: 'Video Resolution' },
+            { key: 'container', label: 'Container' },
+            { key: 'videoFrameRate', label: 'Video Frame Rate' }
+        ],
+        tvAttributes: [
+            { key: 'childCount', label: 'Child Count (seasons)' },
+            { key: 'leafCount', label: 'Leaf Count (episodes)' },
+            { key: 'viewedLeafCount', label: 'Viewed Leaf Count' },
+            { key: 'viewCount', label: 'View Count' },
+            { key: 'skipCount', label: 'Skip Count' }
+        ]
     },
     computed: {
         watchedPercentage: function() {
@@ -1730,6 +1764,167 @@ const app = new Vue({
             // Reset exporting flag after a short delay
             setTimeout(() => {
                 this.exportingData = false;
+            }, 1000);
+        },
+        openExportModal: function() {
+            // Reset selections and open modal
+            this.selectedAttributes = [];
+            this.showExportModal = true;
+        },
+        closeExportModal: function() {
+            this.showExportModal = false;
+            this.selectedAttributes = [];
+        },
+        exportSelectedData: function() {
+            if (this.selectedAttributes.length === 0) {
+                return;
+            }
+
+            this.exportingData = true;
+
+            // Helper function to escape CSV values
+            const escapeCSV = (value) => {
+                if (value === null || value === undefined) {
+                    return '';
+                }
+                const str = String(value);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            // Helper function to format dates
+            const formatDate = (timestamp) => {
+                if (!timestamp) return '';
+                const date = new Date(timestamp * 1000);
+                return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+            };
+
+            // Helper function to get media attribute values
+            const getMediaAttribute = (item, attribute) => {
+                if (!item.Media || !item.Media[0]) return '';
+
+                const media = item.Media[0];
+                switch (attribute) {
+                    case 'bitrate':
+                        return media.bitrate || '';
+                    case 'height':
+                        return media.height || '';
+                    case 'width':
+                        return media.width || '';
+                    case 'aspectRatio':
+                        return media.aspectRatio || '';
+                    case 'audioCodec':
+                        return media.audioCodec || '';
+                    case 'videoCodec':
+                        return media.videoCodec || '';
+                    case 'videoResolution':
+                        return media.videoResolution || '';
+                    case 'container':
+                        return media.container || '';
+                    case 'videoFrameRate':
+                        return media.videoFrameRate || '';
+                    default:
+                        return '';
+                }
+            };
+
+            // Helper function to get attribute value from item
+            const getAttributeValue = (item, attribute) => {
+                switch (attribute) {
+                    case 'title':
+                        return item.title || '';
+                    case 'year':
+                        return item.year || '';
+                    case 'contentRating':
+                        return item.contentRating || '';
+                    case 'contentRatingAge':
+                        return item.contentRatingAge || '';
+                    case 'summary':
+                        return item.summary || '';
+                    case 'audienceRating':
+                        return item.audienceRating || '';
+                    case 'tagline':
+                        return item.tagline || '';
+                    case 'duration':
+                        return item.duration ? Math.round(item.duration / 60000) : ''; // Convert to minutes
+                    case 'originallyAvailableAt':
+                        return item.originallyAvailableAt || '';
+                    case 'addedAt':
+                        return item.addedAt ? formatDate(item.addedAt) : '';
+                    case 'updatedAt':
+                        return item.updatedAt ? formatDate(item.updatedAt) : '';
+                    case 'lastViewedAt':
+                        return item.lastViewedAt ? formatDate(item.lastViewedAt) : '';
+                    case 'childCount':
+                        return item.childCount || '';
+                    case 'leafCount':
+                        return item.leafCount || '';
+                    case 'viewedLeafCount':
+                        return item.viewedLeafCount || '';
+                    case 'viewCount':
+                        return item.viewCount || '';
+                    case 'skipCount':
+                        return item.skipCount || '';
+                    // Movie-specific attributes from Media array
+                    case 'bitrate':
+                    case 'height':
+                    case 'width':
+                    case 'aspectRatio':
+                    case 'audioCodec':
+                    case 'videoCodec':
+                    case 'videoResolution':
+                    case 'container':
+                    case 'videoFrameRate':
+                        return getMediaAttribute(item, attribute);
+                    default:
+                        return '';
+                }
+            };
+
+            // Create CSV header
+            const headers = this.selectedAttributes.map(attr => {
+                const attrObj = [...this.commonAttributes, ...this.movieAttributes, ...this.tvAttributes]
+                    .find(a => a.key === attr);
+                return attrObj ? attrObj.label : attr;
+            });
+
+            let csvContent = headers.map(escapeCSV).join(',') + '\n';
+
+            // Sort items by title
+            const sortedItems = [...this.libraryItems].sort((a, b) => {
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                return titleA.localeCompare(titleB);
+            });
+
+            // Add data rows
+            sortedItems.forEach(item => {
+                const row = this.selectedAttributes.map(attr => {
+                    return escapeCSV(getAttributeValue(item, attr));
+                });
+                csvContent += row.join(',') + '\n';
+            });
+
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Medialytics Export - ${this.selectedLibrary}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            // Close modal and reset state
+            setTimeout(() => {
+                this.exportingData = false;
+                this.closeExportModal();
             }, 1000);
         }
     }
