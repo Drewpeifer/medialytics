@@ -209,7 +209,7 @@
                 <div class="row" v-if="selectedLibraryStats.type === 'movie'">
                     <div class="card full">
                         <div class="header">
-                            <p>Movie Container / Codec / Resolution / Bitrate comparison</p>
+                            <p>Movie Attribute Analysis</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content" v-if="!libraryStatsLoading">
@@ -238,9 +238,9 @@
                                 <div class="filter-group">
                                     <label for="bitrateComparisonFilter">Bitrate Comparison:</label>
                                     <select id="bitrateComparisonFilter" v-model="comparisonFilters.bitrateComparison" @change="onFilterChange">
-                                        <option value="equal">bitrate equal to</option>
-                                        <option value="more">bitrate more than</option>
-                                        <option value="less">bitrate less than</option>
+                                        <option value="equal">Bitrate equal to</option>
+                                        <option value="more">Bitrate more than</option>
+                                        <option value="less">Bitrate less than</option>
                                     </select>
                                 </div>
                                 <div class="filter-group">
