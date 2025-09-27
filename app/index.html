@@ -187,24 +187,6 @@
                 </div>
             </div>
             <div class="library-info" v-if="selectedLibrary.length > 0">
-                <!-- items by file size and resolution -->
-                <div class="row" v-if="selectedLibraryStats.type === 'movie'">
-                    <div class="card full">
-                        <div class="header">
-                            <p>{{ selectedLibraryStats.type }}s by Resolution and File Size</p>
-                        </div>
-                        <div v-if="libraryStatsLoading" class="loader"></div>
-                        <div class="content">
-                            <div class="row" v-if="selectedLibraryStats.type === 'movie'">
-                                <p><strong>Largest File:</strong> {{ selectedLibraryStats.largestFile }} - {{ formatFileSize(selectedLibraryStats.largestFileSize) }} ({{ selectedLibraryStats.largestFileResolution }})</p>
-                                <p><strong>Smallest File:</strong> {{ selectedLibraryStats.smallestFile }} - {{ formatFileSize(selectedLibraryStats.smallestFileSize) }} ({{ selectedLibraryStats.smallestFileResolution }})</p>
-                            </div>
-                            <div class="row">
-                                <div id="items-by-size" class="chart"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <!-- movie comparison card -->
                 <div class="row" v-if="selectedLibraryStats.type === 'movie'">
                     <div class="card full">
@@ -251,6 +233,29 @@
                                     </select>
                                 </div>
                                 <div class="filter-group">
+                                    <label for="fileSizeComparisonFilter">File Size Comparison:</label>
+                                    <select id="fileSizeComparisonFilter" v-model="comparisonFilters.fileSizeComparison" @change="onFilterChange">
+                                        <option value="more">More than</option>
+                                        <option value="less">Less than</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="fileSizeFilter">File Size:</label>
+                                    <select id="fileSizeFilter" v-model="comparisonFilters.fileSize" @change="onFilterChange">
+                                        <option value="">All File Sizes</option>
+                                        <option value="1">1 GB</option>
+                                        <option value="2">2 GB</option>
+                                        <option value="3">3 GB</option>
+                                        <option value="4">4 GB</option>
+                                        <option value="5">5 GB</option>
+                                        <option value="6">6 GB</option>
+                                        <option value="7">7 GB</option>
+                                        <option value="8">8 GB</option>
+                                        <option value="9">9 GB</option>
+                                        <option value="10">10 GB</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
                                     <button
                                         class="analyze-button"
                                         :disabled="!isAnalyzeEnabled"
@@ -294,6 +299,9 @@
                                                 <th @click="sortTable('bitrate')" class="sortable" :class="getSortClass('bitrate')">
                                                     Bitrate <span class="sort-arrow"></span>
                                                 </th>
+                                                <th @click="sortTable('fileSize')" class="sortable" :class="getSortClass('fileSize')">
+                                                    File Size <span class="sort-arrow"></span>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -304,6 +312,7 @@
                                                 <td>{{ movie.codec }}</td>
                                                 <td>{{ movie.resolution }}</td>
                                                 <td>{{ movie.bitrate ? (movie.bitrate + ' kbps') : 'Unknown' }}</td>
+                                                <td>{{ formatMovieFileSize(movie.fileSize) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -316,6 +325,27 @@
                                     <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" class="page-btn">Next</button>
                                     <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages" class="page-btn">Last</button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- items by file size and resolution -->
+                <div class="row" v-if="selectedLibraryStats.type === 'movie'">
+                    <div class="card full">
+                        <div class="header">
+                            <p>{{ selectedLibraryStats.type }}s by Resolution and File Size</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <p><strong>Largest File:</strong> {{ selectedLibraryStats.largestFile }} - {{ formatFileSize(selectedLibraryStats.largestFileSize) }} ({{ selectedLibraryStats.largestFileResolution }})</p>
+                                <p><strong>Smallest File:</strong> {{ selectedLibraryStats.smallestFile }} - {{ formatFileSize(selectedLibraryStats.smallestFileSize) }} ({{ selectedLibraryStats.smallestFileResolution }})</p>
+                            </div>
+                            <div class="row">
+                                <p class="note">(Click item or group to zoom in, click group header to zoom out)</p>
+                            </div>
+                            <div class="row">
+                                <div id="items-by-size" class="chart"></div>
                             </div>
                         </div>
                     </div>
@@ -359,8 +389,8 @@
                                 <p><strong>Total Items:</strong> {{ selectedLibraryStats.totalItems }}</p>
                             </div>
                             <div class="row">
-                                <p><strong>Earliest Addition:</strong> {{ selectedLibraryStats.firstAdded }} ({{ selectedLibraryStats.firstAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
-                                <p><strong>Latest Addition:</strong> {{ selectedLibraryStats.lastAdded }} ({{ selectedLibraryStats.lastAddedDate.toLocaleDateString().replace(/\//g,'-') }})</p>
+                                <p><strong>Earliest Addition:</strong> {{ selectedLibraryStats.firstAdded }} ({{ selectedLibraryStats.firstAddedDate ? selectedLibraryStats.firstAddedDate.toLocaleDateString().replace(/\//g,'-') : 'Unknown' }})</p>
+                                <p><strong>Latest Addition:</strong> {{ selectedLibraryStats.lastAdded }} ({{ selectedLibraryStats.lastAddedDate ? selectedLibraryStats.lastAddedDate.toLocaleDateString().replace(/\//g,'-') : 'Unknown' }})</p>
                             </div>
                             <div class="row">
                                 <div id="items-added-over-time" class="chart"></div>

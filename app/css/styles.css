@@ -45,6 +45,11 @@ h3 {
 .library-stats .row p {
     min-width: 30%
 }
+.row p.note {
+    font-size: 12px;
+    color: #ccc;
+    margin: 5px 0;
+}
 .library-list .row p.selected {
     border: 1px solid white;
     border-radius: 5px;

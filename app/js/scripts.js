@@ -1240,7 +1240,9 @@ const app = new Vue({
             codec: '',
             resolution: '',
             bitrateComparison: 'equal',
-            bitrate: ''
+            bitrate: '',
+            fileSizeComparison: 'more',
+            fileSize: ''
         },
         availableContainers: [],
         availableCodecs: [],
@@ -1268,7 +1270,8 @@ const app = new Vue({
             return this.comparisonFilters.container !== '' ||
                    this.comparisonFilters.codec !== '' ||
                    this.comparisonFilters.resolution !== '' ||
-                   this.comparisonFilters.bitrate !== '';
+                   this.comparisonFilters.bitrate !== '' ||
+                   this.comparisonFilters.fileSize !== '';
         },
         // Filtered movies based on table search
         searchFilteredMovies: function() {
@@ -1282,7 +1285,8 @@ const app = new Vue({
                 movie.container.toLowerCase().includes(searchTerm) ||
                 movie.codec.toLowerCase().includes(searchTerm) ||
                 movie.resolution.toLowerCase().includes(searchTerm) ||
-                (movie.bitrate && movie.bitrate.toString().includes(searchTerm))
+                (movie.bitrate && movie.bitrate.toString().includes(searchTerm)) ||
+                (movie.fileSize && this.formatMovieFileSize(movie.fileSize).toLowerCase().includes(searchTerm))
             );
         },
         // Sorted movies
@@ -2304,6 +2308,18 @@ const app = new Vue({
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         },
+        formatMovieFileSize: function(bytes) {
+            if (!bytes || bytes === 0) return 'Unknown';
+
+            const gb = bytes / (1024 * 1024 * 1024);
+
+            if (gb >= 1) {
+                return gb.toFixed(1) + ' GB';
+            } else {
+                const mb = bytes / (1024 * 1024);
+                return Math.round(mb) + ' MB';
+            }
+        },
         // Movie Comparison Methods
         populateComparisonDropdowns: function() {
             if (this.selectedLibraryStats.type !== 'movie' || !this.libraryItems) {
@@ -2404,6 +2420,25 @@ const app = new Vue({
                     }
                 }
 
+                // Apply file size filter with comparison logic
+                if (this.comparisonFilters.fileSize && media.Part && media.Part[0] && media.Part[0].size) {
+                    const filterFileSize = parseInt(this.comparisonFilters.fileSize) * 1024 * 1024 * 1024; // Convert GB to bytes
+                    const itemFileSize = parseInt(media.Part[0].size);
+
+                    switch (this.comparisonFilters.fileSizeComparison) {
+                        case 'more':
+                            if (itemFileSize <= filterFileSize) {
+                                return false;
+                            }
+                            break;
+                        case 'less':
+                            if (itemFileSize >= filterFileSize) {
+                                return false;
+                            }
+                            break;
+                    }
+                }
+
                 return true;
             });
 
@@ -2423,7 +2458,8 @@ const app = new Vue({
                     container: media.container ? media.container.toUpperCase() : 'Unknown',
                     codec: media.videoCodec ? media.videoCodec.toUpperCase() : 'Unknown',
                     resolution: media.videoResolution ? media.videoResolution.toUpperCase() : 'Unknown',
-                    bitrate: media.bitrate || null
+                    bitrate: media.bitrate || null,
+                    fileSize: media.Part && media.Part[0] && media.Part[0].size ? parseInt(media.Part[0].size) : null
                 };
             });
 
@@ -2444,7 +2480,9 @@ const app = new Vue({
                 codec: '',
                 resolution: '',
                 bitrateComparison: 'equal',
-                bitrate: ''
+                bitrate: '',
+                fileSizeComparison: 'more',
+                fileSize: ''
             };
             this.availableContainers = [];
             this.availableCodecs = [];
@@ -2499,7 +2537,7 @@ const app = new Vue({
             };
 
             // Create CSV header
-            const headers = ['Title', 'Year', 'Container', 'Codec', 'Resolution', 'Bitrate'];
+            const headers = ['Title', 'Year', 'Container', 'Codec', 'Resolution', 'Bitrate', 'File Size'];
             let csvContent = headers.map(escapeCSV).join(',') + '\n';
 
             // Add data rows
@@ -2510,7 +2548,8 @@ const app = new Vue({
                     movie.container,
                     movie.codec,
                     movie.resolution,
-                    movie.bitrate ? (movie.bitrate + ' kbps') : 'Unknown'
+                    movie.bitrate ? (movie.bitrate + ' kbps') : 'Unknown',
+                    this.formatMovieFileSize(movie.fileSize)
                 ];
                 csvContent += row.map(escapeCSV).join(',') + '\n';
             });
