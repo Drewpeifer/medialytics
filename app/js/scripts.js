@@ -650,6 +650,9 @@ const getLibraryData = async (libraryKey) => {
     // Reset data before processing
     resetLibraryStats();
 
+    // Reset movie comparison data when switching libraries
+    app.resetComparisonData();
+
     // Store the raw library items for export
     app.libraryItems = libraryResponse.data.MediaContainer.Metadata || [];
 
@@ -1150,6 +1153,11 @@ const parseMediaPayload = (data) => {
 
             app.renderDefaultCharts();
 
+            // Populate movie comparison dropdowns for movie libraries
+            if (type === 'movie') {
+                app.populateComparisonDropdowns();
+            }
+
             // if debug mode is enabled, log data into the console:
             if (debugMode) {
                 console.log('Library Selected: ', app.selectedLibrary);
@@ -1221,7 +1229,27 @@ const app = new Vue({
             { key: 'viewedLeafCount', label: 'Viewed Leaf Count' },
             { key: 'viewCount', label: 'View Count' },
             { key: 'skipCount', label: 'Skip Count' }
-        ]
+        ],
+        // Movie Comparison Card Data
+        comparisonFilters: {
+            container: '',
+            codec: '',
+            resolution: '',
+            bitrateComparison: 'equal',
+            bitrate: ''
+        },
+        availableContainers: [],
+        availableCodecs: [],
+        availableResolutions: [],
+        availableBitrates: [],
+        filteredMoviesTotal: 0,
+        allFilteredMovies: [],
+        // Table functionality
+        tableSearch: '',
+        sortField: '',
+        sortDirection: 'asc',
+        currentPage: 1,
+        itemsPerPage: 25
     },
     computed: {
         watchedPercentage: function() {
@@ -1230,6 +1258,64 @@ const app = new Vue({
             }
             const totalItems = parseInt(this.selectedLibraryStats.totalItems.replace(/,/g, ''));
             return Math.floor((this.selectedLibraryStats.watchedCount / totalItems) * 100);
+        },
+        // Enable analyze button if at least one filter is selected
+        isAnalyzeEnabled: function() {
+            return this.comparisonFilters.container !== '' ||
+                   this.comparisonFilters.codec !== '' ||
+                   this.comparisonFilters.resolution !== '' ||
+                   this.comparisonFilters.bitrate !== '';
+        },
+        // Filtered movies based on table search
+        searchFilteredMovies: function() {
+            if (!this.tableSearch) {
+                return this.allFilteredMovies;
+            }
+            const searchTerm = this.tableSearch.toLowerCase();
+            return this.allFilteredMovies.filter(movie =>
+                movie.title.toLowerCase().includes(searchTerm) ||
+                movie.year.toString().includes(searchTerm) ||
+                movie.container.toLowerCase().includes(searchTerm) ||
+                movie.codec.toLowerCase().includes(searchTerm) ||
+                movie.resolution.toLowerCase().includes(searchTerm) ||
+                (movie.bitrate && movie.bitrate.toString().includes(searchTerm))
+            );
+        },
+        // Sorted movies
+        sortedMovies: function() {
+            if (!this.sortField) {
+                return this.searchFilteredMovies;
+            }
+
+            return [...this.searchFilteredMovies].sort((a, b) => {
+                let aVal = a[this.sortField];
+                let bVal = b[this.sortField];
+
+                // Handle special cases for numeric sorting
+                if (this.sortField === 'year' || this.sortField === 'bitrate') {
+                    aVal = parseInt(aVal) || 0;
+                    bVal = parseInt(bVal) || 0;
+                } else {
+                    aVal = String(aVal || '').toLowerCase();
+                    bVal = String(bVal || '').toLowerCase();
+                }
+
+                if (this.sortDirection === 'asc') {
+                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                } else {
+                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+                }
+            });
+        },
+        // Paginated movies
+        paginatedMovies: function() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.sortedMovies.slice(start, end);
+        },
+        // Total pages
+        totalPages: function() {
+            return Math.ceil(this.sortedMovies.length / this.itemsPerPage);
         }
     },
     mounted: function () {
@@ -2200,6 +2286,244 @@ const app = new Vue({
             const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        },
+        // Movie Comparison Methods
+        populateComparisonDropdowns: function() {
+            if (this.selectedLibraryStats.type !== 'movie' || !this.libraryItems) {
+                return;
+            }
+
+            const containers = new Set();
+            const codecs = new Set();
+            const resolutions = new Set();
+            const bitrates = new Set();
+
+            this.libraryItems.forEach(item => {
+                if (item.Media && item.Media.length > 0) {
+                    const media = item.Media[0];
+                    if (media.container) {
+                        containers.add(media.container.toUpperCase());
+                    }
+                    if (media.videoCodec) {
+                        codecs.add(media.videoCodec.toUpperCase());
+                    }
+                    if (media.videoResolution) {
+                        resolutions.add(media.videoResolution.toUpperCase());
+                    }
+                    if (media.bitrate) {
+                        bitrates.add(media.bitrate + ' kbps');
+                    }
+                }
+            });
+
+            this.availableContainers = Array.from(containers).sort();
+            this.availableCodecs = Array.from(codecs).sort();
+            this.availableResolutions = Array.from(resolutions).sort();
+            this.availableBitrates = Array.from(bitrates).sort((a, b) => {
+                const aNum = parseInt(a);
+                const bNum = parseInt(b);
+                return aNum - bNum;
+            });
+        },
+        onFilterChange: function() {
+            // Reset results when filters change
+            this.filteredMoviesTotal = 0;
+            this.filteredMoviesDisplayed = [];
+            this.currentDisplayOffset = 0;
+            this.allFilteredMovies = [];
+        },
+        analyzeMovies: function() {
+            if (this.selectedLibraryStats.type !== 'movie' || !this.libraryItems) {
+                return;
+            }
+
+            const filteredMovies = this.libraryItems.filter(item => {
+                if (!item.Media || item.Media.length === 0) {
+                    return false;
+                }
+
+                const media = item.Media[0];
+
+                // Apply filters
+                if (this.comparisonFilters.container &&
+                    media.container &&
+                    media.container.toUpperCase() !== this.comparisonFilters.container) {
+                    return false;
+                }
+
+                if (this.comparisonFilters.codec &&
+                    media.videoCodec &&
+                    media.videoCodec.toUpperCase() !== this.comparisonFilters.codec) {
+                    return false;
+                }
+
+                if (this.comparisonFilters.resolution &&
+                    media.videoResolution &&
+                    media.videoResolution.toUpperCase() !== this.comparisonFilters.resolution) {
+                    return false;
+                }
+
+                // Apply bitrate filter with comparison logic
+                if (this.comparisonFilters.bitrate && media.bitrate) {
+                    const filterBitrate = parseInt(this.comparisonFilters.bitrate);
+                    const itemBitrate = media.bitrate;
+
+                    switch (this.comparisonFilters.bitrateComparison) {
+                        case 'equal':
+                            if (itemBitrate !== filterBitrate) {
+                                return false;
+                            }
+                            break;
+                        case 'more':
+                            if (itemBitrate <= filterBitrate) {
+                                return false;
+                            }
+                            break;
+                        case 'less':
+                            if (itemBitrate >= filterBitrate) {
+                                return false;
+                            }
+                            break;
+                    }
+                }
+
+                return true;
+            });
+
+            // Sort alphabetically by title
+            filteredMovies.sort((a, b) => {
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                return titleA.localeCompare(titleB);
+            });
+
+            // Process the filtered movies for display
+            this.allFilteredMovies = filteredMovies.map(item => {
+                const media = item.Media[0];
+                return {
+                    title: item.title,
+                    year: item.year,
+                    container: media.container ? media.container.toUpperCase() : 'Unknown',
+                    codec: media.videoCodec ? media.videoCodec.toUpperCase() : 'Unknown',
+                    resolution: media.videoResolution ? media.videoResolution.toUpperCase() : 'Unknown',
+                    bitrate: media.bitrate || null
+                };
+            });
+
+            this.filteredMoviesTotal = this.allFilteredMovies.length;
+            this.currentDisplayOffset = 0;
+            this.filteredMoviesDisplayed = this.allFilteredMovies.slice(0, 25);
+        },
+        showMoreMovies: function() {
+            const nextOffset = this.currentDisplayOffset + 25;
+            const nextBatch = this.allFilteredMovies.slice(nextOffset, nextOffset + 25);
+
+            this.filteredMoviesDisplayed = [...this.filteredMoviesDisplayed, ...nextBatch];
+            this.currentDisplayOffset = nextOffset;
+        },
+        resetComparisonData: function() {
+            this.comparisonFilters = {
+                container: '',
+                codec: '',
+                resolution: '',
+                bitrateComparison: 'equal',
+                bitrate: ''
+            };
+            this.availableContainers = [];
+            this.availableCodecs = [];
+            this.availableResolutions = [];
+            this.availableBitrates = [];
+            this.filteredMoviesTotal = 0;
+            this.allFilteredMovies = [];
+            // Reset table state
+            this.tableSearch = '';
+            this.sortField = '';
+            this.sortDirection = 'asc';
+            this.currentPage = 1;
+        },
+        // Table sorting methods
+        sortTable: function(field) {
+            if (this.sortField === field) {
+                this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.sortField = field;
+                this.sortDirection = 'asc';
+            }
+            this.currentPage = 1; // Reset to first page when sorting
+        },
+        getSortClass: function(field) {
+            if (this.sortField === field) {
+                return `sort-${this.sortDirection}`;
+            }
+            return '';
+        },
+        // Pagination methods
+        goToPage: function(page) {
+            if (page >= 1 && page <= this.totalPages) {
+                this.currentPage = page;
+            }
+        },
+        // Export table CSV
+        exportTableCSV: function() {
+            if (!this.sortedMovies || this.sortedMovies.length === 0) {
+                return;
+            }
+
+            // Helper function to escape CSV values
+            const escapeCSV = (value) => {
+                if (value === null || value === undefined) {
+                    return '';
+                }
+                const str = String(value);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            // Create CSV header
+            const headers = ['Title', 'Year', 'Container', 'Codec', 'Resolution', 'Bitrate'];
+            let csvContent = headers.map(escapeCSV).join(',') + '\n';
+
+            // Add data rows
+            this.sortedMovies.forEach(movie => {
+                const row = [
+                    movie.title,
+                    movie.year || 'Unknown',
+                    movie.container,
+                    movie.codec,
+                    movie.resolution,
+                    movie.bitrate ? (movie.bitrate + ' kbps') : 'Unknown'
+                ];
+                csvContent += row.map(escapeCSV).join(',') + '\n';
+            });
+
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            // Create filename with filter info
+            let filename = `Movie Comparison - ${this.selectedLibrary}`;
+            const activeFilters = [];
+            if (this.comparisonFilters.container) activeFilters.push(this.comparisonFilters.container);
+            if (this.comparisonFilters.codec) activeFilters.push(this.comparisonFilters.codec);
+            if (this.comparisonFilters.resolution) activeFilters.push(this.comparisonFilters.resolution);
+            if (this.comparisonFilters.bitrate) activeFilters.push(this.comparisonFilters.bitrate);
+
+            if (activeFilters.length > 0) {
+                filename += ` - ${activeFilters.join(', ')}`;
+            }
+            filename += '.csv';
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
     }
 });

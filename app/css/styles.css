@@ -598,3 +598,320 @@ p.ip-address a {
     cursor: not-allowed;
     transform: none;
 }
+
+/* Movie Comparison Card Styles */
+.comparison-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: orange;
+}
+
+.filter-group select {
+    background-color: #333;
+    color: #f2f2f2;
+    border: 1px solid #666;
+    border-radius: 3px;
+    padding: 8px;
+    font-size: 14px;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.filter-group select:hover {
+    border-color: orange;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: orange;
+    box-shadow: 0 0 3px rgba(255, 165, 0, 0.3);
+}
+
+.analyze-button {
+    background-color: orange;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 38px;
+}
+
+.analyze-button:hover:not(:disabled) {
+    background-color: #ff8c00;
+    transform: scale(1.05);
+}
+
+.analyze-button:disabled {
+    background-color: #666;
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.movie-comparison-results {
+    margin-top: 20px;
+}
+
+.movie-list {
+    background-color: #111;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.movie-item {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}
+
+.movie-item:last-child {
+    border-bottom: none;
+}
+
+.movie-title {
+    font-weight: bold;
+    color: orange;
+    margin-bottom: 3px;
+}
+
+.movie-details {
+    font-size: 13px;
+    color: #ccc;
+}
+
+.show-more-container {
+    text-align: center;
+    padding: 10px 0;
+}
+
+.show-more-link {
+    color: orange;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 15px;
+    border: 1px solid orange;
+    border-radius: 5px;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.show-more-link:hover {
+    background-color: orange;
+    color: #000;
+}
+
+/* Table styles for movie comparison */
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-search {
+    background-color: #333;
+    color: #f2f2f2;
+    border: 1px solid #666;
+    border-radius: 3px;
+    padding: 8px 12px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.table-search:focus {
+    outline: none;
+    border-color: orange;
+    box-shadow: 0 0 3px rgba(255, 165, 0, 0.3);
+}
+
+.export-table-button {
+    background-color: orange;
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.export-table-button:hover {
+    background-color: #ff8c00;
+    transform: scale(1.05);
+}
+
+.table-container {
+    overflow-x: auto;
+    background-color: #111;
+    border-radius: 5px;
+    border: 1px solid #333;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.comparison-table th {
+    background-color: #222;
+    color: orange;
+    font-weight: bold;
+    padding: 12px 8px;
+    text-align: left;
+    border-bottom: 2px solid #444;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.comparison-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.comparison-table th.sortable:hover {
+    background-color: #333;
+}
+
+.comparison-table th.sortable.sort-asc .sort-arrow::after {
+    content: " ↑";
+    color: orange;
+}
+
+.comparison-table th.sortable.sort-desc .sort-arrow::after {
+    content: " ↓";
+    color: orange;
+}
+
+.comparison-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #333;
+    color: #f2f2f2;
+}
+
+.comparison-table tbody tr:hover {
+    background-color: #1a1a1a;
+}
+
+.comparison-table tbody tr:nth-child(even) {
+    background-color: #0f0f0f;
+}
+
+.comparison-table tbody tr:nth-child(even):hover {
+    background-color: #1a1a1a;
+}
+
+/* Pagination styles */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 15px 0;
+}
+
+.page-btn {
+    background-color: #333;
+    color: #f2f2f2;
+    border: 1px solid #666;
+    padding: 8px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+    background-color: orange;
+    color: #000;
+    border-color: orange;
+}
+
+.page-btn:disabled {
+    background-color: #222;
+    color: #666;
+    cursor: not-allowed;
+    border-color: #444;
+}
+
+.page-info {
+    color: #f2f2f2;
+    font-weight: bold;
+    margin: 0 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .comparison-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group {
+        min-width: auto;
+        margin-bottom: 10px;
+    }
+
+    .table-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .control-group {
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .table-search {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .comparison-table {
+        font-size: 12px;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+        padding: 8px 4px;
+    }
+
+    .pagination-controls {
+        flex-wrap: wrap;
+    }
+}

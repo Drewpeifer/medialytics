@@ -11,6 +11,9 @@
     <!-- import d3 / plotly for visualizations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.33.0.min.js" charset="utf-8"></script>
+    <!-- Material-UI for data table -->
+    <script src="https://unpkg.com/@mui/material@latest/umd/material-ui.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- fonts and styling -->
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
@@ -198,6 +201,121 @@
                             </div>
                             <div class="row">
                                 <div id="items-by-size" class="chart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- movie comparison card -->
+                <div class="row" v-if="selectedLibraryStats.type === 'movie'">
+                    <div class="card full">
+                        <div class="header">
+                            <p>Movie Container / Codec / Resolution / Bitrate comparison</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content" v-if="!libraryStatsLoading">
+                            <div class="row comparison-filters">
+                                <div class="filter-group">
+                                    <label for="containerFilter">Container:</label>
+                                    <select id="containerFilter" v-model="comparisonFilters.container" @change="onFilterChange">
+                                        <option value="">All Containers</option>
+                                        <option v-for="container in availableContainers" :key="container" :value="container">{{ container }}</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="codecFilter">Codec:</label>
+                                    <select id="codecFilter" v-model="comparisonFilters.codec" @change="onFilterChange">
+                                        <option value="">All Codecs</option>
+                                        <option v-for="codec in availableCodecs" :key="codec" :value="codec">{{ codec }}</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="resolutionFilter">Resolution:</label>
+                                    <select id="resolutionFilter" v-model="comparisonFilters.resolution" @change="onFilterChange">
+                                        <option value="">All Resolutions</option>
+                                        <option v-for="resolution in availableResolutions" :key="resolution" :value="resolution">{{ resolution }}</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="bitrateComparisonFilter">Bitrate Comparison:</label>
+                                    <select id="bitrateComparisonFilter" v-model="comparisonFilters.bitrateComparison" @change="onFilterChange">
+                                        <option value="equal">bitrate equal to</option>
+                                        <option value="more">bitrate more than</option>
+                                        <option value="less">bitrate less than</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="bitrateFilter">Bitrate:</label>
+                                    <select id="bitrateFilter" v-model="comparisonFilters.bitrate" @change="onFilterChange">
+                                        <option value="">All Bitrates</option>
+                                        <option v-for="bitrate in availableBitrates" :key="bitrate" :value="bitrate">{{ bitrate }}</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <button
+                                        class="analyze-button"
+                                        :disabled="!isAnalyzeEnabled"
+                                        @click="analyzeMovies">
+                                        Analyze
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Table Results Section -->
+                            <div class="movie-comparison-results" v-if="allFilteredMovies.length > 0">
+                                <div class="row table-controls">
+                                    <div class="control-group">
+                                        <p><strong>Total Matches:</strong> {{ filteredMoviesTotal.toLocaleString() }} movies</p>
+                                    </div>
+                                    <div class="control-group">
+                                        <input type="text" v-model="tableSearch" placeholder="Search movies..." class="table-search">
+                                    </div>
+                                    <div class="control-group">
+                                        <button class="export-table-button" @click="exportTableCSV">Export CSV</button>
+                                    </div>
+                                </div>
+                                <div class="table-container">
+                                    <table class="comparison-table">
+                                        <thead>
+                                            <tr>
+                                                <th @click="sortTable('title')" class="sortable" :class="getSortClass('title')">
+                                                    Title <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('year')" class="sortable" :class="getSortClass('year')">
+                                                    Year <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('container')" class="sortable" :class="getSortClass('container')">
+                                                    Container <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('codec')" class="sortable" :class="getSortClass('codec')">
+                                                    Codec <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('resolution')" class="sortable" :class="getSortClass('resolution')">
+                                                    Resolution <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('bitrate')" class="sortable" :class="getSortClass('bitrate')">
+                                                    Bitrate <span class="sort-arrow"></span>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="movie in paginatedMovies" :key="movie.title + movie.year">
+                                                <td>{{ movie.title }}</td>
+                                                <td>{{ movie.year || 'Unknown' }}</td>
+                                                <td>{{ movie.container }}</td>
+                                                <td>{{ movie.codec }}</td>
+                                                <td>{{ movie.resolution }}</td>
+                                                <td>{{ movie.bitrate ? (movie.bitrate + ' kbps') : 'Unknown' }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Pagination Controls -->
+                                <div class="pagination-controls" v-if="totalPages > 1">
+                                    <button @click="goToPage(1)" :disabled="currentPage === 1" class="page-btn">First</button>
+                                    <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" class="page-btn">Previous</button>
+                                    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+                                    <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" class="page-btn">Next</button>
+                                    <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages" class="page-btn">Last</button>
+                                </div>
                             </div>
                         </div>
                     </div>
