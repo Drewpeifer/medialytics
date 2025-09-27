@@ -11,13 +11,15 @@ runs in the browser and generates statistics specifically about the content of y
 
 ![visualizations](https://i.imgur.com/zdtq7LF.png)
 
-![visualizetions-3](https://i.imgur.com/by1nUvT.png)
+![visualizations-2](https://i.imgur.com/by1nUvT.png)
 
-![visualizations-2](https://i.imgur.com/idnDNWJ.png)
+![visualizations-3](https://i.imgur.com/pqsJQbm.png)
+
+![visualizations-4](https://i.imgur.com/idnDNWJ.png)
 
 ## Main features
-* Tree Map chart for file size by resolution comparisons **(new!)**
-* File Analysis tool to compare media attributes like container, codec, resolution, bitmap, and file size **(new!)**
+* Tree Map chart for file size by resolution comparisons* **(new!)**
+* File Analysis tool to compare media attributes like container, codec, resolution, bitmap, and file size* **(new!)**
 * Multiple methods of CSV export **(new!)**
 * Bar + pie charts for collections, genre, country, decade, studio, content rating, resolution*, container* (file type), actor, writer*, and director* analysis
 * Scatter chart of audience rating (TMDB) vs content rating
