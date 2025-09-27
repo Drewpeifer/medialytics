@@ -536,6 +536,8 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
                 if (mediaItem.Part && mediaItem.Part[0] && mediaItem.Part[0].size) {
                     const fileSize = parseInt(mediaItem.Part[0].size);
                     const resolution = mediaItem.videoResolution ? mediaItem.videoResolution.toUpperCase() : 'UNKNOWN';
+                    const container = mediaItem.container ? mediaItem.container.toUpperCase() : 'UNKNOWN';
+                    const bitrate = mediaItem.bitrate || null;
                     const watched = item.lastViewedAt ? true : false;
 
                     // Add to fileSizeData items array
@@ -544,6 +546,8 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
                         year: item.year || '',
                         fileSize: fileSize,
                         resolution: resolution,
+                        container: container,
+                        bitrate: bitrate,
                         watched: watched
                     });
 
@@ -1905,7 +1909,7 @@ const app = new Vue({
                 fileSizeData.resolutionColors[res] || chartColors[i % chartColors.length]
             ]);
 
-            // Create custom hover text with formatted file sizes
+            // Create custom hover text with formatted file sizes, container, and bitrate
             const customHoverText = labels.map((label, index) => {
                 const rawSize = parseInt(values[index]);
                 const formattedSize = formatFileSize(rawSize);
@@ -1915,8 +1919,21 @@ const app = new Vue({
                     // This is a resolution group (parent)
                     return `<b>${label} Resolution</b><br>Total Size: ${formattedSize}`;
                 } else {
-                    // This is an individual movie
-                    return `<b>${label}</b><br>Resolution: ${parent}<br>File Size: ${formattedSize}`;
+                    // This is an individual movie - find the corresponding movie data
+                    const movieIndex = index - Object.keys(resolutionTotals).length;
+                    const movieData = fileSizeData.items[movieIndex];
+
+                    let tooltipText = `<b>${label}</b><br>Resolution: ${parent}<br>File Size: ${formattedSize}`;
+
+                    if (movieData && movieData.container) {
+                        tooltipText += `<br>Container: ${movieData.container}`;
+                    }
+
+                    if (movieData && movieData.bitrate) {
+                        tooltipText += `<br>Bitrate: ${movieData.bitrate} kbps`;
+                    }
+
+                    return tooltipText;
                 }
             });
 
