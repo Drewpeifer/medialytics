@@ -80,7 +80,6 @@ Set up:
 This assumes you followed the instructions and have a `.env` file in the same repo as a `docker-compose.yml` file with the following:
 
 ```
-version: "3.9"
 services:
   medialytics:
     image: ghcr.io/drewpeifer/medialytics:latest
