@@ -982,7 +982,7 @@ const parseMediaPayload = (data) => {
                 // `preparedDecadeData.counts` is newest to oldest.
                 // So, the index from reversed preparedDecadeData.counts matches the `decades` (global) array.
                  topDecade = decades[preparedDecadeData.counts.indexOf(Math.max(...preparedDecadeData.counts))];
-                 topDecadeCount = Math.max(...preparedDecadeData.counts).toLocaleString();
+                 topDecadeCount = Math.max(...preparedDecadeData.counts).toLocaleString('en-us');
             }
 
 
@@ -1016,20 +1016,20 @@ const parseMediaPayload = (data) => {
             app.selectedLibraryStats = {};
             // build the stats object for the selected library
             app.selectedLibraryStats = {
-                totalItems: itemCount.toLocaleString(),
+                totalItems: itemCount.toLocaleString('en-us'),
                 totalDays: totalDays,
                 displayHours: totalHours - (totalDays*24),
                 displayMins: totalMins - (totalHours*60),
                 topGenre: preparedGenreData.list.length > 0 ? preparedGenreData.list[0] : "",
-                topGenreCount: preparedGenreData.counts.length > 0 ? preparedGenreData.counts[0].toLocaleString() : "",
-                totalGenreCount: preparedGenreData.list.length.toLocaleString(),
+                topGenreCount: preparedGenreData.counts.length > 0 ? preparedGenreData.counts[0].toLocaleString('en-us') : "",
+                totalGenreCount: preparedGenreData.list.length.toLocaleString('en-us'),
                 genreList: preparedGenreData.list,
                 genreCounts: preparedGenreData.counts,
                 genresWatchedCounts : preparedGenreData.watched,
                 genresUnwatchedCounts : preparedGenreData.unwatched,
                 topCountry: preparedCountryData.list.length > 0 ? preparedCountryData.list[0] : "",
-                topCountryCount: preparedCountryData.counts.length > 0 ? preparedCountryData.counts[0].toLocaleString() : "",
-                totalCountryCount: preparedCountryData.list.length.toLocaleString(),
+                topCountryCount: preparedCountryData.counts.length > 0 ? preparedCountryData.counts[0].toLocaleString('en-us') : "",
+                totalCountryCount: preparedCountryData.list.length.toLocaleString('en-us'),
                 countryCounts: preparedCountryData.counts,
                 countryList: preparedCountryData.list,
                 countriesWatchedCounts : preparedCountryData.watched,
@@ -1039,15 +1039,15 @@ const parseMediaPayload = (data) => {
                 resolutionsWatchedCounts : preparedResolutionData.watched,
                 resolutionsUnwatchedCounts : preparedResolutionData.unwatched,
                 topResolution: preparedResolutionData.list.length > 0 ? preparedResolutionData.list[0].toUpperCase() : "",
-                topResolutionCount: preparedResolutionData.counts.length > 0 ? preparedResolutionData.counts[0].toLocaleString() : "",
-                totalResolutionCount: preparedResolutionData.list.length.toLocaleString(),
+                topResolutionCount: preparedResolutionData.counts.length > 0 ? preparedResolutionData.counts[0].toLocaleString('en-us') : "",
+                totalResolutionCount: preparedResolutionData.list.length.toLocaleString('en-us'),
                 containerCounts: preparedContainerData.counts,
                 containerList: preparedContainerData.list,
                 containersWatchedCounts : preparedContainerData.watched,
                 containersUnwatchedCounts : preparedContainerData.unwatched,
-                totalContainerCount: preparedContainerData.list.length.toLocaleString(),
+                totalContainerCount: preparedContainerData.list.length.toLocaleString('en-us'),
                 topContainer: preparedContainerData.list.length > 0 ? preparedContainerData.list[0].toUpperCase() : "",
-                topContainerCount: preparedContainerData.counts.length > 0 ? preparedContainerData.counts[0].toLocaleString() : "",
+                topContainerCount: preparedContainerData.counts.length > 0 ? preparedContainerData.counts[0].toLocaleString('en-us') : "",
                 topDecade: topDecade, // Calculated above from preparedDecadeData
                 topDecadeCount: topDecadeCount, // Calculated above from preparedDecadeData
                 totalDecadeCount: preparedDecadeData.list.length, // Should be decades.length
@@ -1057,29 +1057,29 @@ const parseMediaPayload = (data) => {
                 decadesUnwatchedCounts : preparedDecadeData.unwatched, // from helper
                 studios: studioData.data, // Keep raw data if needed elsewhere, though charts use prepared
                 topStudio: preparedStudioData.list.length > 0 ? preparedStudioData.list[0] : "",
-                topStudioCount: preparedStudioData.counts.length > 0 ? preparedStudioData.counts[0].toLocaleString() : "",
-                totalStudioCount: preparedStudioData.list.length.toLocaleString(),
+                topStudioCount: preparedStudioData.counts.length > 0 ? preparedStudioData.counts[0].toLocaleString('en-us') : "",
+                totalStudioCount: preparedStudioData.list.length.toLocaleString('en-us'),
                 studioList: preparedStudioData.list,
                 studioCounts: preparedStudioData.counts,
                 studiosWatchedCounts: preparedStudioData.watched,
                 studiosUnwatchedCounts: preparedStudioData.unwatched,
                 topDirector: preparedDirectorData.list.length > 0 ? preparedDirectorData.list[0] : "",
-                topDirectorCount: preparedDirectorData.counts.length > 0 ? preparedDirectorData.counts[0].toLocaleString() : "",
-                totalDirectorCount: preparedDirectorData.list.length.toLocaleString(),
+                topDirectorCount: preparedDirectorData.counts.length > 0 ? preparedDirectorData.counts[0].toLocaleString('en-us') : "",
+                totalDirectorCount: preparedDirectorData.list.length.toLocaleString('en-us'),
                 directorList: preparedDirectorData.list,
                 directorCounts: preparedDirectorData.counts,
                 directorsWatchedCounts: preparedDirectorData.watched,
                 directorsUnwatchedCounts: preparedDirectorData.unwatched,
                 topActor: preparedActorData.list.length > 0 ? preparedActorData.list[0] : "",
-                topActorCount: preparedActorData.counts.length > 0 ? preparedActorData.counts[0].toLocaleString() : "",
-                totalActorCount: preparedActorData.list.length.toLocaleString(),
+                topActorCount: preparedActorData.counts.length > 0 ? preparedActorData.counts[0].toLocaleString('en-us') : "",
+                totalActorCount: preparedActorData.list.length.toLocaleString('en-us'),
                 actorList: preparedActorData.list,
                 actorCounts: preparedActorData.counts,
                 actorsWatchedCounts: preparedActorData.watched,
                 actorsUnwatchedCounts: preparedActorData.unwatched,
                 topWriter: preparedWriterData.list.length > 0 ? preparedWriterData.list[0] : "",
-                topWriterCount: preparedWriterData.counts.length > 0 ? preparedWriterData.counts[0].toLocaleString() : "",
-                totalWriterCount: preparedWriterData.list.length.toLocaleString(),
+                topWriterCount: preparedWriterData.counts.length > 0 ? preparedWriterData.counts[0].toLocaleString('en-us') : "",
+                totalWriterCount: preparedWriterData.list.length.toLocaleString('en-us'),
                 writerList: preparedWriterData.list,
                 writerCounts: preparedWriterData.counts,
                 writersWatchedCounts: preparedWriterData.watched,
@@ -1088,8 +1088,8 @@ const parseMediaPayload = (data) => {
                 ratingsHighest: ratingsHighest.text ? `${ratingsHighest.text} - ${ratingsHighest.y} / ${ratingsHighest.x}` : "",
                 ratingsLowest: ratingsLowest.text ? `${ratingsLowest.text} - ${ratingsLowest.y} / ${ratingsLowest.x}` : "",
                 topContentRating: preparedContentRatingData.list.length > 0 ? preparedContentRatingData.list[0] : "",
-                topContentRatingCount: preparedContentRatingData.counts.length > 0 ? preparedContentRatingData.counts[0].toLocaleString() : "",
-                totalContentRatingCount: preparedContentRatingData.list.length.toLocaleString(),
+                topContentRatingCount: preparedContentRatingData.counts.length > 0 ? preparedContentRatingData.counts[0].toLocaleString('en-us') : "",
+                totalContentRatingCount: preparedContentRatingData.list.length.toLocaleString('en-us'),
                 contentRatingList: preparedContentRatingData.list,
                 contentRatingCounts: preparedContentRatingData.counts,
                 contentRatingsWatchedCounts: preparedContentRatingData.watched,
