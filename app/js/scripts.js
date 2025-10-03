@@ -6,11 +6,11 @@ serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
 libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
 // chart color theme
 chartColors = ['#D62828', '#FC9803', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
-// below are the decade arrays used for the items by decade chart, any data outside of these decades will
-// be collected but not displayed by the charts. Explicitly stating these instead of computing for easier customization of charts
-decadePrefixes = ["191", "192", "193", "194", "195", "196", "197", "198", "199", "200", "201", "202"],// used for comparing raw release years
-decades = ["2020s", "2010s", "2000s", "1990s", "1980s", "1970s", "1960s", "1950s", "1940s", "1930s", "1920s", "1910s"],// used for UI/chart display
 debugMode = false;// set to true to enable console logging
+
+// decade arrays - these will be dynamically generated based on actual data
+let decadePrefixes = [],// used for comparing raw release years
+decades = [];// used for UI/chart display
 
 let availableLibraries = [],// the list of libraries returned by your server
 selectedLibrary = "",// the library currently selected by the user
@@ -57,13 +57,13 @@ containerData = {
 // release dates
 releaseDateData = {
     list: [],// stores each instance of a release date
-    counts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],// stores count of decades within releaseDateList (matched against decadePrefixes array for comparison)
+    counts: [],// stores count of decades within releaseDateList (dynamically sized)
     oldestTitle: "",// the oldest title in the library
     oldestReleaseDate: "",// the oldest release date in the library
     // watched status for the decades chart
     watchedList: [],
-    watchedCounts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    unwatchedCounts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    watchedCounts: [],// dynamically sized
+    unwatchedCounts: []// dynamically sized
 },
 // studios
 studioData = {
@@ -227,12 +227,15 @@ const resetLibraryStats = () => {
     studioData.watchedCounts = [];
     studioData.unwatchedCounts = [];
     releaseDateData.list = [];
-    releaseDateData.counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    releaseDateData.counts = [];
     releaseDateData.oldestTitle = "";
     releaseDateData.oldestReleaseDate = "";
     releaseDateData.watchedList = [];
-    releaseDateData.watchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    releaseDateData.unwatchedCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    releaseDateData.watchedCounts = [];
+    releaseDateData.unwatchedCounts = [];
+    // reset dynamic decade arrays
+    decadePrefixes = [];
+    decades = [];
     directorData.data = {};
     directorData.list = [];
     directorData.counts = [];
@@ -376,21 +379,69 @@ const prepareAddedOverTimeData = (addedData) => {
     };
 };
 
-const prepareDecadeChartData = (currentReleaseDateData, decadesArray, decadePrefixesArray) => {
-    // Ensure counts are based on the original list, not the reversed one from previous runs.
-    // Resetting here or ensuring resetLibraryStats does a full clear is important.
-    // For this function, we assume currentReleaseDateData.list and .watchedList are fresh.
-    let liveCounts = Array(decadePrefixesArray.length).fill(0);
-    let liveWatchedCounts = Array(decadePrefixesArray.length).fill(0);
+/////////////////////////////////
+// Generate dynamic decades based on actual release years in the data
+const generateDynamicDecades = (releaseDateList) => {
+    if (!releaseDateList || releaseDateList.length === 0) {
+        return { decadePrefixes: [], decades: [] };
+    }
+
+    // Get all unique decade prefixes from the actual data
+    const foundDecadePrefixes = new Set();
+
+    releaseDateList.forEach((year) => {
+        if (typeof year === 'number' && !isNaN(year)) {
+            const yearStr = year.toString();
+            if (yearStr.length >= 3) {
+                const prefix = yearStr.substring(0, 3);
+                foundDecadePrefixes.add(prefix);
+            }
+        }
+    });
+
+    // Convert to sorted array (oldest to newest)
+    const sortedPrefixes = Array.from(foundDecadePrefixes).sort();
+
+    // Generate corresponding decade display names (oldest to newest)
+    const decadeDisplayNames = sortedPrefixes.map(prefix => {
+        const startYear = parseInt(prefix + '0');
+        return `${startYear}s`;
+    });
+
+    return {
+        decadePrefixes: sortedPrefixes,
+        decades: decadeDisplayNames
+    };
+};
+
+const prepareDecadeChartData = (currentReleaseDateData) => {
+    // Generate dynamic decades based on actual data
+    const dynamicDecades = generateDynamicDecades(currentReleaseDateData.list);
+
+    // Update global arrays with dynamic data
+    decadePrefixes = dynamicDecades.decadePrefixes;
+    decades = dynamicDecades.decades;
+
+    if (decadePrefixes.length === 0) {
+        return {
+            list: [],
+            counts: [],
+            watched: [],
+            unwatched: []
+        };
+    }
+
+    let liveCounts = Array(decadePrefixes.length).fill(0);
+    let liveWatchedCounts = Array(decadePrefixes.length).fill(0);
 
     currentReleaseDateData.list.forEach((year) => {
         if (typeof year === 'number' && !isNaN(year)) {
             let yearStr = year.toString();
-            let yearPrefix = yearStr.substring(0, 3);
-            for (let i = 0; i < decadePrefixesArray.length; i++) {
-                if (yearPrefix === decadePrefixesArray[i]) {
-                    liveCounts[i]++;
-                    break;
+            if (yearStr.length >= 3) {
+                let yearPrefix = yearStr.substring(0, 3);
+                const prefixIndex = decadePrefixes.indexOf(yearPrefix);
+                if (prefixIndex !== -1) {
+                    liveCounts[prefixIndex]++;
                 }
             }
         }
@@ -399,11 +450,11 @@ const prepareDecadeChartData = (currentReleaseDateData, decadesArray, decadePref
     currentReleaseDateData.watchedList.forEach((year) => {
         if (typeof year === 'number' && !isNaN(year)) {
             let yearStr = year.toString();
-            let yearPrefix = yearStr.substring(0, 3);
-            for (let i = 0; i < decadePrefixesArray.length; i++) {
-                if (yearPrefix === decadePrefixesArray[i]) {
-                    liveWatchedCounts[i]++;
-                    break;
+            if (yearStr.length >= 3) {
+                let yearPrefix = yearStr.substring(0, 3);
+                const prefixIndex = decadePrefixes.indexOf(yearPrefix);
+                if (prefixIndex !== -1) {
+                    liveWatchedCounts[prefixIndex]++;
                 }
             }
         }
@@ -413,17 +464,9 @@ const prepareDecadeChartData = (currentReleaseDateData, decadesArray, decadePref
         return Math.abs(count - liveWatchedCounts[index]);
     });
 
-    // Data is processed based on decadePrefixes (oldest to newest like 191*, 192* etc.)
-    // Charts typically display newest first, so reverse all processed arrays.
-    // The global 'decades' array is already newest to oldest ("2020s", "2010s", ...).
-    liveCounts.reverse();
-    liveWatchedCounts.reverse();
-    liveUnwatchedCounts.reverse();
-
-    // The list for the chart should correspond to the reversed counts.
-    // The global 'decades' array is already in the "Newest to Oldest" order desired for display.
+    // Arrays are already in oldest to newest order, no reversal needed
     return {
-        list: decadesArray, // This is the global 'decades' array, already in 'Newest to Oldest'
+        list: decades, // Dynamic decades array, oldest to newest for display
         counts: liveCounts,
         watched: liveWatchedCounts,
         unwatched: liveUnwatchedCounts
@@ -967,22 +1010,17 @@ const parseMediaPayload = (data) => {
             watchedOverTimeData.cumulativeCounts = preparedWatchedOverTimeData.cumulativeCounts;
 
             // Decade data processing
-            const preparedDecadeData = prepareDecadeChartData(releaseDateData, decades, decadePrefixes);
-            // Note: releaseDateData itself is updated globally by prepareDecadeChartData for its .list, .counts etc.
-            // but we'll use the returned object for clarity in selectedLibraryStats
+            const preparedDecadeData = prepareDecadeChartData(releaseDateData);
+
             let topDecade = "";
             let topDecadeCount = 0;
             if (preparedDecadeData.counts.length > 0) {
-                // Find the original (un-reversed) index of max count to get correct decade name
-                const originalCountsForTopDecade = [...preparedDecadeData.counts].reverse(); // un-reverse for correct index
-                const maxCount = Math.max(...originalCountsForTopDecade);
-                const originalIndexOfMax = originalCountsForTopDecade.indexOf(maxCount);
-                // The `decades` global is newest to oldest. `decadePrefixes` is oldest to newest.
-                // `preparedDecadeData.list` is newest to oldest.
-                // `preparedDecadeData.counts` is newest to oldest.
-                // So, the index from reversed preparedDecadeData.counts matches the `decades` (global) array.
-                 topDecade = decades[preparedDecadeData.counts.indexOf(Math.max(...preparedDecadeData.counts))];
-                 topDecadeCount = Math.max(...preparedDecadeData.counts).toLocaleString('en-us');
+                // Find the index of the maximum count to get the correct decade name
+                const maxCount = Math.max(...preparedDecadeData.counts);
+                const maxIndex = preparedDecadeData.counts.indexOf(maxCount);
+                // Both decades array and counts are in oldest to newest order
+                topDecade = decades[maxIndex];
+                topDecadeCount = maxCount.toLocaleString('en-us');
             }
 
 
