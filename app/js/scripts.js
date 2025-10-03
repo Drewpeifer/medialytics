@@ -1516,7 +1516,6 @@ const app = new Vue({
                     zeroline: true,
                     overlaying: 'y',
                     side: 'right',
-                    rangemode: 'tozero'
                 },
                 font: {
                     color: '#fff',
