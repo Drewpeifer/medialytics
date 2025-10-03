@@ -162,8 +162,6 @@ collectionsData = {
     totalItemsInCollections: 0,
     largestCollection: '',
     largestCollectionCount: 0,
-    mostWatchedCollection: '',
-    mostWatchedPercentage: 0,
     collectionNames: [],
     collectionCounts: [],
     collectionWatchedCounts: [],
@@ -1280,12 +1278,22 @@ const app = new Vue({
             bitrateComparison: 'equal',
             bitrate: '',
             fileSizeComparison: 'more',
-            fileSize: ''
+            fileSize: '',
+            height: '',
+            width: '',
+            dimensions: '',
+            audioCodec: '',
+            frameRate: ''
         },
         availableContainers: [],
         availableCodecs: [],
         availableResolutions: [],
         availableBitrates: [],
+        availableHeights: [],
+        availableWidths: [],
+        availableDimensions: [],
+        availableAudioCodecs: [],
+        availableFrameRates: [],
         filteredMoviesTotal: 0,
         allFilteredMovies: [],
         // Table functionality
@@ -1309,7 +1317,12 @@ const app = new Vue({
                    this.comparisonFilters.codec !== '' ||
                    this.comparisonFilters.resolution !== '' ||
                    this.comparisonFilters.bitrate !== '' ||
-                   this.comparisonFilters.fileSize !== '';
+                   this.comparisonFilters.fileSize !== '' ||
+                   this.comparisonFilters.height !== '' ||
+                   this.comparisonFilters.width !== '' ||
+                   this.comparisonFilters.dimensions !== '' ||
+                   this.comparisonFilters.audioCodec !== '' ||
+                   this.comparisonFilters.frameRate !== '';
         },
         // Filtered movies based on table search
         searchFilteredMovies: function() {
@@ -2367,6 +2380,11 @@ const app = new Vue({
             const codecs = new Set();
             const resolutions = new Set();
             const bitrates = new Set();
+            const heights = new Set();
+            const widths = new Set();
+            const dimensions = new Set();
+            const audioCodecs = new Set();
+            const frameRates = new Set();
 
             this.libraryItems.forEach(item => {
                 if (item.Media && item.Media.length > 0) {
@@ -2383,6 +2401,21 @@ const app = new Vue({
                     if (media.bitrate) {
                         bitrates.add(media.bitrate + ' kbps');
                     }
+                    if (media.height) {
+                        heights.add(media.height);
+                    }
+                    if (media.width) {
+                        widths.add(media.width);
+                    }
+                    if (media.width && media.height) {
+                        dimensions.add(`${media.width}x${media.height}`);
+                    }
+                    if (media.audioCodec) {
+                        audioCodecs.add(media.audioCodec.toUpperCase());
+                    }
+                    if (media.videoFrameRate) {
+                        frameRates.add(media.videoFrameRate.toUpperCase());
+                    }
                 }
             });
 
@@ -2394,6 +2427,11 @@ const app = new Vue({
                 const bNum = parseInt(b);
                 return aNum - bNum;
             });
+            this.availableHeights = Array.from(heights).sort((a, b) => parseInt(a) - parseInt(b));
+            this.availableWidths = Array.from(widths).sort((a, b) => parseInt(a) - parseInt(b));
+            this.availableDimensions = Array.from(dimensions).sort();
+            this.availableAudioCodecs = Array.from(audioCodecs).sort();
+            this.availableFrameRates = Array.from(frameRates).sort();
         },
         onFilterChange: function() {
             // Reset results when filters change
@@ -2476,6 +2514,42 @@ const app = new Vue({
                     }
                 }
 
+                // Apply height filter
+                if (this.comparisonFilters.height && media.height) {
+                    if (parseInt(media.height) !== parseInt(this.comparisonFilters.height)) {
+                        return false;
+                    }
+                }
+
+                // Apply width filter
+                if (this.comparisonFilters.width && media.width) {
+                    if (parseInt(media.width) !== parseInt(this.comparisonFilters.width)) {
+                        return false;
+                    }
+                }
+
+                // Apply dimensions filter
+                if (this.comparisonFilters.dimensions && media.width && media.height) {
+                    const itemDimensions = `${media.width}x${media.height}`;
+                    if (itemDimensions !== this.comparisonFilters.dimensions) {
+                        return false;
+                    }
+                }
+
+                // Apply audio codec filter
+                if (this.comparisonFilters.audioCodec && media.audioCodec) {
+                    if (media.audioCodec.toUpperCase() !== this.comparisonFilters.audioCodec) {
+                        return false;
+                    }
+                }
+
+                // Apply frame rate filter
+                if (this.comparisonFilters.frameRate && media.videoFrameRate) {
+                    if (media.videoFrameRate.toUpperCase() !== this.comparisonFilters.frameRate) {
+                        return false;
+                    }
+                }
+
                 return true;
             });
 
@@ -2492,8 +2566,13 @@ const app = new Vue({
                 return {
                     title: item.title,
                     year: item.year,
+                    height: media.height || null,
+                    width: media.width || null,
+                    dimensions: media.width && media.height ? `${media.width}x${media.height}` : null,
                     container: media.container ? media.container.toUpperCase() : 'Unknown',
                     codec: media.videoCodec ? media.videoCodec.toUpperCase() : 'Unknown',
+                    audioCodec: media.audioCodec ? media.audioCodec.toUpperCase() : 'Unknown',
+                    frameRate: media.videoFrameRate ? media.videoFrameRate.toUpperCase() : 'Unknown',
                     resolution: media.videoResolution ? media.videoResolution.toUpperCase() : 'Unknown',
                     bitrate: media.bitrate || null,
                     fileSize: media.Part && media.Part[0] && media.Part[0].size ? parseInt(media.Part[0].size) : null
@@ -2519,12 +2598,22 @@ const app = new Vue({
                 bitrateComparison: 'equal',
                 bitrate: '',
                 fileSizeComparison: 'more',
-                fileSize: ''
+                fileSize: '',
+                height: '',
+                width: '',
+                dimensions: '',
+                audioCodec: '',
+                frameRate: ''
             };
             this.availableContainers = [];
             this.availableCodecs = [];
             this.availableResolutions = [];
             this.availableBitrates = [];
+            this.availableHeights = [];
+            this.availableWidths = [];
+            this.availableDimensions = [];
+            this.availableAudioCodecs = [];
+            this.availableFrameRates = [];
             this.filteredMoviesTotal = 0;
             this.allFilteredMovies = [];
             // Reset table state
@@ -2574,7 +2663,20 @@ const app = new Vue({
             };
 
             // Create CSV header
-            const headers = ['Title', 'Year', 'Container', 'Codec', 'Resolution', 'Bitrate', 'File Size'];
+            const headers = [
+                'Title',
+                'Year',
+                'Height',
+                'Width',
+                'Dimensions',
+                'Container',
+                'Video Codec',
+                'Audio Codec',
+                'Frame Rate',
+                'Resolution',
+                'Bitrate',
+                'File Size'
+            ];
             let csvContent = headers.map(escapeCSV).join(',') + '\n';
 
             // Add data rows
@@ -2582,8 +2684,13 @@ const app = new Vue({
                 const row = [
                     movie.title,
                     movie.year || 'Unknown',
+                    movie.height ? (movie.height + 'px') : 'Unknown',
+                    movie.width ? (movie.width + 'px') : 'Unknown',
+                    movie.dimensions || 'Unknown',
                     movie.container,
                     movie.codec,
+                    movie.audioCodec || 'Unknown',
+                    movie.frameRate || 'Unknown',
                     movie.resolution,
                     movie.bitrate ? (movie.bitrate + ' kbps') : 'Unknown',
                     this.formatMovieFileSize(movie.fileSize)

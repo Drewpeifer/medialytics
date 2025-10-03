@@ -204,17 +204,17 @@
                                     </select>
                                 </div>
                                 <div class="filter-group">
-                                    <label for="codecFilter">Codec:</label>
-                                    <select id="codecFilter" v-model="comparisonFilters.codec" @change="onFilterChange">
-                                        <option value="">All Codecs</option>
-                                        <option v-for="codec in availableCodecs" :key="codec" :value="codec">{{ codec }}</option>
+                                    <label for="audioCodecFilter">Audio Codec:</label>
+                                    <select id="audioCodecFilter" v-model="comparisonFilters.audioCodec" @change="onFilterChange">
+                                        <option value="">All Audio Codecs</option>
+                                        <option v-for="audioCodec in availableAudioCodecs" :key="audioCodec" :value="audioCodec">{{ audioCodec }}</option>
                                     </select>
                                 </div>
                                 <div class="filter-group">
-                                    <label for="resolutionFilter">Resolution:</label>
-                                    <select id="resolutionFilter" v-model="comparisonFilters.resolution" @change="onFilterChange">
-                                        <option value="">All Resolutions</option>
-                                        <option v-for="resolution in availableResolutions" :key="resolution" :value="resolution">{{ resolution }}</option>
+                                    <label for="codecFilter">Video Codec:</label>
+                                    <select id="codecFilter" v-model="comparisonFilters.codec" @change="onFilterChange">
+                                        <option value="">All Video Codecs</option>
+                                        <option v-for="codec in availableCodecs" :key="codec" :value="codec">{{ codec }}</option>
                                     </select>
                                 </div>
                                 <div class="filter-group">
@@ -255,6 +255,43 @@
                                         <option value="10">10 GB</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div class="row comparison-filters">
+                                <div class="filter-group">
+                                    <label for="heightFilter">Height:</label>
+                                    <select id="heightFilter" v-model="comparisonFilters.height" @change="onFilterChange">
+                                        <option value="">All Heights</option>
+                                        <option v-for="height in availableHeights" :key="height" :value="height">{{ height }}px</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="widthFilter">Width:</label>
+                                    <select id="widthFilter" v-model="comparisonFilters.width" @change="onFilterChange">
+                                        <option value="">All Widths</option>
+                                        <option v-for="width in availableWidths" :key="width" :value="width">{{ width }}px</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="dimensionsFilter">Dimensions:</label>
+                                    <select id="dimensionsFilter" v-model="comparisonFilters.dimensions" @change="onFilterChange">
+                                        <option value="">All Dimensions</option>
+                                        <option v-for="dimension in availableDimensions" :key="dimension" :value="dimension">{{ dimension }}</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="resolutionFilter">Resolution:</label>
+                                    <select id="resolutionFilter" v-model="comparisonFilters.resolution" @change="onFilterChange">
+                                        <option value="">All Resolutions</option>
+                                        <option v-for="resolution in availableResolutions" :key="resolution" :value="resolution">{{ resolution }}</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="frameRateFilter">Frame Rate:</label>
+                                    <select id="frameRateFilter" v-model="comparisonFilters.frameRate" @change="onFilterChange">
+                                        <option value="">All Frame Rates</option>
+                                        <option v-for="frameRate in availableFrameRates" :key="frameRate" :value="frameRate">{{ frameRate }}</option>
+                                    </select>
+                                </div>
                                 <div class="filter-group">
                                     <button
                                         class="analyze-button"
@@ -287,11 +324,26 @@
                                                 <th @click="sortTable('year')" class="sortable" :class="getSortClass('year')">
                                                     Year <span class="sort-arrow"></span>
                                                 </th>
+                                                <th @click="sortTable('height')" class="sortable" :class="getSortClass('height')">
+                                                    Height <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('width')" class="sortable" :class="getSortClass('width')">
+                                                    Width <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('dimensions')" class="sortable" :class="getSortClass('dimensions')">
+                                                    Dimensions <span class="sort-arrow"></span>
+                                                </th>
                                                 <th @click="sortTable('container')" class="sortable" :class="getSortClass('container')">
                                                     Container <span class="sort-arrow"></span>
                                                 </th>
                                                 <th @click="sortTable('codec')" class="sortable" :class="getSortClass('codec')">
-                                                    Codec <span class="sort-arrow"></span>
+                                                    Video Codec <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('audioCodec')" class="sortable" :class="getSortClass('audioCodec')">
+                                                    Audio Codec <span class="sort-arrow"></span>
+                                                </th>
+                                                <th @click="sortTable('frameRate')" class="sortable" :class="getSortClass('frameRate')">
+                                                    Frame Rate <span class="sort-arrow"></span>
                                                 </th>
                                                 <th @click="sortTable('resolution')" class="sortable" :class="getSortClass('resolution')">
                                                     Resolution <span class="sort-arrow"></span>
@@ -308,8 +360,13 @@
                                             <tr v-for="movie in paginatedMovies" :key="movie.title + movie.year">
                                                 <td>{{ movie.title }}</td>
                                                 <td>{{ movie.year || 'Unknown' }}</td>
+                                                <td>{{ movie.height ? (movie.height + 'px') : 'Unknown' }}</td>
+                                                <td>{{ movie.width ? (movie.width + 'px') : 'Unknown' }}</td>
+                                                <td>{{ movie.dimensions || 'Unknown' }}</td>
                                                 <td>{{ movie.container }}</td>
                                                 <td>{{ movie.codec }}</td>
+                                                <td>{{ movie.audioCodec || 'Unknown' }}</td>
+                                                <td>{{ movie.frameRate || 'Unknown' }}</td>
                                                 <td>{{ movie.resolution }}</td>
                                                 <td>{{ movie.bitrate ? (movie.bitrate + ' kbps') : 'Unknown' }}</td>
                                                 <td>{{ formatMovieFileSize(movie.fileSize) }}</td>
