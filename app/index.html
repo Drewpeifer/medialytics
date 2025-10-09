@@ -390,13 +390,26 @@
                 <div class="row" v-if="selectedLibraryStats.type === 'movie'">
                     <div class="card full">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.type }}s by Resolution and File Size</p>
+                            <p>{{ selectedLibraryStats.type }}s by Resolution / File Size / Bitrate / Container</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
+                            <div class="row grouping-control">
+                                <label for="treemapGrouping">Group by:</label>
+                                <select id="treemapGrouping" v-model="treemapGrouping" @change="updateTreemapGrouping">
+                                    <option value="resolution">Resolution</option>
+                                    <option value="bitrate">Bitrate</option>
+                                    <option value="container">Container</option>
+                                </select>
+                                <div v-if="treemapLoading" class="loader"></div>
+                            </div>
                             <div class="row">
                                 <p><strong>Largest File:</strong> {{ selectedLibraryStats.largestFile }} - {{ formatFileSize(selectedLibraryStats.largestFileSize) }} ({{ selectedLibraryStats.largestFileResolution }})</p>
                                 <p><strong>Smallest File:</strong> {{ selectedLibraryStats.smallestFile }} - {{ formatFileSize(selectedLibraryStats.smallestFileSize) }} ({{ selectedLibraryStats.smallestFileResolution }})</p>
+                            </div>
+                            <div class="row">
+                                <p><strong>Highest Bitrate:</strong> {{ selectedLibraryStats.highestBitrateFile }} - {{ selectedLibraryStats.highestBitrate }} kbps</p>
+                                <p><strong>Lowest Bitrate:</strong> {{ selectedLibraryStats.lowestBitrateFile }} - {{ selectedLibraryStats.lowestBitrate }} kbps</p>
                             </div>
                             <div class="row">
                                 <p class="note">(Click item or group to zoom in, click group header to zoom out)</p>

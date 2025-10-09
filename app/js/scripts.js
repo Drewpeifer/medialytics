@@ -127,7 +127,11 @@ fileSizeData = {
     largestFileResolution: '',
     smallestFile: '',
     smallestFileSize: Number.MAX_SAFE_INTEGER,
-    smallestFileResolution: ''
+    smallestFileResolution: '',
+    highestBitrateFile: '',
+    highestBitrate: 0,
+    lowestBitrateFile: '',
+    lowestBitrate: Number.MAX_SAFE_INTEGER
 },
 // items added over time (line)
 addedOverTimeData = {
@@ -607,6 +611,18 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
                         fileSizeData.smallestFileSize = fileSize;
                         fileSizeData.smallestFile = `${item.title} (${item.year || 'Unknown'})`;
                         fileSizeData.smallestFileResolution = resolution;
+                    }
+
+                    // Track highest bitrate
+                    if (bitrate && bitrate > fileSizeData.highestBitrate) {
+                        fileSizeData.highestBitrate = bitrate;
+                        fileSizeData.highestBitrateFile = `${item.title} (${item.year || 'Unknown'})`;
+                    }
+
+                    // Track lowest bitrate
+                    if (bitrate && bitrate < fileSizeData.lowestBitrate) {
+                        fileSizeData.lowestBitrate = bitrate;
+                        fileSizeData.lowestBitrateFile = `${item.title} (${item.year || 'Unknown'})`;
                     }
 
                     // Assign colors to resolutions
@@ -1175,6 +1191,10 @@ const parseMediaPayload = (data) => {
                 smallestFile: type === 'movie' && fileSizeData.smallestFile !== 'Unknown (Unknown)' ? fileSizeData.smallestFile : '',
                 smallestFileSize: type === 'movie' ? fileSizeData.smallestFileSize : 0,
                 smallestFileResolution: type === 'movie' ? fileSizeData.smallestFileResolution : '',
+                highestBitrateFile: type === 'movie' && fileSizeData.highestBitrateFile ? fileSizeData.highestBitrateFile : '',
+                highestBitrate: type === 'movie' ? fileSizeData.highestBitrate : 0,
+                lowestBitrateFile: type === 'movie' && fileSizeData.lowestBitrateFile ? fileSizeData.lowestBitrateFile : '',
+                lowestBitrate: type === 'movie' ? fileSizeData.lowestBitrate : 0,
                 totalFileSize: type === 'movie' ? fileSizeData.totalFileSize : 0,
                 resolutionColors: type === 'movie' ? fileSizeData.resolutionColors : {}
             }
@@ -1224,6 +1244,8 @@ const app = new Vue({
         selectedLibraryStats: selectedLibraryStats,
         collectionsData: collectionsData,
         collectionsLoading: collectionsLoading,
+        treemapGrouping: 'resolution', // Default grouping is by resolution
+        treemapLoading: false,
         resolutionToggle: "bar",
         containerToggle: "bar",
         genreToggle: "bar",
@@ -1880,13 +1902,27 @@ const app = new Vue({
                 false // shortLabels
             );
         },
+        updateTreemapGrouping: function() {
+            // Show loading spinner
+            this.treemapLoading = true;
+
+            // Rerender the treemap chart with the new grouping option
+            this.$nextTick(() => {
+                this.renderTreemapChart();
+                // Hide spinner after rendering is complete
+                setTimeout(() => {
+                    this.treemapLoading = false;
+                }, 300);
+            });
+        },
+
         renderTreemapChart: function() {
             if (this.debugMode) {
                 console.log('=== TREEMAP CHART DEBUG ===');
                 console.log('Library type:', this.selectedLibraryStats.type);
                 console.log('fileSizeData:', fileSizeData);
                 console.log('fileSizeData.items length:', fileSizeData.items ? fileSizeData.items.length : 'undefined');
-                console.log('resolutionColors:', fileSizeData.resolutionColors);
+                console.log('Current grouping:', this.treemapGrouping);
             }
 
             // Only render for movie libraries
@@ -1932,59 +1968,123 @@ const app = new Vue({
             const values = [];
             const parents = [];
 
-            // Get unique resolutions and calculate total size per resolution
-            const resolutionTotals = {};
+            // Determine the grouping property based on selected option
+            let groupingProperty = 'resolution'; // Default
+            let groupingDisplayName = 'Resolution';
+
+            switch(this.treemapGrouping) {
+                case 'bitrate':
+                    groupingProperty = 'bitrate';
+                    groupingDisplayName = 'Bitrate';
+                    break;
+                case 'container':
+                    groupingProperty = 'container';
+                    groupingDisplayName = 'Container';
+                    break;
+                default:
+                    groupingProperty = 'resolution';
+                    groupingDisplayName = 'Resolution';
+            }
+
+            // Get unique groups and calculate total size per group
+            const groupTotals = {};
+            const groupColors = {};
+
             fileSizeData.items.forEach(item => {
-                if (!resolutionTotals[item.resolution]) {
-                    resolutionTotals[item.resolution] = 0;
+                // Ensure the grouping property has a valid value
+                let groupValue = item[groupingProperty];
+
+                // For bitrate, create ranges to make the treemap more useful
+                if (groupingProperty === 'bitrate' && groupValue) {
+                    // Create bitrate ranges (0-5000, 5001-10000, etc.)
+                    const rangeSize = 5000;
+                    const range = Math.floor(groupValue / rangeSize);
+                    const lowerBound = range * rangeSize;
+                    const upperBound = (range + 1) * rangeSize;
+                    groupValue = `${lowerBound}-${upperBound} kbps`;
                 }
-                resolutionTotals[item.resolution] += item.fileSize;
+
+                // If there's no valid value, use 'Unknown'
+                groupValue = groupValue || 'UNKNOWN';
+
+                // For consistency and display purposes
+                if (typeof groupValue === 'string') {
+                    groupValue = groupValue.toUpperCase();
+                }
+
+                // Add to group totals
+                if (!groupTotals[groupValue]) {
+                    groupTotals[groupValue] = 0;
+                    // Assign a color when we first encounter this group
+                    const colorIndex = Object.keys(groupColors).length % chartColors.length;
+                    groupColors[groupValue] = chartColors[colorIndex];
+                }
+                groupTotals[groupValue] += item.fileSize;
             });
 
-            // Add resolution groups as parent nodes with their total sizes
-            Object.keys(resolutionTotals).forEach(resolution => {
-                labels.push(resolution);
-                values.push(resolutionTotals[resolution].toString()); // Convert to string like the example
+            // Add group parent nodes with their total sizes
+            Object.keys(groupTotals).forEach(group => {
+                labels.push(group);
+                values.push(groupTotals[group].toString());
                 parents.push('');
             });
 
-            // Add individual movies under their resolution groups
+            // Add individual movies under their groups
             fileSizeData.items.forEach(item => {
                 const displayTitle = `${item.title}${item.year ? ` (${item.year})` : ''}`;
+
+                // Determine which group this item belongs to
+                let groupValue = item[groupingProperty];
+
+                // For bitrate, use the same range logic as above
+                if (groupingProperty === 'bitrate' && groupValue) {
+                    const rangeSize = 5000;
+                    const range = Math.floor(groupValue / rangeSize);
+                    const lowerBound = range * rangeSize;
+                    const upperBound = (range + 1) * rangeSize;
+                    groupValue = `${lowerBound}-${upperBound} kbps`;
+                }
+
+                groupValue = groupValue || 'UNKNOWN';
+                if (typeof groupValue === 'string') {
+                    groupValue = groupValue.toUpperCase();
+                }
+
                 labels.push(displayTitle);
-                values.push(item.fileSize.toString()); // Convert to string like the example
-                parents.push(item.resolution);
+                values.push(item.fileSize.toString());
+                parents.push(groupValue);
             });
 
-            // Create simple color array based on resolutions
-            const resolutionColors = Object.keys(resolutionTotals);
-            const colorscaleArray = resolutionColors.map((res, i) => [
-                i / Math.max(1, resolutionColors.length - 1),
-                fileSizeData.resolutionColors[res] || chartColors[i % chartColors.length]
-            ]);
+            // Create an array to track which items are group parents vs children
+            const isParentNode = labels.map((_, index) => parents[index] === '');
 
-            // Create custom hover text with formatted file sizes, container, and bitrate
+            // Create custom hover text with formatted file sizes and additional info
             const customHoverText = labels.map((label, index) => {
                 const rawSize = parseInt(values[index]);
                 const formattedSize = formatFileSize(rawSize);
                 const parent = parents[index];
 
                 if (parent === '') {
-                    // This is a resolution group (parent)
-                    return `<b>${label} Resolution</b><br>Total Size: ${formattedSize}`;
+                    // This is a group parent node
+                    return `<b>${label} ${groupingDisplayName}</b><br>Total Size: ${formattedSize}`;
                 } else {
                     // This is an individual movie - find the corresponding movie data
-                    const movieIndex = index - Object.keys(resolutionTotals).length;
+                    const movieIndex = index - Object.keys(groupTotals).length;
                     const movieData = fileSizeData.items[movieIndex];
 
-                    let tooltipText = `<b>${label}</b><br>Resolution: ${parent}<br>File Size: ${formattedSize}`;
+                    let tooltipText = `<b>${label}</b><br>${groupingDisplayName}: ${parent}<br>File Size: ${formattedSize}`;
 
-                    if (movieData && movieData.container) {
-                        tooltipText += `<br>Container: ${movieData.container}`;
-                    }
-
-                    if (movieData && movieData.bitrate) {
-                        tooltipText += `<br>Bitrate: ${movieData.bitrate} kbps`;
+                    // Add all relevant properties to tooltip regardless of current grouping
+                    if (movieData) {
+                        if (groupingProperty !== 'resolution' && movieData.resolution) {
+                            tooltipText += `<br>Resolution: ${movieData.resolution}`;
+                        }
+                        if (groupingProperty !== 'container' && movieData.container) {
+                            tooltipText += `<br>Container: ${movieData.container}`;
+                        }
+                        if (groupingProperty !== 'bitrate' && movieData.bitrate) {
+                            tooltipText += `<br>Bitrate: ${movieData.bitrate} kbps`;
+                        }
                     }
 
                     return tooltipText;
@@ -2000,7 +2100,16 @@ const app = new Vue({
                 hovertemplate: '%{customdata}<extra></extra>',
                 customdata: customHoverText,
                 marker: {
-                    colorscale: colorscaleArray,
+                    colors: labels.map((_, index) => {
+                        if (isParentNode[index]) {
+                            // For parent nodes (groups), use rotating colors from chartColors
+                            const groupIndex = Object.keys(groupTotals).indexOf(labels[index]);
+                            return chartColors[groupIndex % chartColors.length];
+                        } else {
+                            // For all child nodes, use same color
+                            return '#FCBF49'; // Amber/gold color as requested
+                        }
+                    }),
                     line: {
                         width: 2,
                         color: '#000'
@@ -2037,7 +2146,7 @@ const app = new Vue({
             };
 
             if (this.debugMode) {
-                console.log('Treemap data:', { labels, values, parents });
+                console.log('Treemap data:', { labels, values, parents, groupingProperty });
             }
 
             Plotly.newPlot('items-by-size', data, layout, config);

@@ -163,6 +163,48 @@ p.ip-address a {
     top: -10px;
     margin-top: 0;
 }
+/* Treemap grouping control */
+.grouping-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    justify-content: center;
+}
+
+.grouping-control label {
+    font-size: 16px;
+    font-weight: bold;
+    color: orange;
+}
+
+.grouping-control select {
+    background-color: #333;
+    color: #f2f2f2;
+    border: 1px solid #666;
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-family: 'Ubuntu', sans-serif;
+    min-width: 120px;
+}
+
+.grouping-control select:hover {
+    border-color: orange;
+}
+
+.grouping-control select:focus {
+    outline: none;
+    border-color: orange;
+    box-shadow: 0 0 3px rgba(255, 165, 0, 0.3);
+}
+
+.grouping-control .loader {
+    margin: 0 0 0 10px;
+    width: 20px;
+    padding: 3px;
+}
+
 /* chart toggle buttons */
 .chart-toggle input {
     display:none;
