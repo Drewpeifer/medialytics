@@ -205,6 +205,40 @@ p.ip-address a {
     padding: 3px;
 }
 
+/* Treemap color control */
+.color-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 5px;
+    justify-content: center;
+}
+
+.color-control span {
+    font-size: 16px;
+    font-weight: bold;
+    color: orange;
+}
+
+.color-control label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 3px;
+}
+
+.color-control label:hover:not(:has(input:disabled)) {
+    background-color: rgba(255, 165, 0, 0.1);
+}
+
+.color-control input[type="radio"]:disabled + label,
+.color-control input[type="radio"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* chart toggle buttons */
 .chart-toggle input {
     display:none;

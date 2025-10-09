@@ -418,6 +418,29 @@
                             <div class="row">
                                 <div id="items-by-size" class="chart"></div>
                             </div>
+                            <div class="row color-control">
+                                <span>Color by:</span>
+                                <label>
+                                    <input type="radio" name="treemapColorBy" value="codec" v-model="treemapColorBy" @change="updateTreemapChart" :disabled="treemapGrouping === 'codec'">
+                                    Codec
+                                </label>
+                                <label>
+                                    <input type="radio" name="treemapColorBy" value="resolution" v-model="treemapColorBy" @change="updateTreemapChart" :disabled="treemapGrouping === 'resolution'">
+                                    Resolution
+                                </label>
+                                <label>
+                                    <input type="radio" name="treemapColorBy" value="container" v-model="treemapColorBy" @change="updateTreemapChart" :disabled="treemapGrouping === 'container'">
+                                    Container
+                                </label>
+                                <label>
+                                    <input type="radio" name="treemapColorBy" value="bitrate" v-model="treemapColorBy" @change="updateTreemapChart" :disabled="treemapGrouping === 'bitrate'">
+                                    Bitrate
+                                </label>
+                                <label>
+                                    <input type="radio" name="treemapColorBy" value="none" v-model="treemapColorBy" @change="updateTreemapChart">
+                                    None
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>

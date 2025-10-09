@@ -1247,6 +1247,7 @@ const app = new Vue({
         collectionsData: collectionsData,
         collectionsLoading: collectionsLoading,
         treemapGrouping: 'resolution', // Default grouping is by resolution
+        treemapColorBy: 'none', // Default coloring is uniform (no color coding)
         treemapLoading: false,
         resolutionToggle: "bar",
         containerToggle: "bar",
@@ -1904,9 +1905,28 @@ const app = new Vue({
                 false // shortLabels
             );
         },
+        updateTreemapChart: function() {
+            // Show loading spinner
+            this.treemapLoading = true;
+
+            // Rerender the treemap chart with the new color options
+            this.$nextTick(() => {
+                this.renderTreemapChart();
+                // Hide spinner after rendering is complete
+                setTimeout(() => {
+                    this.treemapLoading = false;
+                }, 300);
+            });
+        },
+
         updateTreemapGrouping: function() {
             // Show loading spinner
             this.treemapLoading = true;
+
+            // When grouping changes, reset color-by if it conflicts with the grouping
+            if (this.treemapColorBy === this.treemapGrouping) {
+                this.treemapColorBy = 'none';
+            }
 
             // Rerender the treemap chart with the new grouping option
             this.$nextTick(() => {
@@ -2064,6 +2084,54 @@ const app = new Vue({
             // Create an array to track which items are group parents vs children
             const isParentNode = labels.map((_, index) => parents[index] === '');
 
+            // Create mappings for color coding by attribute
+            const uniqueValues = {};
+            const movieToAttributeMap = {};
+
+            // Get the lowest and highest bitrates for gradient coloring
+            let minBitrate = Number.MAX_SAFE_INTEGER;
+            let maxBitrate = 0;
+
+            // For each movie item, collect its attribute values for coloring
+            fileSizeData.items.forEach(item => {
+                const movieIndex = labels.indexOf(`${item.title}${item.year ? ` (${item.year})` : ''}`);
+                if (movieIndex !== -1) {
+                    // Store property values for each coloring option
+                    const properties = {
+                        'resolution': item.resolution,
+                        'container': item.container,
+                        'codec': item.videoCodec,
+                        'bitrate': item.bitrate
+                    };
+
+                    movieToAttributeMap[movieIndex] = properties;
+
+                    // Collect unique values for categorical coloring
+                    Object.keys(properties).forEach(prop => {
+                        if (prop !== 'bitrate') {
+                            if (!uniqueValues[prop]) uniqueValues[prop] = new Set();
+                            if (properties[prop]) uniqueValues[prop].add(properties[prop]);
+                        }
+                    });
+
+                    // Track min/max bitrate for gradient scale
+                    if (item.bitrate) {
+                        minBitrate = Math.min(minBitrate, item.bitrate);
+                        maxBitrate = Math.max(maxBitrate, item.bitrate);
+                    }
+                }
+            });
+
+            // Convert Sets to Arrays and assign colors
+            const colorMaps = {};
+            Object.keys(uniqueValues).forEach(prop => {
+                const values = Array.from(uniqueValues[prop]);
+                colorMaps[prop] = {};
+                values.forEach((value, i) => {
+                    colorMaps[prop][value] = chartColors[i % chartColors.length];
+                });
+            });
+
             // Create custom hover text with formatted file sizes and additional info
             const customHoverText = labels.map((label, index) => {
                 const rawSize = parseInt(values[index]);
@@ -2103,6 +2171,46 @@ const app = new Vue({
                 }
             });
 
+            // Function to get color for a node based on coloring option
+            const getNodeColor = (index) => {
+                // For parent nodes, always use categorical colors based on group
+                if (isParentNode[index]) {
+                    const groupIndex = Object.keys(groupTotals).indexOf(labels[index]);
+                    return chartColors[groupIndex % chartColors.length];
+                }
+
+                // For child nodes, apply coloring based on treemapColorBy setting
+                if (this.treemapColorBy === 'none') {
+                    return '#FCBF49'; // Default amber/gold color
+                }
+
+                // Get the movie's attributes
+                const movieProps = movieToAttributeMap[index];
+                if (!movieProps) return '#FCBF49'; // Fallback
+
+                // Special case for bitrate - use green to red gradient
+                if (this.treemapColorBy === 'bitrate' && movieProps.bitrate) {
+                    // Normalize bitrate between 0-1
+                    const range = maxBitrate - minBitrate;
+                    if (range === 0) return '#00FF00'; // If all same, use green
+
+                    const normalizedValue = (movieProps.bitrate - minBitrate) / range;
+
+                    // Higher is better (green), lower is worse (red)
+                    const r = Math.floor(255 * (1 - normalizedValue));
+                    const g = Math.floor(255 * normalizedValue);
+                    return `rgb(${r}, ${g}, 0)`;
+                }
+
+                // For categorical coloring (resolution, container, codec)
+                const attrValue = movieProps[this.treemapColorBy];
+                if (attrValue && colorMaps[this.treemapColorBy]) {
+                    return colorMaps[this.treemapColorBy][attrValue] || '#FCBF49';
+                }
+
+                return '#FCBF49'; // Default fallback
+            };
+
             const data = [{
                 type: 'treemap',
                 labels: labels,
@@ -2112,16 +2220,7 @@ const app = new Vue({
                 hovertemplate: '%{customdata}<extra></extra>',
                 customdata: customHoverText,
                 marker: {
-                    colors: labels.map((_, index) => {
-                        if (isParentNode[index]) {
-                            // For parent nodes (groups), use rotating colors from chartColors
-                            const groupIndex = Object.keys(groupTotals).indexOf(labels[index]);
-                            return chartColors[groupIndex % chartColors.length];
-                        } else {
-                            // For all child nodes, use same color
-                            return '#FCBF49'; // Amber/gold color as requested
-                        }
-                    }),
+                    colors: labels.map((_, index) => getNodeColor(index)),
                     line: {
                         width: 2,
                         color: '#000'
