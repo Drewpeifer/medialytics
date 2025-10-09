@@ -577,24 +577,26 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
                     processItemCounts(syntheticContainerItem, containerData, 'container', true);
                 }
 
-                // Collect file size data for treemap (movies only)
-                if (mediaItem.Part && mediaItem.Part[0] && mediaItem.Part[0].size) {
-                    const fileSize = parseInt(mediaItem.Part[0].size);
-                    const resolution = mediaItem.videoResolution ? mediaItem.videoResolution.toUpperCase() : 'UNKNOWN';
-                    const container = mediaItem.container ? mediaItem.container.toUpperCase() : 'UNKNOWN';
-                    const bitrate = mediaItem.bitrate || null;
-                    const watched = item.lastViewedAt ? true : false;
+                    // Collect file size data for treemap (movies only)
+                    if (mediaItem.Part && mediaItem.Part[0] && mediaItem.Part[0].size) {
+                        const fileSize = parseInt(mediaItem.Part[0].size);
+                        const resolution = mediaItem.videoResolution ? mediaItem.videoResolution.toUpperCase() : 'UNKNOWN';
+                        const container = mediaItem.container ? mediaItem.container.toUpperCase() : 'UNKNOWN';
+                        const bitrate = mediaItem.bitrate || null;
+                        const videoCodec = mediaItem.videoCodec ? mediaItem.videoCodec.toUpperCase() : 'UNKNOWN';
+                        const watched = item.lastViewedAt ? true : false;
 
-                    // Add to fileSizeData items array
-                    fileSizeData.items.push({
-                        title: item.title,
-                        year: item.year || '',
-                        fileSize: fileSize,
-                        resolution: resolution,
-                        container: container,
-                        bitrate: bitrate,
-                        watched: watched
-                    });
+                        // Add to fileSizeData items array
+                        fileSizeData.items.push({
+                            title: item.title,
+                            year: item.year || '',
+                            fileSize: fileSize,
+                            resolution: resolution,
+                            container: container,
+                            bitrate: bitrate,
+                            videoCodec: videoCodec,
+                            watched: watched
+                        });
 
                     // Track total file size
                     fileSizeData.totalFileSize += fileSize;
@@ -1981,6 +1983,10 @@ const app = new Vue({
                     groupingProperty = 'container';
                     groupingDisplayName = 'Container';
                     break;
+                case 'codec':
+                    groupingProperty = 'videoCodec';
+                    groupingDisplayName = 'Codec';
+                    break;
                 default:
                     groupingProperty = 'resolution';
                     groupingDisplayName = 'Resolution';
@@ -2076,6 +2082,12 @@ const app = new Vue({
 
                     // Add all relevant properties to tooltip regardless of current grouping
                     if (movieData) {
+                        // Always show codec information
+                        if (movieData.videoCodec) {
+                            tooltipText += `<br>Codec: ${movieData.videoCodec}`;
+                        }
+
+                        // Add other relevant properties
                         if (groupingProperty !== 'resolution' && movieData.resolution) {
                             tooltipText += `<br>Resolution: ${movieData.resolution}`;
                         }
