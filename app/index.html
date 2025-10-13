@@ -386,7 +386,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- items by file size and resolution -->
+                <!-- items by file size and resolution (for movies) -->
                 <div class="row" v-if="selectedLibraryStats.type === 'movie'">
                     <div class="card full">
                         <div class="header">
@@ -440,6 +440,28 @@
                                     <input type="radio" name="treemapColorBy" value="none" v-model="treemapColorBy" @change="updateTreemapChart">
                                     None
                                 </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- shows by episode count (for TV shows) -->
+                <div class="row" v-if="selectedLibraryStats.type === 'show'">
+                    <div class="card full">
+                        <div class="header">
+                            <p>Shows by Episode Count</p>
+                        </div>
+                        <div v-if="libraryStatsLoading" class="loader"></div>
+                        <div class="content">
+                            <div class="row">
+                                <p><strong>Show with Most Episodes:</strong> {{ selectedLibraryStats.mostEpisodesShow || 'N/A' }} ({{ selectedLibraryStats.mostEpisodesCount || 0 }} episodes)</p>
+                                <p><strong>Show with Most Seasons:</strong> {{ selectedLibraryStats.mostSeasonsShow || 'N/A' }} ({{ selectedLibraryStats.mostSeasonsCount || 0 }} seasons)</p>
+                            </div>
+                            <div class="row">
+                                <p class="note">(Click show to zoom in, click show header to zoom out)</p>
+                            </div>
+                            <div class="row">
+                                <div id="shows-by-episode-count" class="chart"></div>
                             </div>
                         </div>
                     </div>

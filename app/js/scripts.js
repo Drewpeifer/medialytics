@@ -133,6 +133,15 @@ fileSizeData = {
     lowestBitrateFile: '',
     lowestBitrate: Number.MAX_SAFE_INTEGER
 },
+// shows by episode count (treemap - TV shows only)
+showsData = {
+    shows: [], // Array of objects with {title, year, seasons, totalEpisodeCount, watched}
+    seasonsByShow: {}, // Map show key to array of season objects
+    mostSeasonsShow: '',
+    mostSeasonsCount: 0,
+    mostEpisodesShow: '',
+    mostEpisodesCount: 0
+},
 // items added over time (line)
 addedOverTimeData = {
     dates: {},// stores date: count
@@ -639,12 +648,47 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
         processItemCounts(item, writerData, 'Writer');
 
     } else if (type === 'show') {
-        if (item.childCount) newSeasonSum += item.childCount;
+        // Ensure we're accessing childCount and leafCount correctly
+        // These properties represent the number of seasons and episodes respectively
+        const seasonCount = parseInt(item.childCount || 0);
+        const episodeCount = parseInt(item.leafCount || 0);
+
+        // Track shows with most seasons and episodes
+        if (seasonCount > 0) {
+            if (seasonCount > showsData.mostSeasonsCount) {
+                showsData.mostSeasonsCount = seasonCount;
+                showsData.mostSeasonsShow = `${item.title} (${item.year || 'Unknown'})`;
+            }
+
+            if (episodeCount > showsData.mostEpisodesCount) {
+                showsData.mostEpisodesCount = episodeCount;
+                showsData.mostEpisodesShow = `${item.title} (${item.year || 'Unknown'})`;
+            }
+
+            // Add to showsData
+            const showKey = `${item.title}_${item.year || '0000'}`;
+            showsData.shows.push({
+                key: showKey,
+                title: item.title,
+                year: item.year || '',
+                seasonCount: seasonCount,
+                totalEpisodeCount: episodeCount,
+                watched: item.lastViewedAt ? true : false
+            });
+
+            // Create entry for seasons if not already created
+            if (!showsData.seasonsByShow[showKey]) {
+                showsData.seasonsByShow[showKey] = [];
+            }
+        }
+
+        // Update totals with proper parsing
+        if (item.childCount) newSeasonSum += parseInt(item.childCount);
         if (item.leafCount) newEpisodeSum += parseInt(item.leafCount);
         if (item.duration && !isNaN(item.duration) && item.leafCount) {
-            newDurationSum += (item.duration / 60000 * item.leafCount);
-            if (newLongestDuration === 0 || item.leafCount > newLongestDuration) {
-                newLongestDuration = item.leafCount;
+            newDurationSum += (item.duration / 60000 * parseInt(item.leafCount));
+            if (newLongestDuration === 0 || parseInt(item.leafCount) > newLongestDuration) {
+                newLongestDuration = parseInt(item.leafCount);
                 newLongestTitle = item.title;
             }
         }
@@ -1109,6 +1153,11 @@ const parseMediaPayload = (data) => {
                 oldestTitle: releaseDateData.oldestTitle, // from direct update
                 decadesWatchedCounts : preparedDecadeData.watched, // from helper
                 decadesUnwatchedCounts : preparedDecadeData.unwatched, // from helper
+                // TV show-specific stats
+                mostSeasonsShow: showsData.mostSeasonsShow,
+                mostSeasonsCount: showsData.mostSeasonsCount,
+                mostEpisodesShow: showsData.mostEpisodesShow,
+                mostEpisodesCount: showsData.mostEpisodesCount,
                 studios: studioData.data, // Keep raw data if needed elsewhere, though charts use prepared
                 topStudio: preparedStudioData.list.length > 0 ? preparedStudioData.list[0] : "",
                 topStudioCount: preparedStudioData.counts.length > 0 ? preparedStudioData.counts[0].toLocaleString('en-us') : "",
@@ -2262,6 +2311,111 @@ const app = new Vue({
 
             Plotly.newPlot('items-by-size', data, layout, config);
         },
+        renderShowsTreemap: function() {
+            if (this.debugMode) {
+                console.log('=== SHOWS BY EPISODE COUNT CHART DEBUG ===');
+                console.log('Library type:', this.selectedLibraryStats.type);
+                console.log('showsData:', showsData);
+                console.log('showsData.shows length:', showsData.shows ? showsData.shows.length : 'undefined');
+            }
+
+            // Only render for TV show libraries
+            if (this.selectedLibraryStats.type !== 'show') {
+                console.warn('Shows by episode count chart only available for TV show libraries');
+                return;
+            }
+
+            // Check if we have show data
+            if (!showsData.shows || showsData.shows.length === 0) {
+                console.warn('No show data available for treemap chart');
+                return;
+            }
+
+            // Prepare data for treemap chart
+            const labels = [];
+            const values = [];
+            const parents = [];
+
+            // Sort shows by episode count (descending)
+            const sortedShows = [...showsData.shows].sort((a, b) => b.totalEpisodeCount - a.totalEpisodeCount);
+
+            // Add only the shows (no seasons) to the treemap
+            sortedShows.forEach(show => {
+                const displayTitle = `${show.title}${show.year ? ` (${show.year})` : ''}`;
+                const totalEpisodes = parseInt(show.totalEpisodeCount);
+
+                // Add the show as a top-level node only (no child nodes)
+                labels.push(displayTitle);
+                values.push(totalEpisodes.toString());
+                parents.push('');
+            });
+
+            // Create custom hover text for each show
+            const customHoverText = labels.map((label, index) => {
+                const show = sortedShows.find(s => {
+                    const showTitle = `${s.title}${s.year ? ` (${s.year})` : ''}`;
+                    return showTitle === label;
+                });
+
+                if (show) {
+                    return `<b>${label}</b><br>Seasons: ${show.seasonCount}<br>Total Episodes: ${show.totalEpisodeCount}`;
+                }
+                return `<b>${label}</b>`;
+            });
+
+            // Create the treemap data
+            const data = [{
+                type: 'treemap',
+                labels: labels,
+                values: values,
+                parents: parents,
+                textinfo: 'label',
+                hovertemplate: '%{customdata}<extra></extra>',
+                customdata: customHoverText,
+                marker: {
+                    colors: labels.map((label, index) => {
+                        // Assign a unique color to each show based on its position
+                        const showIndex = index % chartColors.length;
+                        return chartColors[showIndex];
+                    }),
+                    line: {
+                        width: 2,
+                        color: '#000'
+                    }
+                },
+                branchvalues: 'total'
+            }];
+
+            const layout = {
+                margin: {
+                    t: 10,
+                    l: 10,
+                    r: 10,
+                    b: 10
+                },
+                font: {
+                    color: '#fff',
+                    size: 12
+                },
+                showlegend: false,
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                modebar: {
+                    color: '#f2f2f2',
+                    activecolor: chartColors[2],
+                }
+            };
+
+            const config = {
+                displaylogo: false,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'toImage'],
+                responsive: true
+            };
+
+            Plotly.newPlot('shows-by-episode-count', data, layout, config);
+        },
+
         renderDefaultCharts: function () {
             // Ensure DOM is ready before rendering charts
             this.$nextTick(() => {
@@ -2312,6 +2466,10 @@ const app = new Vue({
                 // Render treemap chart for movie libraries
                 if (this.selectedLibraryStats && this.selectedLibraryStats.type === 'movie' && document.getElementById('items-by-size')) {
                     this.renderTreemapChart();
+                }
+                // Render shows by episode count chart for TV show libraries
+                if (this.selectedLibraryStats && this.selectedLibraryStats.type === 'show' && document.getElementById('shows-by-episode-count')) {
+                    this.renderShowsTreemap();
                 }
             });
         },
