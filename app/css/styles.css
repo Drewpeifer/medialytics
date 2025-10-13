@@ -1034,3 +1034,56 @@ p.ip-address a {
         flex-wrap: wrap;
     }
 }
+
+/* Shows Rating Legend Styles */
+.shows-rating-legend {
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.gradient-legend {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: rgba(34, 34, 34, 0.5);
+    border-radius: 5px;
+}
+
+.gradient-legend .legend-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: orange;
+}
+
+.gradient-legend .gradient-bar {
+    width: 300px;
+    height: 25px;
+    background: linear-gradient(to right,
+        rgb(255, 0, 0) 0%,       /* Deep red */
+        rgb(255, 127, 0) 25%,     /* Orange-red */
+        rgb(255, 255, 0) 50%,     /* Yellow */
+        rgb(128, 255, 0) 75%,     /* Yellow-green */
+        rgb(0, 128, 80) 100%      /* Rich green */
+    );
+    border-radius: 3px;
+    border: 1px solid #444;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.gradient-legend .gradient-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 300px;
+    font-size: 12px;
+    color: #ccc;
+}
+
+.gradient-legend .gradient-labels span:first-child {
+    color: rgb(255, 0, 0);
+}
+
+.gradient-legend .gradient-labels span:last-child {
+    color: rgb(0, 128, 80);
+}

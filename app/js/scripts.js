@@ -6,23 +6,85 @@ const serverIp = 'SERVER_IP';// ex: 'http://12.345.678.90:32400'
 const libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken;
 // chart color theme
 const chartColors = [
-  "#EAE2B7",
-  "#F0D693",
-  "#F6CB6D",
-  "#FCBF49",
-  "#FCB232",
-  "#FCA51A",
-  "#FC9803",
-  "#FA9002",
-  "#F98701",
-  "#F77F00",
-  "#F77301",
-  "#F76802",
-  "#F75C03",
-  "#EC4B0F",
-  "#E1391C",
-  "#D62828"
+    '#D62828',
+    '#FC9803',
+    '#F77F00',
+    '#FCBF49',
+    '#EAE2B7',
+    '#D62828',
+    '#F75C03',
+    '#F77F00',
+    '#FCBF49',
+    '#EAE2B7',
+    '#D62828',
+    '#F75C03',
+    '#F77F00',
+    '#FCBF49',
+    '#EAE2B7',
+    '#D62828',
+    '#F75C03',
+    '#F77F00',
+    '#FCBF49',
+    '#EAE2B7'];
+const chartColorsSequential = [
+    '#EAE2B7',
+    '#F0D693',
+    '#F6CB6D',
+    '#FCBF49',
+    '#FCB232',
+    '#FCA51A',
+    '#FC9803',
+    '#FA9002',
+    '#F98701',
+    '#F77F00',
+    '#F77301',
+    '#F76802',
+    '#F75C03',
+    '#EC4B0F',
+    '#E1391C',
+    '#D62828'
 ];
+
+// High contrast colors for categorical data visualization where colors appear side-by-side
+const chartColorsCategorical = [
+  "#FF0000",  // Pure Red
+  "#00FF00",  // Pure Green
+  "#0000FF",  // Pure Blue
+  "#FFFF00",  // Yellow
+  "#FF00FF",  // Magenta
+  "#00FFFF",  // Cyan
+  "#FF8C00",  // Dark Orange
+  "#8B008B",  // Dark Magenta
+  "#006400",  // Dark Green
+  "#000080",  // Navy Blue
+  "#FFD700",  // Gold
+  "#4B0082",  // Indigo
+  "#FF1493",  // Deep Pink
+  "#32CD32",  // Lime Green
+  "#FF6347",  // Tomato
+  "#4682B4",  // Steel Blue
+  "#9370DB",  // Medium Purple
+  "#20B2AA",  // Light Sea Green
+  "#FF4500",  // Orange Red
+  "#DA70D6",  // Orchid
+  "#00CED1",  // Dark Turquoise
+  "#ADFF2F",  // Green Yellow
+  "#DC143C",  // Crimson
+  "#00BFFF",  // Deep Sky Blue
+  "#FF69B4",  // Hot Pink
+  "#228B22",  // Forest Green
+  "#B22222",  // Fire Brick
+  "#5F9EA0",  // Cadet Blue
+  "#FF7F50",  // Coral
+  "#6495ED",  // Cornflower Blue
+  "#DDA0DD",  // Plum
+  "#90EE90",  // Light Green
+  "#F08080",  // Light Coral
+  "#40E0D0",  // Turquoise
+  "#FA8072",  // Salmon
+  "#7B68EE"   // Medium Slate Blue
+];
+
 debugMode = false;// set to true to enable console logging
 
 // decade arrays - these will be dynamically generated based on actual data
@@ -690,7 +752,8 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
                 year: item.year || '',
                 seasonCount: seasonCount,
                 totalEpisodeCount: episodeCount,
-                watched: item.lastViewedAt ? true : false
+                watched: item.lastViewedAt ? true : false,
+                audienceRating: item.audienceRating || null
             });
 
             // Create entry for seasons if not already created
@@ -2037,10 +2100,11 @@ const app = new Vue({
             const sortedValues = Array.from(uniqueValues).sort();
 
             // Create legend items (limited to 12 entries to avoid overwhelming)
+            // Use high contrast colors for legend items to match treemap
             const legendItems = sortedValues.slice(0, 12).map((value, index) => {
                 return {
                     label: value,
-                    color: chartColors[index % chartColors.length]
+                    color: chartColorsCategorical[index % chartColorsCategorical.length]
                 };
             });
 
@@ -2171,8 +2235,8 @@ const app = new Vue({
                 if (!groupTotals[groupValue]) {
                     groupTotals[groupValue] = 0;
                     // Assign a color when we first encounter this group
-                    const colorIndex = Object.keys(groupColors).length % chartColors.length;
-                    groupColors[groupValue] = chartColors[colorIndex];
+                    const colorIndex = Object.keys(groupColors).length % chartColorsSequential.length;
+                    groupColors[groupValue] = chartColorsSequential[colorIndex];
                 }
                 groupTotals[groupValue] += item.fileSize;
             });
@@ -2256,17 +2320,17 @@ const app = new Vue({
                 codec: {}
             };
 
-            // Assign colors consistently
+            // Assign colors consistently using high contrast colors for treemaps
             Array.from(allResolutions).sort().forEach((value, i) => {
-                colorMaps.resolution[value] = chartColors[i % chartColors.length];
+                colorMaps.resolution[value] = chartColorsCategorical[i % chartColorsCategorical.length];
             });
 
             Array.from(allContainers).sort().forEach((value, i) => {
-                colorMaps.container[value] = chartColors[i % chartColors.length];
+                colorMaps.container[value] = chartColorsCategorical[i % chartColorsCategorical.length];
             });
 
             Array.from(allCodecs).sort().forEach((value, i) => {
-                colorMaps.codec[value] = chartColors[i % chartColors.length];
+                colorMaps.codec[value] = chartColorsCategorical[i % chartColorsCategorical.length];
             });
 
             // Map movie indices to their attributes
@@ -2332,10 +2396,10 @@ const app = new Vue({
 
             // Function to get color for a node based on coloring option
             const getNodeColor = (index) => {
-                // For parent nodes, always use categorical colors based on group
+                // For parent nodes, always use sequential colors based on group
                 if (isParentNode[index]) {
                     const groupIndex = Object.keys(groupTotals).indexOf(labels[index]);
-                    return chartColors[groupIndex % chartColors.length];
+                    return chartColorsSequential[groupIndex % chartColorsSequential.length];
                 }
 
                 // For child nodes, apply coloring based on treemapColorBy setting
@@ -2359,7 +2423,7 @@ const app = new Vue({
                     });
                 }
 
-                // Special case for bitrate - use green to red gradient
+                // Special case for bitrate - use enhanced red-to-green gradient
                 if (this.treemapColorBy === 'bitrate' && movieProps.bitrate) {
                     // Normalize bitrate between 0-1
                     const range = maxBitrate - minBitrate;
@@ -2367,10 +2431,34 @@ const app = new Vue({
 
                     const normalizedValue = (movieProps.bitrate - minBitrate) / range;
 
+                    // Enhanced gradient with more pronounced colors
                     // Higher is better (green), lower is worse (red)
-                    const r = Math.floor(255 * (1 - normalizedValue));
-                    const g = Math.floor(255 * normalizedValue);
-                    return `rgb(${r}, ${g}, 0)`;
+                    let r, g, b = 0;
+
+                    if (normalizedValue < 0.25) {
+                        // Deep red to orange-red (0-25%)
+                        const t = normalizedValue * 4; // Scale to 0-1
+                        r = 255;
+                        g = Math.floor(127 * t); // 0 to 127
+                    } else if (normalizedValue < 0.5) {
+                        // Orange-red to orange-yellow (25-50%)
+                        const t = (normalizedValue - 0.25) * 4; // Scale to 0-1
+                        r = 255;
+                        g = Math.floor(127 + 128 * t); // 127 to 255
+                    } else if (normalizedValue < 0.75) {
+                        // Orange-yellow to yellow-green (50-75%)
+                        const t = (normalizedValue - 0.5) * 4; // Scale to 0-1
+                        r = Math.floor(255 * (1 - t)); // 255 to 0
+                        g = 255;
+                    } else {
+                        // Yellow-green to pure green (75-100%)
+                        const t = (normalizedValue - 0.75) * 4; // Scale to 0-1
+                        r = 0;
+                        g = Math.floor(255 - 127 * t); // 255 to 128 (darker green at top)
+                        b = Math.floor(80 * t); // Add slight blue for richer green
+                    }
+
+                    return `rgb(${r}, ${g}, ${b})`;
                 }
 
                 // For categorical coloring (resolution, container, codec)
@@ -2553,9 +2641,29 @@ const app = new Vue({
                 });
 
                 if (show) {
-                    return `<b>${label}</b><br>Seasons: ${show.seasonCount}<br>Total Episodes: ${show.totalEpisodeCount}`;
+                    let hoverText = `<b>${label}</b><br>Seasons: ${show.seasonCount}<br>Total Episodes: ${show.totalEpisodeCount}`;
+
+                    // Add audience rating if available
+                    if (show.audienceRating !== null && show.audienceRating !== undefined) {
+                        hoverText += `<br>Audience Rating: ${show.audienceRating.toFixed(1)}`;
+                    } else {
+                        hoverText += `<br>Audience Rating: Not Rated`;
+                    }
+
+                    return hoverText;
                 }
                 return `<b>${label}</b>`;
+            });
+
+            // Find min and max audienceRating values for normalization
+            let minRating = 10;
+            let maxRating = 0;
+
+            sortedShows.forEach(show => {
+                if (show.audienceRating !== null && show.audienceRating !== undefined) {
+                    minRating = Math.min(minRating, show.audienceRating);
+                    maxRating = Math.max(maxRating, show.audienceRating);
+                }
             });
 
             // Create the treemap data
@@ -2569,9 +2677,52 @@ const app = new Vue({
                 customdata: customHoverText,
                 marker: {
                     colors: labels.map((label, index) => {
-                        // Assign a unique color to each show based on its position
-                        const showIndex = index % chartColors.length;
-                        return chartColors[showIndex];
+                        // Find the corresponding show
+                        const show = sortedShows[index];
+
+                        // If show has no rating, use a neutral gray color
+                        if (show.audienceRating === null || show.audienceRating === undefined) {
+                            return '#808080'; // Gray for unrated shows
+                        }
+
+                        // Normalize the rating between 0 and 1
+                        // Handle edge case where all shows have same rating
+                        const range = maxRating - minRating;
+                        let normalizedRating;
+                        if (range === 0) {
+                            normalizedRating = 0.5; // Middle value if all same
+                        } else {
+                            normalizedRating = (show.audienceRating - minRating) / range;
+                        }
+
+                        // Enhanced gradient with more pronounced colors
+                        // Higher ratings are better (green), lower ratings are worse (red)
+                        let r, g, b = 0;
+
+                        if (normalizedRating < 0.25) {
+                            // Deep red to orange-red (0-25%)
+                            const t = normalizedRating * 4; // Scale to 0-1
+                            r = 255;
+                            g = Math.floor(127 * t); // 0 to 127
+                        } else if (normalizedRating < 0.5) {
+                            // Orange-red to orange-yellow (25-50%)
+                            const t = (normalizedRating - 0.25) * 4; // Scale to 0-1
+                            r = 255;
+                            g = Math.floor(127 + 128 * t); // 127 to 255
+                        } else if (normalizedRating < 0.75) {
+                            // Orange-yellow to yellow-green (50-75%)
+                            const t = (normalizedRating - 0.5) * 4; // Scale to 0-1
+                            r = Math.floor(255 * (1 - t)); // 255 to 0
+                            g = 255;
+                        } else {
+                            // Yellow-green to pure green (75-100%)
+                            const t = (normalizedRating - 0.75) * 4; // Scale to 0-1
+                            r = 0;
+                            g = Math.floor(255 - 127 * t); // 255 to 128 (darker green at top)
+                            b = Math.floor(80 * t); // Add slight blue for richer green
+                        }
+
+                        return `rgb(${r}, ${g}, ${b})`;
                     }),
                     line: {
                         width: 2,

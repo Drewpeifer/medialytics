@@ -449,7 +449,7 @@
                 <div class="row" v-if="selectedLibraryStats.type === 'show'">
                     <div class="card full">
                         <div class="header">
-                            <p>Shows by Episode Count</p>
+                            <p>Shows by Episode Count and Audience Rating</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
@@ -462,6 +462,16 @@
                             </div>
                             <div class="row">
                                 <div id="shows-by-episode-count" class="chart"></div>
+                            </div>
+                            <div class="row shows-rating-legend">
+                                <div class="gradient-legend">
+                                    <span class="legend-label">Audience Rating (TMDB)</span>
+                                    <div class="gradient-bar"></div>
+                                    <div class="gradient-labels">
+                                        <span>Low</span>
+                                        <span>High</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
