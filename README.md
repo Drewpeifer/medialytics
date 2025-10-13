@@ -1,11 +1,11 @@
-# Medialytics 2.5
+# Medialytics 2.6
 ### A free analytics tool for Plex server content
 
 --------
 # What is Medialytics?
 Plex itself, as well as other tools, generate statistics regarding your server activity (most watched, most active, etc.)
 but they don't report much on the nature of your media content itself. Medialytics is a small client-side app that
-runs in the browser and generates statistics specifically about the content of your server, e.g. top production studio across a library.
+runs in the browser and generates statistics specifically about the content of your server, e.g. top production studio across a library. You can also use it to inspect and diagnose issues with your content, such as large file sizes and bitrate / container / codec mismatches.
 
 ![header](https://i.imgur.com/VVI6mci.png)
 
@@ -13,20 +13,20 @@ runs in the browser and generates statistics specifically about the content of y
 
 ![visualizations-2](https://i.imgur.com/by1nUvT.png)
 
-![visualizations-3](https://i.imgur.com/pqsJQbm.png)
+![visualizations-3](https://i.imgur.com/aYg9UTW.png)
 
 ![visualizations-4](https://i.imgur.com/idnDNWJ.png)
 
 ## Main features
-* Tree Map chart for file size by resolution comparisons* **(new!)**
-* File Analysis tool to compare media attributes like container, codec, resolution, bitmap, and file size* **(new!)**
-* Multiple methods of CSV export **(new!)**
+* Tree map chart to TV showing largest shows by episode count and audience rating **(new!)**
+* Tree Map chart for movies that cross references resolution, container, codec, and bitrate **(new!)**
+* Movie Analysis tool to compare media attributes like container, codec, resolution, bitmap, file size, and more **(new!)**
+* Multiple methods of CSV export
 * Bar + pie charts for collections, genre, country, decade, studio, content rating, resolution*, container* (file type), actor, writer*, and director* analysis
 * Scatter chart of audience rating (TMDB) vs content rating
 * Line chart for additions over time
-* Statistics for size and duration of entire library
-* Statistics for longest (duration), oldest (release date), and earliest / latest additions (to library)
-* Watched/unwatched comparison across entire library and within each chart
+* Statistics for size and duration of entire library, as well as items: longest (duration), oldest (release date), and earliest / latest additions (to library)
+* Watched/unwatched comparison across entire library and within most charts
 * Detects unmatched library items
 
 _Items marked with "*" are only available for Movie libraries_
