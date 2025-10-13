@@ -4,202 +4,96 @@
 const serverToken = 'SERVER_TOKEN';// ex: 'ad2T-askdjasd9WxJVBPQ'
 const serverIp = 'SERVER_IP';// ex: 'http://12.345.678.90:32400'
 const libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken;
-// chart color theme
-const chartColors = [
-    '#D62828',
-    '#FC9803',
-    '#F77F00',
-    '#FCBF49',
-    '#EAE2B7',
-    '#D62828',
-    '#F75C03',
-    '#F77F00',
-    '#FCBF49',
-    '#EAE2B7',
-    '#D62828',
-    '#F75C03',
-    '#F77F00',
-    '#FCBF49',
-    '#EAE2B7',
-    '#D62828',
-    '#F75C03',
-    '#F77F00',
-    '#FCBF49',
-    '#EAE2B7'];
-const chartColorsSequential = [
-    '#EAE2B7',
-    '#F0D693',
-    '#F6CB6D',
-    '#FCBF49',
-    '#FCB232',
-    '#FCA51A',
-    '#FC9803',
-    '#FA9002',
-    '#F98701',
-    '#F77F00',
-    '#F77301',
-    '#F76802',
-    '#F75C03',
-    '#EC4B0F',
-    '#E1391C',
-    '#D62828'
-];
+// Color System Configuration
+const colorSystem = {
+    // Base color palette (5 unique colors)
+    base: ['#D62828', '#FC9803', '#F77F00', '#FCBF49', '#EAE2B7'],
 
-// High contrast colors for categorical data visualization where colors appear side-by-side
-const chartColorsCategorical = [
-  "#FF0000",  // Pure Red
-  "#00FF00",  // Pure Green
-  "#0000FF",  // Pure Blue
-  "#FFFF00",  // Yellow
-  "#FF00FF",  // Magenta
-  "#00FFFF",  // Cyan
-  "#FF8C00",  // Dark Orange
-  "#8B008B",  // Dark Magenta
-  "#006400",  // Dark Green
-  "#000080",  // Navy Blue
-  "#FFD700",  // Gold
-  "#4B0082",  // Indigo
-  "#FF1493",  // Deep Pink
-  "#32CD32",  // Lime Green
-  "#FF6347",  // Tomato
-  "#4682B4",  // Steel Blue
-  "#9370DB",  // Medium Purple
-  "#20B2AA",  // Light Sea Green
-  "#FF4500",  // Orange Red
-  "#DA70D6",  // Orchid
-  "#00CED1",  // Dark Turquoise
-  "#ADFF2F",  // Green Yellow
-  "#DC143C",  // Crimson
-  "#00BFFF",  // Deep Sky Blue
-  "#FF69B4",  // Hot Pink
-  "#228B22",  // Forest Green
-  "#B22222",  // Fire Brick
-  "#5F9EA0",  // Cadet Blue
-  "#FF7F50",  // Coral
-  "#6495ED",  // Cornflower Blue
-  "#DDA0DD",  // Plum
-  "#90EE90",  // Light Green
-  "#F08080",  // Light Coral
-  "#40E0D0",  // Turquoise
-  "#FA8072",  // Salmon
-  "#7B68EE"   // Medium Slate Blue
-];
+    // Generate extended color array by repeating base colors
+    get chartColors() {
+        const extended = [];
+        for (let i = 0; i < 20; i++) {
+            extended.push(this.base[i % this.base.length]);
+        }
+        return extended;
+    },
+
+    // Sequential colors for gradients (16 colors from light to dark)
+    chartColorsSequential: [
+        '#EAE2B7', '#F0D693', '#F6CB6D', '#FCBF49',
+        '#FCB232', '#FCA51A', '#FC9803', '#FA9002',
+        '#F98701', '#F77F00', '#F77301', '#F76802',
+        '#F75C03', '#EC4B0F', '#E1391C', '#D62828'
+    ],
+
+    // High contrast colors for categorical data (first 36 unique colors)
+    chartColorsCategorical: [
+        "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF",
+        "#FF8C00", "#8B008B", "#006400", "#000080", "#FFD700", "#4B0082",
+        "#FF1493", "#32CD32", "#FF6347", "#4682B4", "#9370DB", "#20B2AA",
+        "#FF4500", "#DA70D6", "#00CED1", "#ADFF2F", "#DC143C", "#00BFFF",
+        "#FF69B4", "#228B22", "#B22222", "#5F9EA0", "#FF7F50", "#6495ED",
+        "#DDA0DD", "#90EE90", "#F08080", "#40E0D0", "#FA8072", "#7B68EE"
+    ]
+};
+
+// Use the color system (maintain backward compatibility)
+const chartColors = colorSystem.chartColors;
+const chartColorsSequential = colorSystem.chartColorsSequential;
+const chartColorsCategorical = colorSystem.chartColorsCategorical;
 
 debugMode = false;// set to true to enable console logging
 
-// decade arrays - these will be dynamically generated based on actual data
-let decadePrefixes = [],// used for comparing raw release years
-decades = [];// used for UI/chart display
+// Data structure templates for consistent initialization and reset
+const createCategoryData = () => ({
+    data: {},
+    list: [],
+    counts: [],
+    watched: {},
+    watchedCounts: [],
+    unwatchedCounts: []
+});
 
-let availableLibraries = [],// the list of libraries returned by your server
-selectedLibrary = "",// the library currently selected by the user
-selectedLibraryKey = "",// the key of the library currently selected by the user
-selectedLibraryStats = {},// a large object containing all the stats for the selected library
-libraryStatsLoading = false,// used to trigger loading animations
-watchedCount = 0,// total watched items in a library
-// genres
-genreData = {
-    data: {},// this stores genre: count, and is then split into the two following arrays
+const createTimeSeriesData = () => ({
+    dates: {},
+    datesList: [],
+    counts: [],
+    cumulativeCounts: []
+});
+
+// Initialize all data structures using templates
+let decadePrefixes = [], decades = [];
+let availableLibraries = [];
+let selectedLibrary = "", selectedLibraryKey = "";
+let selectedLibraryStats = {};
+let libraryStatsLoading = false;
+let watchedCount = 0;
+
+// Category data structures
+let genreData = createCategoryData();
+let countryData = createCategoryData();
+let resolutionData = createCategoryData();
+let containerData = createCategoryData();
+let studioData = createCategoryData();
+let directorData = createCategoryData();
+let actorData = createCategoryData();
+let writerData = createCategoryData();
+let contentRatingData = createCategoryData();
+
+// Special data structures
+let releaseDateData = {
     list: [],
     counts: [],
-    watched: {},// functions the same as genres object, but count is incremented only if the parsed item has been watched
-    watchedCounts: [],
-    unwatchedCounts: []
-},
-// countries
-countryData = {
-    data: {},// this stores country: count, and is then split into the two following arrays for the bar chart
-    list: [],
-    counts: [],
-    watched: {},
-    watchedCounts: [],
-    unwatchedCounts: []
-},
-// resolutions
-resolutionData = {
-    data: {},
-    list: [],
-    counts: [],
-    watched: {},
-    watchedCounts: [],
-    unwatchedCounts: []
-},
-// containers
-containerData = {
-    data: {},
-    list: [],
-    counts: [],
-    watched: {},
-    watchedCounts: [],
-    unwatchedCounts: []
-},
-// release dates
-releaseDateData = {
-    list: [],// stores each instance of a release date
-    counts: [],// stores count of decades within releaseDateList (dynamically sized)
-    oldestTitle: "",// the oldest title in the library
-    oldestReleaseDate: "",// the oldest release date in the library
-    // watched status for the decades chart
+    oldestTitle: "",
+    oldestReleaseDate: "",
     watchedList: [],
-    watchedCounts: [],// dynamically sized
-    unwatchedCounts: []// dynamically sized
-},
-// studios
-studioData = {
-    data: {},// this stores studio: count, and is then split into the two following arrays
-    list: [],
-    counts: [],
-    watched: {},
     watchedCounts: [],
     unwatchedCounts: []
-},
-// directors
-directorData = {
-    data: {},
-    list: [],
-    counts: [],
-    watched: {},
-    watchedCounts: [],
-    unwatchedCounts: []
-},
-// actors
-actorData = {
-    data: {},
-    list: [],
-    counts: [],
-    watched: {},
-    watchedCounts: [],
-    unwatchedCounts: []
-},
-// writers
-writerData = {
-    data: {},
-    list: [],
-    counts: [],
-    watched: {},
-    watchedCounts: [],
-    unwatchedCounts: []
-},
-// items by rating (scatter)
-ratingsList = [],// list of objects that represent a movie / point on the scatter plot
-ratingsContent = [],// list of unique content ratings
-ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
-ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-PG', 'TV-14', 'TV-MA'],
-ratingsHighest = {},
-ratingsLowest = {},
-// items by content rating (bar)
-contentRatingData = {
-    data: {},
-    list: [],
-    counts: [],
-    watched: {},
-    watchedCounts: [],
-    unwatchedCounts: []
-},
-// items by file size and resolution (treemap - movies only)
-fileSizeData = {
-    items: [], // Array of objects with {title, fileSize, resolution, watched}
-    resolutionColors: {}, // Map resolution to colors
+};
+
+let fileSizeData = {
+    items: [],
+    resolutionColors: {},
     totalFileSize: 0,
     largestFile: '',
     largestFileSize: 0,
@@ -211,44 +105,38 @@ fileSizeData = {
     highestBitrate: 0,
     lowestBitrateFile: '',
     lowestBitrate: Number.MAX_SAFE_INTEGER
-},
-// shows by episode count (treemap - TV shows only)
-showsData = {
-    shows: [], // Array of objects with {title, year, seasons, totalEpisodeCount, watched}
-    seasonsByShow: {}, // Map show key to array of season objects
+};
+
+let showsData = {
+    shows: [],
+    seasonsByShow: {},
     mostSeasonsShow: '',
     mostSeasonsCount: 0,
     mostEpisodesShow: '',
     mostEpisodesCount: 0
-},
-// items added over time (line)
-addedOverTimeData = {
-    dates: {},// stores date: count
-    datesList: [],// sorted list of dates
-    counts: [],// counts corresponding to datesList
-    cumulativeCounts: []// cumulative counts for running total
-},
-// items watched over time (line)
-watchedOverTimeData = {
-    dates: {},// stores date: count
-    datesList: [],// sorted list of dates
-    counts: [],// counts corresponding to datesList
-    cumulativeCounts: []// cumulative counts for running total
-},
-// durations, library size, and unmatched items
-durationSum = 0,// aggregate duration of all movies, or total duration of all shows (# of episodes * avg episode duration)
-longestDuration = 0,// longest duration of a movie, or longest show (# of episodes)
-longestTitle = "",// title of item with longest duration / episode count
-firstAdded = "",// date the first item was added to the server
-firstAddedDate = "",// date the first item was added to the server
-lastAdded = "",
-lastAddedDate = "",
-seasonSum = 0,
-episodeCounts = [],
-episodeSum = 0,
-unmatchedItems = [],
-// collections data
-collectionsData = {
+};
+
+// Time series data
+let addedOverTimeData = createTimeSeriesData();
+let watchedOverTimeData = createTimeSeriesData();
+
+// Ratings data
+let ratingsList = [];
+let ratingsContent = [];
+let ratingsMovies = ['G', 'PG', 'PG-13', 'R'];
+let ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-PG', 'TV-14', 'TV-MA'];
+let ratingsHighest = {};
+let ratingsLowest = {};
+
+// Simple counters and strings
+let durationSum = 0, longestDuration = 0, longestTitle = "";
+let firstAdded = "", firstAddedDate = "";
+let lastAdded = "", lastAddedDate = "";
+let seasonSum = 0, episodeCounts = [], episodeSum = 0;
+let unmatchedItems = [];
+
+// Collections data
+let collectionsData = {
     collections: [],
     totalCollections: 0,
     totalItemsInCollections: 0,
@@ -258,134 +146,97 @@ collectionsData = {
     collectionCounts: [],
     collectionWatchedCounts: [],
     collectionUnwatchedCounts: []
-},
-collectionsLoading = false,
-// below are the limits for displaying data in the charts, e.g. "Top X Countries"
-countryLimit = 20,
-newCountryLimit = countryLimit,// "new" variations are used for the UI to track changes to limit / Top X
-genreLimit = 20,
-newGenreLimit = genreLimit,
-resolutionLimit = 20,
-newResolutionLimit = resolutionLimit,
-containerLimit = 20,
-newContainerLimit = containerLimit,
-studioLimit = 20,
-newStudioLimit = studioLimit,
-directorLimit = 20,
-newDirectorLimit = directorLimit,
-actorLimit = 20,
-newActorLimit = actorLimit,
-decadeLimit = 20,
-newDecadeLimit = decadeLimit,
-writerLimit = 20,
-newWriterLimit = writerLimit,
-contentRatingLimit = 20,
-newContentRatingLimit = contentRatingLimit;
+};
+let collectionsLoading = false;
 
-/////////////////////////////////
-// reset library stats
+// Chart limits
+let countryLimit = 20, newCountryLimit = 20;
+let genreLimit = 20, newGenreLimit = 20;
+let resolutionLimit = 20, newResolutionLimit = 20;
+let containerLimit = 20, newContainerLimit = 20;
+let studioLimit = 20, newStudioLimit = 20;
+let directorLimit = 20, newDirectorLimit = 20;
+let actorLimit = 20, newActorLimit = 20;
+let decadeLimit = 20, newDecadeLimit = 20;
+let writerLimit = 20, newWriterLimit = 20;
+let contentRatingLimit = 20, newContentRatingLimit = 20;
+
+// Reset library stats using templates
 const resetLibraryStats = () => {
-    // keep in sync with list above, this resets data on library selection
-    countryData.data = {};
-    countryData.list = [];
-    countryData.counts = [];
-    countryData.watched = {};
-    countryData.watchedCounts = [];
-    countryData.unwatchedCounts = [];
-    genreData.data = {};
-    genreData.list = [];
-    genreData.counts = [];
-    genreData.watched = {};
-    genreData.watchedCounts = [];
-    genreData.unwatchedCounts = [];
-    resolutionData.data = {};
-    resolutionData.list = [];
-    resolutionData.counts = [];
-    resolutionData.watched = {};
-    resolutionData.watchedCounts = [];
-    resolutionData.unwatchedCounts = [];
-    containerData.data = {};
-    containerData.list = [];
-    containerData.counts = [];
-    containerData.watched = {};
-    containerData.watchedCounts = [];
-    containerData.unwatchedCounts = [];
-    studioData.data = {};
-    studioData.list = [];
-    studioData.counts = [];
-    studioData.watched = {};
-    studioData.watchedCounts = [];
-    studioData.unwatchedCounts = [];
-    releaseDateData.list = [];
-    releaseDateData.counts = [];
-    releaseDateData.oldestTitle = "";
-    releaseDateData.oldestReleaseDate = "";
-    releaseDateData.watchedList = [];
-    releaseDateData.watchedCounts = [];
-    releaseDateData.unwatchedCounts = [];
-    // reset dynamic decade arrays
+    // Reset category data using template
+    genreData = createCategoryData();
+    countryData = createCategoryData();
+    resolutionData = createCategoryData();
+    containerData = createCategoryData();
+    studioData = createCategoryData();
+    directorData = createCategoryData();
+    actorData = createCategoryData();
+    writerData = createCategoryData();
+    contentRatingData = createCategoryData();
+
+    // Reset special structures
+    releaseDateData = {
+        list: [],
+        counts: [],
+        oldestTitle: "",
+        oldestReleaseDate: "",
+        watchedList: [],
+        watchedCounts: [],
+        unwatchedCounts: []
+    };
+
+    fileSizeData = {
+        items: [],
+        resolutionColors: {},
+        totalFileSize: 0,
+        largestFile: '',
+        largestFileSize: 0,
+        largestFileResolution: '',
+        smallestFile: '',
+        smallestFileSize: Number.MAX_SAFE_INTEGER,
+        smallestFileResolution: '',
+        highestBitrateFile: '',
+        highestBitrate: 0,
+        lowestBitrateFile: '',
+        lowestBitrate: Number.MAX_SAFE_INTEGER
+    };
+
+    showsData = {
+        shows: [],
+        seasonsByShow: {},
+        mostSeasonsShow: '',
+        mostSeasonsCount: 0,
+        mostEpisodesShow: '',
+        mostEpisodesCount: 0
+    };
+
+    // Reset time series data
+    addedOverTimeData = createTimeSeriesData();
+    watchedOverTimeData = createTimeSeriesData();
+
+    // Reset simple variables
     decadePrefixes = [];
     decades = [];
-    directorData.data = {};
-    directorData.list = [];
-    directorData.counts = [];
-    directorData.watched = {};
-    directorData.watchedCounts = [];
-    directorData.unwatchedCounts = [];
-    actorData.data = {};
-    actorData.list = [];
-    actorData.counts = [];
-    actorData.watched = {};
-    actorData.watchedCounts = [];
-    actorData.unwatchedCounts = [];
-    writerData.data = {};
-    writerData.list = [];
-    writerData.counts = [];
-    writerData.watched = {};
-    writerData.watchedCounts = [];
-    writerData.unwatchedCounts = [];
-    contentRatingData.data = {};
-    contentRatingData.list = [];
-    contentRatingData.counts = [];
-    contentRatingData.watched = {};
-    contentRatingData.watchedCounts = [];
-    contentRatingData.unwatchedCounts = [];
-    fileSizeData.items = [];
-    fileSizeData.resolutionColors = {};
-    fileSizeData.totalFileSize = 0;
-    fileSizeData.largestFile = '';
-    fileSizeData.largestFileSize = 0;
-    fileSizeData.largestFileResolution = '';
-    fileSizeData.smallestFile = '';
-    fileSizeData.smallestFileSize = Number.MAX_SAFE_INTEGER;
-    fileSizeData.smallestFileResolution = '';
-    addedOverTimeData.dates = {};
-    addedOverTimeData.datesList = [];
-    addedOverTimeData.counts = [];
-    addedOverTimeData.cumulativeCounts = [];
-    watchedOverTimeData.dates = {};
-    watchedOverTimeData.datesList = [];
-    watchedOverTimeData.counts = [];
-    watchedOverTimeData.cumulativeCounts = [];
     ratingsList = [];
-    ratingsContent = [],
-    ratingsMovies = ['G', 'PG', 'PG-13', 'R'],
-    ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'TV-14', 'TV-MA'],
-    ratingsHighest = {},
-    ratingsLowest = {},
-    durationSum = 0,
-    seasonSum = 0,
-    episodeCounts = [],
-    episodeSum = 0,
-    longestDuration = 0,
-    longestTitle = "",
-    firstAdded = "",
-    firstAddedDate = "",
-    lastAdded = "",
-    lastAddedDate = "",
-    unmatchedItems = [],
-    watchedCount = 0,
-    type = "";
+    ratingsContent = [];
+    ratingsMovies = ['G', 'PG', 'PG-13', 'R'];
+    ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'TV-14', 'TV-MA'];
+    ratingsHighest = {};
+    ratingsLowest = {};
+
+    // Reset counters
+    durationSum = 0;
+    seasonSum = 0;
+    episodeCounts = [];
+    episodeSum = 0;
+    longestDuration = 0;
+    longestTitle = "";
+    firstAdded = "";
+    firstAddedDate = "";
+    lastAdded = "";
+    lastAddedDate = "";
+    unmatchedItems = [];
+    watchedCount = 0;
 }
 
 /////////////////////////////////
