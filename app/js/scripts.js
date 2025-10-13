@@ -1,11 +1,28 @@
 ////// WARNING
 // Never share the following token with anyone! Do not host this on a public server with the token in place!
 // Keep it secret, keep it safe! If compromised, generate a new one: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
-const serverToken = 'SERVER_TOKEN',// ex: 'ad2T-askdjasd9WxJVBPQ'
-serverIp = 'SERVER_IP',// ex: 'http://12.345.678.90:32400'
-libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken,
+const serverToken = 'SERVER_TOKEN';// ex: 'ad2T-askdjasd9WxJVBPQ'
+const serverIp = 'SERVER_IP';// ex: 'http://12.345.678.90:32400'
+const libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken;
 // chart color theme
-chartColors = ['#D62828', '#FC9803', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7','#D62828', '#F75C03', '#F77F00', '#FCBF49', '#EAE2B7'],
+const chartColors = [
+  "#EAE2B7",
+  "#F0D693",
+  "#F6CB6D",
+  "#FCBF49",
+  "#FCB232",
+  "#FCA51A",
+  "#FC9803",
+  "#FA9002",
+  "#F98701",
+  "#F77F00",
+  "#F77301",
+  "#F76802",
+  "#F75C03",
+  "#EC4B0F",
+  "#E1391C",
+  "#D62828"
+];
 debugMode = false;// set to true to enable console logging
 
 // decade arrays - these will be dynamically generated based on actual data
