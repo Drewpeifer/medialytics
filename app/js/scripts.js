@@ -634,21 +634,22 @@ const processMediaSpecificData = (item, type, currentDurationSum, currentLongest
 };
 
 let isLoadingLibraryData = false;
-let isFirstLibraryLoad = true; // Track if this is the first library load
 
 /////////////////////////////////
-// Show first load animation
-const showFirstLoadAnimation = () => {
+// Show loading animation (for both first load and library switches)
+const showLoadingAnimation = () => {
     const overlay = document.getElementById('firstLoadOverlay');
-    if (overlay && isFirstLibraryLoad) {
+    if (overlay) {
+        // Remove any existing fade-out class
+        overlay.classList.remove('fade-out');
         overlay.style.display = 'flex';
         document.body.classList.add('first-loading');
     }
 }
 
 /////////////////////////////////
-// Hide first load animation
-const hideFirstLoadAnimation = () => {
+// Hide loading animation
+const hideLoadingAnimation = () => {
     const overlay = document.getElementById('firstLoadOverlay');
     if (overlay) {
         overlay.classList.add('fade-out');
@@ -657,6 +658,7 @@ const hideFirstLoadAnimation = () => {
         // Remove the overlay completely after fade out
         setTimeout(() => {
             overlay.style.display = 'none';
+            overlay.classList.remove('fade-out');
         }, 800); // Match the CSS transition duration
     }
 }
@@ -666,10 +668,15 @@ const hideFirstLoadAnimation = () => {
 const getLibraryData = async (libraryKey) => {
     isLoadingLibraryData = true;
 
-    // Show first load animation only on the very first library load
-    if (isFirstLibraryLoad) {
-        showFirstLoadAnimation();
+    // Show loading animation for any library load
+    showLoadingAnimation();
+
+    // Clean up any existing treemap color legend when switching libraries
+    const existingLegend = document.getElementById('treemap-color-legend');
+    if (existingLegend) {
+        existingLegend.remove();
     }
+
     app.availableLibraries.forEach((library) => {
         if (library.key == libraryKey) {
             app.selectedLibrary = library.title;
@@ -1184,14 +1191,10 @@ const parseMediaPayload = (data) => {
             // render charts
             isLoadingLibraryData = false;
 
-            // Hide first load animation if this was the first library load
-            if (isFirstLibraryLoad) {
-                // Add a small delay to show the animation completion
-                setTimeout(() => {
-                    hideFirstLoadAnimation();
-                    isFirstLibraryLoad = false; // Mark that we've completed the first load
-                }, 500);
-            }
+            // Hide loading animation with a small delay for smooth transition
+            setTimeout(() => {
+                hideLoadingAnimation();
+            }, 500);
 
             app.renderDefaultCharts();
 
@@ -1886,11 +1889,26 @@ const app = new Vue({
             );
         },
         updateTreemapChart: function() {
-            // Show loading spinner
+            // Show spinner immediately
+            const chartElement = document.getElementById('items-by-size');
+            if (chartElement && chartElement.parentElement) {
+                // Create and show a loading spinner
+                const spinner = document.createElement('div');
+                spinner.className = 'loader treemap-loading-spinner';
+                spinner.style.position = 'absolute';
+                spinner.style.top = '50%';
+                spinner.style.left = '50%';
+                spinner.style.transform = 'translate(-50%, -50%)';
+                spinner.style.zIndex = '100';
+                chartElement.parentElement.style.position = 'relative';
+                chartElement.parentElement.appendChild(spinner);
+            }
+
+            // Also show the header spinner for visual consistency
             this.treemapLoading = true;
 
-            // Rerender the treemap chart with the new color options
-            this.$nextTick(() => {
+            // Add small delay to ensure spinner is visible before heavy rendering
+            setTimeout(() => {
                 // Make sure treemapColorBy matches what we're coloring by
                 if (this.treemapGrouping === this.treemapColorBy) {
                     // Cannot color by the same attribute we're grouping by
@@ -1902,8 +1920,13 @@ const app = new Vue({
                 // Hide spinner after rendering is complete
                 setTimeout(() => {
                     this.treemapLoading = false;
+                    // Remove the overlay spinner
+                    const spinner = document.querySelector('.treemap-loading-spinner');
+                    if (spinner) {
+                        spinner.remove();
+                    }
                 }, 300);
-            });
+            }, 50);
         },
 
         // Generate color legend items based on current coloring
@@ -1963,7 +1986,22 @@ const app = new Vue({
         },
 
         updateTreemapGrouping: function() {
-            // Show loading spinner
+            // Show spinner immediately
+            const chartElement = document.getElementById('items-by-size');
+            if (chartElement && chartElement.parentElement) {
+                // Create and show a loading spinner
+                const spinner = document.createElement('div');
+                spinner.className = 'loader treemap-loading-spinner';
+                spinner.style.position = 'absolute';
+                spinner.style.top = '50%';
+                spinner.style.left = '50%';
+                spinner.style.transform = 'translate(-50%, -50%)';
+                spinner.style.zIndex = '100';
+                chartElement.parentElement.style.position = 'relative';
+                chartElement.parentElement.appendChild(spinner);
+            }
+
+            // Also show the header spinner for visual consistency
             this.treemapLoading = true;
 
             // When grouping changes, reset color-by if it conflicts with the grouping
@@ -1971,14 +2009,19 @@ const app = new Vue({
                 this.treemapColorBy = 'none';
             }
 
-            // Rerender the treemap chart with the new grouping option
-            this.$nextTick(() => {
+            // Add small delay to ensure spinner is visible before heavy rendering
+            setTimeout(() => {
                 this.renderTreemapChart();
                 // Hide spinner after rendering is complete
                 setTimeout(() => {
                     this.treemapLoading = false;
+                    // Remove the overlay spinner
+                    const spinner = document.querySelector('.treemap-loading-spinner');
+                    if (spinner) {
+                        spinner.remove();
+                    }
                 }, 300);
-            });
+            }, 50);
         },
 
         renderTreemapChart: function() {
@@ -2671,12 +2714,29 @@ const app = new Vue({
             });
         },
         updateLimit: function (limitType, updatedLimit) {
+            // Show spinner immediately when limit changes
+            const chartElement = document.getElementById(`items-by-${limitType === 'contentRating' ? 'content-rating' : limitType}`);
+            if (chartElement && chartElement.parentElement) {
+                // Create and show a loading spinner
+                const spinner = document.createElement('div');
+                spinner.className = 'loader chart-loading-spinner';
+                spinner.style.position = 'absolute';
+                spinner.style.top = '50%';
+                spinner.style.left = '50%';
+                spinner.style.transform = 'translate(-50%, -50%)';
+                spinner.style.zIndex = '100';
+                chartElement.parentElement.style.position = 'relative';
+                chartElement.parentElement.appendChild(spinner);
+            }
+
             // limitType is a string like "genre" and updatedLimit is a number
             // set the new limit, e.g. genreLimit = 10
             app.selectedLibraryStats[`${limitType}Limit`] = parseInt(updatedLimit);
 
-            // render the new chart
-            switch (limitType) {
+            // Add a small delay to ensure spinner is visible
+            setTimeout(() => {
+                // render the new chart
+                switch (limitType) {
                 case 'genre':
                 app.genreToggle == 'bar' ? app.renderGenreChart('bar') : app.renderGenreChart('pie');
                 break;
@@ -2710,6 +2770,15 @@ const app = new Vue({
                 default:
                 console.error('Invalid limit type');
             }
+
+                // Remove spinner after chart renders
+                setTimeout(() => {
+                    const spinner = document.querySelector('.chart-loading-spinner');
+                    if (spinner) {
+                        spinner.remove();
+                    }
+                }, 300);
+            }, 50);
         },
         exportLibraryData: function() {
             // Set exporting flag

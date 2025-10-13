@@ -365,11 +365,19 @@ p.ip-address a {
     -webkit-mask-composite: source-out;
     mask-composite: subtract;
     box-sizing: border-box;
-    animation: load 1s linear infinite;
-    margin: 5px auto
+    animation: load 0.8s linear infinite;
+    margin: 5px auto;
+    will-change: transform;
 }
 @keyframes load {
-    to{transform: rotate(1turn)}
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Chart-specific loading spinner */
+.chart-loading-spinner {
+    width: 30px !important;
+    padding: 4px !important;
 }
 
 /* Clever loading animation for first library load */
@@ -432,29 +440,43 @@ p.ip-address a {
     background: linear-gradient(to top, orange, #ff8c00);
     border-radius: 4px 4px 0 0;
     opacity: 0.3;
-    animation: barGrow 2s ease-in-out infinite;
+    animation: barGrow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: bottom;
+    will-change: transform, opacity;
 }
 
 .bar:nth-child(1) { animation-delay: 0s; height: 20%; }
-.bar:nth-child(2) { animation-delay: 0.1s; height: 60%; }
-.bar:nth-child(3) { animation-delay: 0.2s; height: 100%; }
-.bar:nth-child(4) { animation-delay: 0.3s; height: 40%; }
-.bar:nth-child(5) { animation-delay: 0.4s; height: 80%; }
-.bar:nth-child(6) { animation-delay: 0.5s; height: 70%; }
-.bar:nth-child(7) { animation-delay: 0.6s; height: 30%; }
-.bar:nth-child(8) { animation-delay: 0.7s; height: 90%; }
-.bar:nth-child(9) { animation-delay: 0.8s; height: 50%; }
-.bar:nth-child(10) { animation-delay: 0.9s; height: 35%; }
+.bar:nth-child(2) { animation-delay: 0.15s; height: 60%; }
+.bar:nth-child(3) { animation-delay: 0.3s; height: 100%; }
+.bar:nth-child(4) { animation-delay: 0.45s; height: 40%; }
+.bar:nth-child(5) { animation-delay: 0.6s; height: 80%; }
+.bar:nth-child(6) { animation-delay: 0.75s; height: 70%; }
+.bar:nth-child(7) { animation-delay: 0.9s; height: 30%; }
+.bar:nth-child(8) { animation-delay: 1.05s; height: 90%; }
+.bar:nth-child(9) { animation-delay: 1.2s; height: 50%; }
+.bar:nth-child(10) { animation-delay: 1.35s; height: 35%; }
 
 @keyframes barGrow {
-    0%, 100% {
+    0% {
         opacity: 0.3;
         transform: scaleY(0.5);
+    }
+    25% {
+        opacity: 0.6;
+        transform: scaleY(0.75);
     }
     50% {
         opacity: 1;
         transform: scaleY(1);
         box-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
+    }
+    75% {
+        opacity: 0.6;
+        transform: scaleY(0.75);
+    }
+    100% {
+        opacity: 0.3;
+        transform: scaleY(0.5);
     }
 }
 
