@@ -1977,12 +1977,74 @@ const app = new Vue({
 
             // Rerender the treemap chart with the new color options
             this.$nextTick(() => {
+                // Make sure treemapColorBy matches what we're coloring by
+                if (this.treemapGrouping === this.treemapColorBy) {
+                    // Cannot color by the same attribute we're grouping by
+                    this.treemapColorBy = 'none';
+                }
+
                 this.renderTreemapChart();
+
                 // Hide spinner after rendering is complete
                 setTimeout(() => {
                     this.treemapLoading = false;
                 }, 300);
             });
+        },
+
+        // Generate color legend items based on current coloring
+        getColorLegendItems: function() {
+            if (this.treemapColorBy === 'none') {
+                return [];
+            }
+
+            // For bitrate, create a special gradient legend
+            if (this.treemapColorBy === 'bitrate') {
+                return [
+                    { label: 'Lower Bitrate', color: 'rgb(255, 0, 0)' },
+                    { label: 'Medium Bitrate', color: 'rgb(128, 128, 0)' },
+                    { label: 'Higher Bitrate', color: 'rgb(0, 255, 0)' }
+                ];
+            }
+
+            // For categorical attributes, use the same color mapping logic as the chart
+            const uniqueValues = new Set();
+
+            // Collect all unique values and normalize them
+            if (fileSizeData.items && fileSizeData.items.length > 0) {
+                fileSizeData.items.forEach(item => {
+                    let value;
+
+                    switch(this.treemapColorBy) {
+                        case 'resolution':
+                            value = item.resolution;
+                            break;
+                        case 'container':
+                            value = item.container;
+                            break;
+                        case 'codec':
+                            value = item.videoCodec;
+                            break;
+                    }
+
+                    if (value) {
+                        uniqueValues.add(value.toUpperCase());
+                    }
+                });
+            }
+
+            // Sort values for consistent display
+            const sortedValues = Array.from(uniqueValues).sort();
+
+            // Create legend items (limited to 12 entries to avoid overwhelming)
+            const legendItems = sortedValues.slice(0, 12).map((value, index) => {
+                return {
+                    label: value,
+                    color: chartColors[index % chartColors.length]
+                };
+            });
+
+            return legendItems;
         },
 
         updateTreemapGrouping: function() {
@@ -2011,6 +2073,7 @@ const app = new Vue({
                 console.log('fileSizeData:', fileSizeData);
                 console.log('fileSizeData.items length:', fileSizeData.items ? fileSizeData.items.length : 'undefined');
                 console.log('Current grouping:', this.treemapGrouping);
+                console.log('Current coloring by:', this.treemapColorBy);
             }
 
             // Only render for movie libraries
@@ -2121,6 +2184,9 @@ const app = new Vue({
                 parents.push('');
             });
 
+            // Keep track of movie data for later color mapping
+            const movieDataList = [];
+
             // Add individual movies under their groups
             fileSizeData.items.forEach(item => {
                 const displayTitle = `${item.title}${item.year ? ` (${item.year})` : ''}`;
@@ -2145,58 +2211,85 @@ const app = new Vue({
                 labels.push(displayTitle);
                 values.push(item.fileSize.toString());
                 parents.push(groupValue);
+
+                // Store movie data for this index
+                movieDataList.push(item);
             });
 
             // Create an array to track which items are group parents vs children
             const isParentNode = labels.map((_, index) => parents[index] === '');
 
-            // Create mappings for color coding by attribute
-            const uniqueValues = {};
-            const movieToAttributeMap = {};
-
-            // Get the lowest and highest bitrates for gradient coloring
+            // Build color maps for consistent coloring
+            // Extract all unique values for each attribute type
+            const allResolutions = new Set();
+            const allContainers = new Set();
+            const allCodecs = new Set();
             let minBitrate = Number.MAX_SAFE_INTEGER;
             let maxBitrate = 0;
 
-            // For each movie item, collect its attribute values for coloring
+            // Collect all unique values
             fileSizeData.items.forEach(item => {
-                const movieIndex = labels.indexOf(`${item.title}${item.year ? ` (${item.year})` : ''}`);
-                if (movieIndex !== -1) {
-                    // Store property values for each coloring option
-                    const properties = {
-                        'resolution': item.resolution,
-                        'container': item.container,
-                        'codec': item.videoCodec,
-                        'bitrate': item.bitrate
-                    };
+                // Normalize and collect all values (with uppercase for consistency)
+                if (item.resolution) allResolutions.add(item.resolution.toUpperCase());
+                if (item.container) allContainers.add(item.container.toUpperCase());
+                if (item.videoCodec) allCodecs.add(item.videoCodec.toUpperCase());
 
-                    movieToAttributeMap[movieIndex] = properties;
-
-                    // Collect unique values for categorical coloring
-                    Object.keys(properties).forEach(prop => {
-                        if (prop !== 'bitrate') {
-                            if (!uniqueValues[prop]) uniqueValues[prop] = new Set();
-                            if (properties[prop]) uniqueValues[prop].add(properties[prop]);
-                        }
-                    });
-
-                    // Track min/max bitrate for gradient scale
-                    if (item.bitrate) {
-                        minBitrate = Math.min(minBitrate, item.bitrate);
-                        maxBitrate = Math.max(maxBitrate, item.bitrate);
-                    }
+                // Track min/max bitrate
+                if (item.bitrate) {
+                    minBitrate = Math.min(minBitrate, item.bitrate);
+                    maxBitrate = Math.max(maxBitrate, item.bitrate);
                 }
             });
 
-            // Convert Sets to Arrays and assign colors
-            const colorMaps = {};
-            Object.keys(uniqueValues).forEach(prop => {
-                const values = Array.from(uniqueValues[prop]);
-                colorMaps[prop] = {};
-                values.forEach((value, i) => {
-                    colorMaps[prop][value] = chartColors[i % chartColors.length];
-                });
+            if (this.debugMode) {
+                console.log("Unique values found:");
+                console.log("Resolutions:", Array.from(allResolutions));
+                console.log("Containers:", Array.from(allContainers));
+                console.log("Codecs:", Array.from(allCodecs));
+                console.log("Bitrate range:", minBitrate, "to", maxBitrate);
+            }
+
+            // Build consistent color maps for each attribute type
+            const colorMaps = {
+                resolution: {},
+                container: {},
+                codec: {}
+            };
+
+            // Assign colors consistently
+            Array.from(allResolutions).sort().forEach((value, i) => {
+                colorMaps.resolution[value] = chartColors[i % chartColors.length];
             });
+
+            Array.from(allContainers).sort().forEach((value, i) => {
+                colorMaps.container[value] = chartColors[i % chartColors.length];
+            });
+
+            Array.from(allCodecs).sort().forEach((value, i) => {
+                colorMaps.codec[value] = chartColors[i % chartColors.length];
+            });
+
+            // Map movie indices to their attributes
+            // The index structure is: [group nodes..., movie nodes...]
+            const movieToAttributeMap = {};
+            const groupCount = Object.keys(groupTotals).length;
+
+            movieDataList.forEach((item, idx) => {
+                // The movie's actual index in the labels array is groupCount + idx
+                const movieIndex = groupCount + idx;
+                movieToAttributeMap[movieIndex] = {
+                    resolution: item.resolution ? item.resolution.toUpperCase() : 'UNKNOWN',
+                    container: item.container ? item.container.toUpperCase() : 'UNKNOWN',
+                    codec: item.videoCodec ? item.videoCodec.toUpperCase() : 'UNKNOWN',
+                    bitrate: item.bitrate || 0
+                };
+            });
+
+            if (this.debugMode) {
+                console.log("Movie to attribute map:", movieToAttributeMap);
+                console.log("Labels array:", labels);
+                console.log("Parents array:", parents);
+            }
 
             // Create custom hover text with formatted file sizes and additional info
             const customHoverText = labels.map((label, index) => {
@@ -2252,7 +2345,19 @@ const app = new Vue({
 
                 // Get the movie's attributes
                 const movieProps = movieToAttributeMap[index];
-                if (!movieProps) return '#FCBF49'; // Fallback
+                if (!movieProps) {
+                    if (this.debugMode) {
+                        console.warn(`No movie properties found for node at index ${index} with label "${labels[index]}"`);
+                    }
+                    return '#FCBF49'; // Fallback
+                }
+
+                if (this.debugMode && index % 10 === 0) { // Log only some items to avoid flooding console
+                    console.log(`Color info for item ${labels[index]}:`, {
+                        colorBy: this.treemapColorBy,
+                        properties: movieProps
+                    });
+                }
 
                 // Special case for bitrate - use green to red gradient
                 if (this.treemapColorBy === 'bitrate' && movieProps.bitrate) {
@@ -2269,9 +2374,22 @@ const app = new Vue({
                 }
 
                 // For categorical coloring (resolution, container, codec)
-                const attrValue = movieProps[this.treemapColorBy];
-                if (attrValue && colorMaps[this.treemapColorBy]) {
-                    return colorMaps[this.treemapColorBy][attrValue] || '#FCBF49';
+                if (this.treemapColorBy === 'resolution' ||
+                    this.treemapColorBy === 'container' ||
+                    this.treemapColorBy === 'codec') {
+
+                    // Get appropriate property value based on coloring type
+                    const attrValue = movieProps[this.treemapColorBy];
+
+                    if (attrValue) {
+                        const color = colorMaps[this.treemapColorBy][attrValue];
+
+                        if (this.debugMode && index % 10 === 0) { // Log sample of coloring for debugging
+                            console.log(`Coloring ${labels[index]} with ${attrValue} using color ${color}`);
+                        }
+
+                        if (color) return color;
+                    }
                 }
 
                 return '#FCBF49'; // Default fallback
@@ -2327,6 +2445,66 @@ const app = new Vue({
             }
 
             Plotly.newPlot('items-by-size', data, layout, config);
+
+            // After rendering chart, update the color legend
+            this.updateColorLegend();
+        },
+
+        // Update or create color legend based on current treemapColorBy setting
+        updateColorLegend: function() {
+            // Find the legend container - first try to find an existing one
+            let legendContainer = document.getElementById('treemap-color-legend');
+
+            // If none exists, create it
+            if (!legendContainer) {
+                legendContainer = document.createElement('div');
+                legendContainer.id = 'treemap-color-legend';
+                legendContainer.className = 'color-legend';
+
+                // Find the color-control div to insert after it
+                const colorControl = document.querySelector('.color-control');
+                if (colorControl && colorControl.parentNode) {
+                    colorControl.parentNode.insertBefore(legendContainer, colorControl.nextSibling);
+                }
+            }
+
+            // Clear any existing legend content
+            legendContainer.innerHTML = '';
+
+            // If coloring by 'none', hide the legend
+            if (this.treemapColorBy === 'none') {
+                legendContainer.style.display = 'none';
+                return;
+            }
+
+            // Show the legend
+            legendContainer.style.display = 'flex';
+
+            // Get legend items based on current coloring
+            const legendItems = this.getColorLegendItems();
+
+            // Add title
+            const titleElement = document.createElement('div');
+            titleElement.className = 'legend-title';
+            titleElement.innerHTML = `<strong>Color Legend (${this.treemapColorBy}):</strong>`;
+            legendContainer.appendChild(titleElement);
+
+            // Create legend items
+            legendItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'legend-item';
+
+                const colorSwatch = document.createElement('span');
+                colorSwatch.className = 'legend-color';
+                colorSwatch.style.backgroundColor = item.color;
+
+                const labelElement = document.createElement('span');
+                labelElement.textContent = item.label;
+
+                itemElement.appendChild(colorSwatch);
+                itemElement.appendChild(labelElement);
+                legendContainer.appendChild(itemElement);
+            });
         },
         renderShowsTreemap: function() {
             if (this.debugMode) {

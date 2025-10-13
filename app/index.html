@@ -421,12 +421,12 @@
                             <div class="row color-control">
                                 <span>Color by:</span>
                                 <label>
-                                    <input type="radio" name="treemapColorBy" value="codec" v-model="treemapColorBy" @change="updateTreemapChart" :disabled="treemapGrouping === 'codec'">
-                                    Codec
-                                </label>
-                                <label>
                                     <input type="radio" name="treemapColorBy" value="resolution" v-model="treemapColorBy" @change="updateTreemapChart" :disabled="treemapGrouping === 'resolution'">
                                     Resolution
+                                </label>
+                                <label>
+                                    <input type="radio" name="treemapColorBy" value="codec" v-model="treemapColorBy" @change="updateTreemapChart" :disabled="treemapGrouping === 'codec'">
+                                    Codec
                                 </label>
                                 <label>
                                     <input type="radio" name="treemapColorBy" value="container" v-model="treemapColorBy" @change="updateTreemapChart" :disabled="treemapGrouping === 'container'">
@@ -444,7 +444,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- shows by episode count (for TV shows) -->
                 <div class="row" v-if="selectedLibraryStats.type === 'show'">
                     <div class="card full">

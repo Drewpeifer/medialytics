@@ -303,8 +303,46 @@ p.ip-address a {
 .legend p span.watched {
     background: #D62828;
 }
+.legend p span.unwatched {
+    background: #F75C03;
+}
 .legend p span.legend-color {
     background: inherit; /* This will be overridden by inline styles */
+}
+
+/* Treemap color legend */
+.color-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: rgba(34, 34, 34, 0.5);
+    border-radius: 5px;
+}
+
+.color-legend .legend-title {
+    flex-basis: 100%;
+    text-align: center;
+    margin-bottom: 5px;
+    color: orange;
+}
+
+.color-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+}
+
+.color-legend .legend-color {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    border: 1px solid #444;
 }
 /* plotly tooltips */
 .hoverlayer .name,
