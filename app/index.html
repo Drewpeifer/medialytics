@@ -441,6 +441,27 @@
                                     None
                                 </label>
                             </div>
+                            <div class="row bitrate-thresholds" v-if="treemapColorBy === 'bitrate' && treemapGrouping !== 'bitrate'">
+                                <span style="margin-right: 10px;">Bitrate Thresholds:</span>
+                                <label style="margin-right: 10px;">
+                                    Low (< kbps):
+                                    <input type="number"
+                                           v-model.number="bitrateThresholds.low"
+                                           style="width: 80px; margin-left: 5px;"
+                                           min="0">
+                                </label>
+                                <label style="margin-right: 10px;">
+                                    High (> kbps):
+                                    <input type="number"
+                                           v-model.number="bitrateThresholds.high"
+                                           style="width: 80px; margin-left: 5px;"
+                                           min="0">
+                                </label>
+                                <button @click="updateBitrateThresholds"
+                                        style="padding: 4px 12px; cursor: pointer;">
+                                    Update
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

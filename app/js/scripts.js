@@ -1232,6 +1232,10 @@ const app = new Vue({
         treemapGrouping: 'resolution', // Default grouping is by resolution
         treemapColorBy: 'none', // Default coloring is uniform (no color coding)
         treemapLoading: false,
+        bitrateThresholds: {
+            low: 3000,  // Default low threshold (3000 kbps)
+            high: 10000  // Default high threshold (10000 kbps)
+        },
         resolutionToggle: "bar",
         containerToggle: "bar",
         genreToggle: "bar",
@@ -1935,12 +1939,12 @@ const app = new Vue({
                 return [];
             }
 
-            // For bitrate, create a special gradient legend
+            // For bitrate, create a special gradient legend with threshold values
             if (this.treemapColorBy === 'bitrate') {
                 return [
-                    { label: 'Lower Bitrate', color: 'rgb(255, 0, 0)' },
-                    { label: 'Medium Bitrate', color: 'rgb(128, 128, 0)' },
-                    { label: 'Higher Bitrate', color: 'rgb(0, 255, 0)' }
+                    { label: `Low (< ${this.bitrateThresholds.low} kbps)`, color: 'rgb(255, 0, 0)' },
+                    { label: `Medium (${this.bitrateThresholds.low}-${this.bitrateThresholds.high} kbps)`, color: 'rgb(255, 255, 0)' },
+                    { label: `High (> ${this.bitrateThresholds.high} kbps)`, color: 'rgb(0, 255, 0)' }
                 ];
             }
 
@@ -2317,39 +2321,30 @@ const app = new Vue({
                     });
                 }
 
-                // Special case for bitrate - use enhanced red-to-green gradient
+                // Special case for bitrate - use enhanced red-to-green gradient with custom thresholds
                 if (this.treemapColorBy === 'bitrate' && movieProps.bitrate) {
-                    // Normalize bitrate between 0-1
-                    const range = maxBitrate - minBitrate;
-                    if (range === 0) return '#00FF00'; // If all same, use green
+                    const bitrate = movieProps.bitrate;
+                    const lowThreshold = this.bitrateThresholds.low;
+                    const highThreshold = this.bitrateThresholds.high;
 
-                    const normalizedValue = (movieProps.bitrate - minBitrate) / range;
-
-                    // Enhanced gradient with more pronounced colors
-                    // Higher is better (green), lower is worse (red)
                     let r, g, b = 0;
 
-                    if (normalizedValue < 0.25) {
-                        // Deep red to orange-red (0-25%)
-                        const t = normalizedValue * 4; // Scale to 0-1
+                    // Determine color based on thresholds
+                    if (bitrate < lowThreshold) {
+                        // Low bitrate - red
                         r = 255;
-                        g = Math.floor(127 * t); // 0 to 127
-                    } else if (normalizedValue < 0.5) {
-                        // Orange-red to orange-yellow (25-50%)
-                        const t = (normalizedValue - 0.25) * 4; // Scale to 0-1
-                        r = 255;
-                        g = Math.floor(127 + 128 * t); // 127 to 255
-                    } else if (normalizedValue < 0.75) {
-                        // Orange-yellow to yellow-green (50-75%)
-                        const t = (normalizedValue - 0.5) * 4; // Scale to 0-1
-                        r = Math.floor(255 * (1 - t)); // 255 to 0
-                        g = 255;
-                    } else {
-                        // Yellow-green to pure green (75-100%)
-                        const t = (normalizedValue - 0.75) * 4; // Scale to 0-1
+                        g = 0;
+                        b = 0;
+                    } else if (bitrate > highThreshold) {
+                        // High bitrate - green
                         r = 0;
-                        g = Math.floor(255 - 127 * t); // 255 to 128 (darker green at top)
-                        b = Math.floor(80 * t); // Add slight blue for richer green
+                        g = 255;
+                        b = 0;
+                    } else {
+                        // Medium bitrate - yellow
+                        r = 255;
+                        g = 255;
+                        b = 0;
                     }
 
                     return `rgb(${r}, ${g}, ${b})`;
@@ -3289,6 +3284,10 @@ const app = new Vue({
             }
         },
         // Export table CSV
+        updateBitrateThresholds: function() {
+            // Trigger a re-render of the treemap with new thresholds
+            this.updateTreemapChart();
+        },
         exportTableCSV: function() {
             if (!this.sortedMovies || this.sortedMovies.length === 0) {
                 return;
