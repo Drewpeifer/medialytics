@@ -2,8 +2,6 @@ services:
   medialytics:
     image: ghcr.io/drewpeifer/medialytics:latest
     container_name: medialytics
-    environment:
-      - SERVER_IP=${SERVER_IP} # ex: 'http://12.345.678.90:32400'
-      - SERVER_TOKEN=${SERVER_TOKEN} # ex: 'ad2T-askdjasd9WxJVBPQ'
+    # No environment variables needed - OAuth handles authentication and server discovery
     ports:
       - "8088:80"

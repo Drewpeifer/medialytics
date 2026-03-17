@@ -1,21 +1,43 @@
-////// WARNING
-// Never share the following token with anyone! Do not host this on a public server with the token in place!
-// Keep it secret, keep it safe! If compromised, generate a new one: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
-const serverToken = 'SERVER_TOKEN';// ex: 'ad2T-askdjasd9WxJVBPQ'
-const serverIp = 'SERVER_IP';// ex: 'http://12.345.678.90:32400'
-const libraryListUrl = serverIp + '/library/sections?X-Plex-Token=' + serverToken;
-// Color System Configuration
+////// AUTHENTICATION
+// This application uses Plex OAuth for secure authentication
+// No need to manually configure tokens or server IPs - just sign in with your Plex account!
+
+// Helper function to get current auth token from OAuth
+function getAuthToken() {
+    return PlexAuth.getStoredToken();
+}
+
+// Helper function to get selected server
+function getSelectedServer() {
+    return PlexAuth.getStoredServer();
+}
+
+// Helper function to get server URI
+function getServerUri() {
+    const server = getSelectedServer();
+    return server ? server.uri : null;
+}
+
+// Helper function to build library list URL
+function getLibraryListUrl() {
+    const token = getAuthToken();
+    const serverUri = getServerUri();
+    return (token && serverUri) ? `${serverUri}/library/sections?X-Plex-Token=${token}` : null;
+}
+// Color System Configuration (Optimized with caching)
 const colorSystem = {
     // Base color palette (5 unique colors)
     base: ['#D62828', '#FC9803', '#F77F00', '#FCBF49', '#EAE2B7'],
 
-    // Generate extended color array by repeating base colors
+    // Cached extended color array
+    _chartColors: null,
+    
+    // Generate extended color array by repeating base colors (cached)
     get chartColors() {
-        const extended = [];
-        for (let i = 0; i < 20; i++) {
-            extended.push(this.base[i % this.base.length]);
+        if (!this._chartColors) {
+            this._chartColors = Array(20).fill(null).map((_, i) => this.base[i % this.base.length]);
         }
-        return extended;
+        return this._chartColors;
     },
 
     // Sequential colors for gradients (16 colors from light to dark)
@@ -42,24 +64,7 @@ const chartColors = colorSystem.chartColors;
 const chartColorsSequential = colorSystem.chartColorsSequential;
 const chartColorsCategorical = colorSystem.chartColorsCategorical;
 
-debugMode = false;// set to true to enable console logging
-
-// Data structure templates for consistent initialization and reset
-const createCategoryData = () => ({
-    data: {},
-    list: [],
-    counts: [],
-    watched: {},
-    watchedCounts: [],
-    unwatchedCounts: []
-});
-
-const createTimeSeriesData = () => ({
-    dates: {},
-    datesList: [],
-    counts: [],
-    cumulativeCounts: []
-});
+debugMode = false; // set to true to enable console logging
 
 // Initialize all data structures using templates
 let decadePrefixes = [], decades = [];
@@ -80,53 +85,17 @@ let actorData = createCategoryData();
 let writerData = createCategoryData();
 let contentRatingData = createCategoryData();
 
-// Special data structures
-let releaseDateData = {
-    list: [],
-    counts: [],
-    oldestTitle: "",
-    oldestReleaseDate: "",
-    watchedList: [],
-    watchedCounts: [],
-    unwatchedCounts: []
-};
-
-let fileSizeData = {
-    items: [],
-    resolutionColors: {},
-    totalFileSize: 0,
-    largestFile: '',
-    largestFileSize: 0,
-    largestFileResolution: '',
-    smallestFile: '',
-    smallestFileSize: Number.MAX_SAFE_INTEGER,
-    smallestFileResolution: '',
-    highestBitrateFile: '',
-    highestBitrate: 0,
-    lowestBitrateFile: '',
-    lowestBitrate: Number.MAX_SAFE_INTEGER
-};
-
-let showsData = {
-    shows: [],
-    seasonsByShow: {},
-    mostSeasonsShow: '',
-    mostSeasonsCount: 0,
-    mostEpisodesShow: '',
-    mostEpisodesCount: 0
-};
+// Special data structures (using factory functions)
+let releaseDateData = createReleaseDateData();
+let fileSizeData = createFileSizeData();
+let showsData = createShowsData();
 
 // Time series data
 let addedOverTimeData = createTimeSeriesData();
 let watchedOverTimeData = createTimeSeriesData();
 
-// Ratings data
-let ratingsList = [];
-let ratingsContent = [];
-let ratingsMovies = ['G', 'PG', 'PG-13', 'R'];
-let ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-PG', 'TV-14', 'TV-MA'];
-let ratingsHighest = {};
-let ratingsLowest = {};
+// Ratings data (using factory function)
+let ratingsData = createRatingsData();
 
 // Simple counters and strings
 let durationSum = 0, longestDuration = 0, longestTitle = "";
@@ -135,31 +104,12 @@ let lastAdded = "", lastAddedDate = "";
 let seasonSum = 0, episodeCounts = [], episodeSum = 0;
 let unmatchedItems = [];
 
-// Collections data
-let collectionsData = {
-    collections: [],
-    totalCollections: 0,
-    totalItemsInCollections: 0,
-    largestCollection: '',
-    largestCollectionCount: 0,
-    collectionNames: [],
-    collectionCounts: [],
-    collectionWatchedCounts: [],
-    collectionUnwatchedCounts: []
-};
+// Collections data (using factory function)
+let collectionsData = createCollectionsData();
 let collectionsLoading = false;
 
-// Chart limits
-let countryLimit = 20, newCountryLimit = 20;
-let genreLimit = 20, newGenreLimit = 20;
-let resolutionLimit = 20, newResolutionLimit = 20;
-let containerLimit = 20, newContainerLimit = 20;
-let studioLimit = 20, newStudioLimit = 20;
-let directorLimit = 20, newDirectorLimit = 20;
-let actorLimit = 20, newActorLimit = 20;
-let decadeLimit = 20, newDecadeLimit = 20;
-let writerLimit = 20, newWriterLimit = 20;
-let contentRatingLimit = 20, newContentRatingLimit = 20;
+// Chart limits are now imported from constants.js
+// (chartLimits is available globally from constants.js module)
 
 // Reset library stats using templates
 const resetLibraryStats = () => {
@@ -174,55 +124,24 @@ const resetLibraryStats = () => {
     writerData = createCategoryData();
     contentRatingData = createCategoryData();
 
-    // Reset special structures
-    releaseDateData = {
-        list: [],
-        counts: [],
-        oldestTitle: "",
-        oldestReleaseDate: "",
-        watchedList: [],
-        watchedCounts: [],
-        unwatchedCounts: []
-    };
+    // Reset special structures using factory functions
+    releaseDateData = createReleaseDateData();
+    fileSizeData = createFileSizeData();
+    showsData = createShowsData();
 
-    fileSizeData = {
-        items: [],
-        resolutionColors: {},
-        totalFileSize: 0,
-        largestFile: '',
-        largestFileSize: 0,
-        largestFileResolution: '',
-        smallestFile: '',
-        smallestFileSize: Number.MAX_SAFE_INTEGER,
-        smallestFileResolution: '',
-        highestBitrateFile: '',
-        highestBitrate: 0,
-        lowestBitrateFile: '',
-        lowestBitrate: Number.MAX_SAFE_INTEGER
-    };
-
-    showsData = {
-        shows: [],
-        seasonsByShow: {},
-        mostSeasonsShow: '',
-        mostSeasonsCount: 0,
-        mostEpisodesShow: '',
-        mostEpisodesCount: 0
-    };
-
-    // Reset time series data
+    // Reset time series data using factory function
     addedOverTimeData = createTimeSeriesData();
     watchedOverTimeData = createTimeSeriesData();
+
+    // Reset ratings data using factory function
+    ratingsData = createRatingsData();
+
+    // Reset collections data using factory function
+    collectionsData = createCollectionsData();
 
     // Reset simple variables
     decadePrefixes = [];
     decades = [];
-    ratingsList = [];
-    ratingsContent = [];
-    ratingsMovies = ['G', 'PG', 'PG-13', 'R'];
-    ratingsTV = ['TV-G', 'TV-Y', 'TV-Y7', 'TV-Y7-FV', 'TV-PG', 'TV-14', 'TV-MA'];
-    ratingsHighest = {};
-    ratingsLowest = {};
 
     // Reset counters
     durationSum = 0;
@@ -257,162 +176,9 @@ const parseLibraryList = (data) => {
     return libraries;
 }
 
-const prepareCategoryChartData = (categoryData) => {
-    const internalData = categoryData.data;
-    delete internalData['undefined']; // Remove undefined keys
-
-    // Sort by count descending
-    const sortedEntries = Object.entries(internalData).sort((a, b) => b[1] - a[1]);
-
-    const list = [];
-    const counts = [];
-    const watchedCounts = [];
-    const unwatchedCounts = [];
-
-    sortedEntries.forEach(entry => {
-        const key = entry[0];
-        const totalCount = entry[1];
-        list.push(key);
-        counts.push(totalCount);
-        const watchedCount = categoryData.watched[key] || 0;
-        watchedCounts.push(watchedCount);
-        unwatchedCounts.push(totalCount - watchedCount);
-    });
-
-    return {
-        list: list,
-        counts: counts,
-        watched: watchedCounts,
-        unwatched: unwatchedCounts,
-        sortedEntries: sortedEntries // Retaining for direct topX access if needed before selectedLibraryStats is built
-    };
-};
-
-const prepareAddedOverTimeData = (addedData) => {
-    // Sort dates and prepare arrays
-    const sortedDates = Object.keys(addedData.dates).sort();
-    const datesList = [];
-    const counts = [];
-    const cumulativeCounts = [];
-    let runningTotal = 0;
-
-    // If we have dates, fill in gaps from first to last date
-    if (sortedDates.length > 0) {
-        const startDate = new Date(sortedDates[0]);
-        const endDate = new Date(); // Current date
-
-        // Iterate through each day from start to end
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dateKey = d.toISOString().split('T')[0];
-            datesList.push(dateKey);
-
-            const dayCount = addedData.dates[dateKey] || 0;
-            counts.push(dayCount);
-            runningTotal += dayCount;
-            cumulativeCounts.push(runningTotal);
-        }
-    }
-
-    return {
-        datesList: datesList,
-        counts: counts,
-        cumulativeCounts: cumulativeCounts
-    };
-};
-
-/////////////////////////////////
-// Generate dynamic decades based on actual release years in the data
-const generateDynamicDecades = (releaseDateList) => {
-    if (!releaseDateList || releaseDateList.length === 0) {
-        return { decadePrefixes: [], decades: [] };
-    }
-
-    // Get all unique decade prefixes from the actual data
-    const foundDecadePrefixes = new Set();
-
-    releaseDateList.forEach((year) => {
-        if (typeof year === 'number' && !isNaN(year)) {
-            const yearStr = year.toString();
-            if (yearStr.length >= 3) {
-                const prefix = yearStr.substring(0, 3);
-                foundDecadePrefixes.add(prefix);
-            }
-        }
-    });
-
-    // Convert to sorted array (oldest to newest)
-    const sortedPrefixes = Array.from(foundDecadePrefixes).sort();
-
-    // Generate corresponding decade display names (oldest to newest)
-    const decadeDisplayNames = sortedPrefixes.map(prefix => {
-        const startYear = parseInt(prefix + '0');
-        return `${startYear}s`;
-    });
-
-    return {
-        decadePrefixes: sortedPrefixes,
-        decades: decadeDisplayNames
-    };
-};
-
-const prepareDecadeChartData = (currentReleaseDateData) => {
-    // Generate dynamic decades based on actual data
-    const dynamicDecades = generateDynamicDecades(currentReleaseDateData.list);
-
-    // Update global arrays with dynamic data
-    decadePrefixes = dynamicDecades.decadePrefixes;
-    decades = dynamicDecades.decades;
-
-    if (decadePrefixes.length === 0) {
-        return {
-            list: [],
-            counts: [],
-            watched: [],
-            unwatched: []
-        };
-    }
-
-    let liveCounts = Array(decadePrefixes.length).fill(0);
-    let liveWatchedCounts = Array(decadePrefixes.length).fill(0);
-
-    currentReleaseDateData.list.forEach((year) => {
-        if (typeof year === 'number' && !isNaN(year)) {
-            let yearStr = year.toString();
-            if (yearStr.length >= 3) {
-                let yearPrefix = yearStr.substring(0, 3);
-                const prefixIndex = decadePrefixes.indexOf(yearPrefix);
-                if (prefixIndex !== -1) {
-                    liveCounts[prefixIndex]++;
-                }
-            }
-        }
-    });
-
-    currentReleaseDateData.watchedList.forEach((year) => {
-        if (typeof year === 'number' && !isNaN(year)) {
-            let yearStr = year.toString();
-            if (yearStr.length >= 3) {
-                let yearPrefix = yearStr.substring(0, 3);
-                const prefixIndex = decadePrefixes.indexOf(yearPrefix);
-                if (prefixIndex !== -1) {
-                    liveWatchedCounts[prefixIndex]++;
-                }
-            }
-        }
-    });
-
-    let liveUnwatchedCounts = liveCounts.map((count, index) => {
-        return Math.abs(count - liveWatchedCounts[index]);
-    });
-
-    // Arrays are already in oldest to newest order, no reversal needed
-    return {
-        list: decades, // Dynamic decades array, oldest to newest for display
-        counts: liveCounts,
-        watched: liveWatchedCounts,
-        unwatched: liveUnwatchedCounts
-    };
-};
+// Note: Chart helper functions (prepareCategoryChartData, prepareAddedOverTimeData,
+// getDecadePrefix, generateDynamicDecades, countYearsByDecade, prepareDecadeChartData)
+// are now imported from chartHelpers.js module
 
 
 const processItemCounts = (item, categoryData, itemPropertyKey, singleValue = false) => {
@@ -687,9 +453,11 @@ const getLibraryData = async (libraryKey) => {
     app.collectionsLoading = true;
 
     // Fetch library data and collections data in parallel
+    const token = getAuthToken();
+    const serverUri = getServerUri();
     const [libraryResponse, collectionsResponse] = await Promise.all([
-        axios.get(serverIp + '/library/sections/' + libraryKey + '/all?X-Plex-Token=' + serverToken),
-        axios.get(serverIp + '/library/sections/' + libraryKey + '/collections?X-Plex-Token=' + serverToken)
+        axios.get(serverUri + '/library/sections/' + libraryKey + '/all?X-Plex-Token=' + token),
+        axios.get(serverUri + '/library/sections/' + libraryKey + '/collections?X-Plex-Token=' + token)
     ]);
 
     // Reset data before processing
@@ -903,17 +671,17 @@ const parseMediaPayload = (data) => {
                     color: item.lastViewedAt ? chartColors[0] : chartColors[1],
                 }
             }
-            ratingsList.push(ratingsObj);
+            ratingsData.list.push(ratingsObj);
             // if content rating list doesn't contain contentRating, push it to list
-            if (item.contentRating && !ratingsContent.includes(item.contentRating)) {
-                ratingsContent.push(item.contentRating);
+            if (item.contentRating && !ratingsData.content.includes(item.contentRating)) {
+                ratingsData.content.push(item.contentRating);
             }
             // track highest and lowest rated items
-            if (ratingsHighest.y === undefined || item.audienceRating > ratingsHighest.y) {
-                ratingsHighest = ratingsObj;
+            if (ratingsData.highest.y === undefined || item.audienceRating > ratingsData.highest.y) {
+                ratingsData.highest = ratingsObj;
             }
-            if (ratingsLowest.y === undefined || item.audienceRating < ratingsLowest.y) {
-                ratingsLowest = ratingsObj;
+            if (ratingsData.lowest.y === undefined || item.audienceRating < ratingsData.lowest.y) {
+                ratingsData.lowest = ratingsObj;
             }
         }
         /////////////////////////////////
@@ -938,62 +706,32 @@ const parseMediaPayload = (data) => {
             displayMins = totalMins - (totalHours*60);
 
             //////////////////////////
-            // Prepare data for charts
-            const preparedCountryData = prepareCategoryChartData(countryData);
-            countryData.chartList = preparedCountryData.list;
-            countryData.chartCounts = preparedCountryData.counts;
-            countryData.chartWatchedCounts = preparedCountryData.watched;
-            countryData.chartUnwatchedCounts = preparedCountryData.unwatched;
-            // Keep sortedEntries for topX if needed directly, e.g. for topResolution
-            const sortedResolutions = prepareCategoryChartData(resolutionData).sortedEntries;
-            const preparedResolutionData = prepareCategoryChartData(resolutionData);
-            resolutionData.chartList = preparedResolutionData.list;
-            resolutionData.chartCounts = preparedResolutionData.counts;
-            resolutionData.chartWatchedCounts = preparedResolutionData.watched;
-            resolutionData.chartUnwatchedCounts = preparedResolutionData.unwatched;
-
-            const sortedContainers = prepareCategoryChartData(containerData).sortedEntries;
-            const preparedContainerData = prepareCategoryChartData(containerData);
-            containerData.chartList = preparedContainerData.list;
-            containerData.chartCounts = preparedContainerData.counts;
-            containerData.chartWatchedCounts = preparedContainerData.watched;
-            containerData.chartUnwatchedCounts = preparedContainerData.unwatched;
-
-            const preparedGenreData = prepareCategoryChartData(genreData);
-            genreData.chartList = preparedGenreData.list;
-            genreData.chartCounts = preparedGenreData.counts;
-            genreData.chartWatchedCounts = preparedGenreData.watched;
-            genreData.chartUnwatchedCounts = preparedGenreData.unwatched;
-
-            const preparedStudioData = prepareCategoryChartData(studioData);
-            studioData.chartList = preparedStudioData.list;
-            studioData.chartCounts = preparedStudioData.counts;
-            studioData.chartWatchedCounts = preparedStudioData.watched;
-            studioData.chartUnwatchedCounts = preparedStudioData.unwatched;
-
-            const preparedDirectorData = prepareCategoryChartData(directorData);
-            directorData.chartList = preparedDirectorData.list;
-            directorData.chartCounts = preparedDirectorData.counts;
-            directorData.chartWatchedCounts = preparedDirectorData.watched;
-            directorData.chartUnwatchedCounts = preparedDirectorData.unwatched;
-
-            const preparedActorData = prepareCategoryChartData(actorData);
-            actorData.chartList = preparedActorData.list;
-            actorData.chartCounts = preparedActorData.counts;
-            actorData.chartWatchedCounts = preparedActorData.watched;
-            actorData.chartUnwatchedCounts = preparedActorData.unwatched;
-
-            const preparedWriterData = prepareCategoryChartData(writerData);
-            writerData.chartList = preparedWriterData.list;
-            writerData.chartCounts = preparedWriterData.counts;
-            writerData.chartWatchedCounts = preparedWriterData.watched;
-            writerData.chartUnwatchedCounts = preparedWriterData.unwatched;
-
-            const preparedContentRatingData = prepareCategoryChartData(contentRatingData);
-            contentRatingData.chartList = preparedContentRatingData.list;
-            contentRatingData.chartCounts = preparedContentRatingData.counts;
-            contentRatingData.chartWatchedCounts = preparedContentRatingData.watched;
-            contentRatingData.chartUnwatchedCounts = preparedContentRatingData.unwatched;
+            // Prepare data for charts (REFACTORED - eliminates ~200 lines of repetitive code)
+            
+            // Helper function to apply chart data preparation
+            const applyChartDataPreparation = (categoryData) => {
+                const prepared = prepareCategoryChartData(categoryData);
+                categoryData.chartList = prepared.list;
+                categoryData.chartCounts = prepared.counts;
+                categoryData.chartWatchedCounts = prepared.watched;
+                categoryData.chartUnwatchedCounts = prepared.unwatched;
+                return prepared;
+            };
+            
+            // Apply to all category data structures
+            const preparedCountryData = applyChartDataPreparation(countryData);
+            const preparedResolutionData = applyChartDataPreparation(resolutionData);
+            const preparedContainerData = applyChartDataPreparation(containerData);
+            const preparedGenreData = applyChartDataPreparation(genreData);
+            const preparedStudioData = applyChartDataPreparation(studioData);
+            const preparedDirectorData = applyChartDataPreparation(directorData);
+            const preparedActorData = applyChartDataPreparation(actorData);
+            const preparedWriterData = applyChartDataPreparation(writerData);
+            const preparedContentRatingData = applyChartDataPreparation(contentRatingData);
+            
+            // Keep sortedEntries for topX access
+            const sortedResolutions = preparedResolutionData.sortedEntries;
+            const sortedContainers = preparedContainerData.sortedEntries;
 
             // Prepare added over time data
             const preparedAddedOverTimeData = prepareAddedOverTimeData(addedOverTimeData);
@@ -1009,6 +747,9 @@ const parseMediaPayload = (data) => {
 
             // Decade data processing
             const preparedDecadeData = prepareDecadeChartData(releaseDateData);
+            
+            // Update module-level decades variable from window.decades (set by prepareDecadeChartData)
+            decades = window.decades || [];
 
             let topDecade = "";
             let topDecadeCount = 0;
@@ -1024,20 +765,20 @@ const parseMediaPayload = (data) => {
 
             ////////////////////////
             // items by audienceRating VS contentRating chart (scatter)
-            // ratingsContent is an array of all unique content ratings for this library in random order, but we
+            // ratingsData.content is an array of all unique content ratings for this library in random order, but we
             // want them to be in a specific order, so we merge them with the curated lists of ratings for movies and tv
             // with the unqiue values appended to the end
             if (type === 'movie') {
-                // for each item in ratingsContent, push it to ratingsMovies if it does not already exist
-                ratingsContent.forEach((rating) => {
-                    if (!ratingsMovies.includes(rating)) {
-                        ratingsMovies.push(rating);
+                // for each item in ratingsData.content, push it to ratingsData.movies if it does not already exist
+                ratingsData.content.forEach((rating) => {
+                    if (!ratingsData.movies.includes(rating)) {
+                        ratingsData.movies.push(rating);
                     }
                 });
             } else if (type === 'show') {
-                ratingsContent.forEach((rating) => {
-                    if (!ratingsTV.includes(rating)) {
-                        ratingsTV.push(rating);
+                ratingsData.content.forEach((rating) => {
+                    if (!ratingsData.tv.includes(rating)) {
+                        ratingsData.tv.push(rating);
                     }
                 });
             }
@@ -1086,11 +827,12 @@ const parseMediaPayload = (data) => {
                 topContainerCount: preparedContainerData.counts.length > 0 ? preparedContainerData.counts[0].toLocaleString('en-us') : "",
                 topDecade: topDecade, // Calculated above from preparedDecadeData
                 topDecadeCount: topDecadeCount, // Calculated above from preparedDecadeData
-                totalDecadeCount: preparedDecadeData.list.length, // Should be decades.length
+                totalDecadeCount: decades.length, // decades is set by prepareDecadeChartData
+                decadesList: decades, // Add decades list for chart rendering
                 releaseDateCounts: preparedDecadeData.counts, // from helper
                 oldestTitle: releaseDateData.oldestTitle, // from direct update
-                decadesWatchedCounts : preparedDecadeData.watched, // from helper
-                decadesUnwatchedCounts : preparedDecadeData.unwatched, // from helper
+                decadesWatchedCounts : preparedDecadeData.watchedCounts, // from helper (correct property name)
+                decadesUnwatchedCounts : preparedDecadeData.unwatchedCounts, // from helper (correct property name)
                 // TV show-specific stats
                 mostSeasonsShow: showsData.mostSeasonsShow,
                 mostSeasonsCount: showsData.mostSeasonsCount,
@@ -1125,9 +867,9 @@ const parseMediaPayload = (data) => {
                 writerCounts: preparedWriterData.counts,
                 writersWatchedCounts: preparedWriterData.watched,
                 writersUnwatchedCounts: preparedWriterData.unwatched,
-                ratingsList: ratingsList, // Direct from earlier processing
-                ratingsHighest: ratingsHighest.text ? `${ratingsHighest.text} - ${ratingsHighest.y} / ${ratingsHighest.x}` : "",
-                ratingsLowest: ratingsLowest.text ? `${ratingsLowest.text} - ${ratingsLowest.y} / ${ratingsLowest.x}` : "",
+                ratingsList: ratingsData.list, // Direct from earlier processing
+                ratingsHighest: ratingsData.highest.text ? `${ratingsData.highest.text} - ${ratingsData.highest.y} / ${ratingsData.highest.x}` : "",
+                ratingsLowest: ratingsData.lowest.text ? `${ratingsData.lowest.text} - ${ratingsData.lowest.y} / ${ratingsData.lowest.x}` : "",
                 topContentRating: preparedContentRatingData.list.length > 0 ? preparedContentRatingData.list[0] : "",
                 topContentRatingCount: preparedContentRatingData.counts.length > 0 ? preparedContentRatingData.counts[0].toLocaleString('en-us') : "",
                 totalContentRatingCount: preparedContentRatingData.list.length.toLocaleString('en-us'),
@@ -1139,26 +881,17 @@ const parseMediaPayload = (data) => {
                 totalDuration: totalDays + " Days, " + displayHours + " Hours, " + displayMins + " Mins",
                 seasonSum: seasonSum,
                 episodeSum: episodeSum,
-                studioLimit: studioLimit,
-                newStudioLimit: newStudioLimit,
-                countryLimit: countryLimit,
-                newCountryLimit: newCountryLimit,
-                genreLimit: genreLimit,
-                newGenreLimit: newGenreLimit,
-                resolutionLimit: resolutionLimit,
-                newResolutionLimit: newResolutionLimit,
-                containerLimit: containerLimit,
-                newContainerLimit: newContainerLimit,
-                decadeLimit: decadeLimit,
-                newDecadeLimit: newDecadeLimit,
-                directorLimit: directorLimit,
-                newDirectorLimit: newDirectorLimit,
-                actorLimit: actorLimit,
-                newActorLimit: newActorLimit,
-                writerLimit: writerLimit,
-                newWriterLimit: newWriterLimit,
-                contentRatingLimit: contentRatingLimit,
-                newContentRatingLimit: newContentRatingLimit,
+                // Chart limits are now accessed via chartLimits object from constants.js
+                studioLimit: chartLimits.studio,
+                countryLimit: chartLimits.country,
+                genreLimit: chartLimits.genre,
+                resolutionLimit: chartLimits.resolution,
+                containerLimit: chartLimits.container,
+                decadeLimit: chartLimits.decade,
+                directorLimit: chartLimits.director,
+                actorLimit: chartLimits.actor,
+                writerLimit: chartLimits.writer,
+                contentRatingLimit: chartLimits.contentRating,
                 longestDuration : longestDuration,
                 longestTitle : longestTitle,
                 firstAdded : firstAdded,
@@ -1208,7 +941,7 @@ const parseMediaPayload = (data) => {
                 console.log('Library Selected: ', app.selectedLibrary);
                 console.log('Library Stats: ', app.selectedLibraryStats);
                 console.log('Total Items: ', itemCount);
-                console.log('Library XML: ' + serverIp + '/library/sections/' + app.selectedLibraryKey + '/all?X-Plex-Token=' + serverToken);
+                console.log('Library XML: ' + getServerUri() + '/library/sections/' + app.selectedLibraryKey + '/all?X-Plex-Token=' + getAuthToken());
             }
         }
     });
@@ -1220,8 +953,19 @@ const app = new Vue({
     el: '#app',
     data: {
         debugMode: debugMode,
-        serverIp: serverIp,
-        serverToken: serverToken,
+        // Authentication state
+        isAuthenticated: false,
+        userInfo: null,
+        showAuthModal: false,
+        authLoading: false,
+        authLoadingMessage: '',
+        authError: '',
+        authPin: null,
+        showPinDisplay: false,
+        // Server state
+        availableServers: [],
+        selectedServer: null,
+        showServerSelector: false,
         availableLibraries: availableLibraries,
         libraryStatsLoading: libraryStatsLoading,
         selectedLibrary: selectedLibrary,
@@ -1265,6 +1009,7 @@ const app = new Vue({
             { key: 'lastViewedAt', label: 'Last Viewed At' }
         ],
         movieAttributes: [
+            { key: 'director', label: 'Director' },
             { key: 'bitrate', label: 'Bitrate' },
             { key: 'height', label: 'Height' },
             { key: 'width', label: 'Width' },
@@ -1313,9 +1058,26 @@ const app = new Vue({
         sortField: '',
         sortDirection: 'asc',
         currentPage: 1,
-        itemsPerPage: 25
+        itemsPerPage: 25,
+        // Chart limit input fields (for updating limits via UI)
+        newGenreLimit: chartLimits.genre,
+        newCountryLimit: chartLimits.country,
+        newResolutionLimit: chartLimits.resolution,
+        newContainerLimit: chartLimits.container,
+        newStudioLimit: chartLimits.studio,
+        newDirectorLimit: chartLimits.director,
+        newActorLimit: chartLimits.actor,
+        newDecadeLimit: chartLimits.decade,
+        newWriterLimit: chartLimits.writer,
+        newContentRatingLimit: chartLimits.contentRating
     },
     computed: {
+        userInitial: function() {
+            if (this.userInfo && this.userInfo.username) {
+                return this.userInfo.username.charAt(0).toUpperCase();
+            }
+            return 'U';
+        },
         watchedPercentage: function() {
             if (!this.selectedLibraryStats || !this.selectedLibraryStats.totalItems || !this.selectedLibraryStats.watchedCount) {
                 return 0;
@@ -1389,20 +1151,225 @@ const app = new Vue({
             return Math.ceil(this.sortedMovies.length / this.itemsPerPage);
         }
     },
-    mounted: function () {
-        axios.get(libraryListUrl).then((response) => {
-            this.availableLibraries = parseLibraryList(response.data); // Use this.
-            // if debug mode is enabled, log data into the console:
-            if (this.debugMode) { // Use this.
-                console.log('*** DEBUG MODE ENABLED ***');
-                console.log('Welcome to Medialytics!');
-                console.log('Server IP: ', this.serverIp); // Use this.
-                console.log('Server Token: ', this.serverToken); // Use this.
-                console.log('Available Libraries: ', this.availableLibraries); // Use this.
+    mounted: async function () {
+        // Check for OAuth callback
+        try {
+            const userInfo = await PlexAuth.handleAuthCallback();
+            if (userInfo) {
+                this.isAuthenticated = true;
+                this.userInfo = userInfo;
+                if (this.debugMode) {
+                    console.log('OAuth authentication successful:', userInfo);
+                }
             }
+        } catch (error) {
+            console.error('OAuth callback error:', error);
+            this.authError = error.message;
+        }
+
+        // Check if already authenticated
+        if (!this.isAuthenticated) {
+            this.isAuthenticated = await PlexAuth.isAuthenticated();
+            if (this.isAuthenticated) {
+                this.userInfo = PlexAuth.getStoredUserInfo();
+            }
+        }
+
+        // Load servers and libraries if authenticated
+        if (this.isAuthenticated) {
+            await this.loadServersAndLibraries();
+        } else {
+            // Show auth modal if not authenticated
+            this.showAuthModal = true;
+        }
+
+        // Listen for auth required events
+        window.addEventListener('plex-auth-required', () => {
+            this.isAuthenticated = false;
+            this.userInfo = null;
+            this.selectedServer = null;
+            this.availableServers = [];
+            this.showAuthModal = true;
         });
     },
     methods: {
+        // Authentication methods
+        openAuthModal: function() {
+            this.showAuthModal = true;
+            this.authError = '';
+        },
+        closeAuthModal: function() {
+            this.showAuthModal = false;
+            this.authError = '';
+        },
+        initiateLogin: async function() {
+            this.authLoading = true;
+            this.authLoadingMessage = 'Generating authentication PIN...';
+            this.authError = '';
+            
+            try {
+                // Generate PIN first
+                const pinInfo = await PlexAuth.initiateAuthPolling();
+                this.authPin = pinInfo.pinCode;
+                this.showPinDisplay = true;
+                this.authLoading = false;
+                
+                // Open Plex link in new tab (user will manually enter the PIN)
+                const plexLinkUrl = PlexAuth.getPlexLinkUrl();
+                window.open(plexLinkUrl, '_blank');
+                
+                // Start polling for token
+                this.authLoadingMessage = 'Waiting for authentication...';
+                this.authLoading = true;
+                const userInfo = await PlexAuth.completeAuthPolling(pinInfo.pinId);
+                
+                // Authentication successful
+                this.isAuthenticated = true;
+                this.userInfo = userInfo;
+                this.showAuthModal = false;
+                this.showPinDisplay = false;
+                this.authLoading = false;
+                this.authPin = null;
+                
+                // Load servers and libraries
+                await this.loadServersAndLibraries();
+            } catch (error) {
+                console.error('Login failed:', error);
+                this.authError = error.message || 'Authentication failed. Please try again.';
+                this.authLoading = false;
+                this.showPinDisplay = false;
+                this.authPin = null;
+            }
+        },
+        handleLogout: function() {
+            PlexAuth.clearAuth();
+            PlexAuth.clearStoredServer();
+            this.isAuthenticated = false;
+            this.userInfo = null;
+            this.selectedServer = null;
+            this.availableServers = [];
+            this.availableLibraries = [];
+            this.selectedLibrary = '';
+            this.selectedLibraryKey = '';
+            this.showAuthModal = true;
+        },
+        
+        // Server management methods
+        loadServersAndLibraries: async function() {
+            try {
+                console.log('Loading servers and libraries...');
+                // Load available servers
+                this.availableServers = await PlexAuth.getUserServers();
+                
+                console.log('Available Plex Servers:', this.availableServers);
+                
+                // Check if we have a stored server selection
+                const storedServer = PlexAuth.getStoredServer();
+                console.log('Stored server:', storedServer);
+                
+                if (storedServer) {
+                    // Verify the stored server is still available
+                    const serverStillAvailable = this.availableServers.find(
+                        s => s.clientIdentifier === storedServer.clientIdentifier
+                    );
+                    
+                    if (serverStillAvailable) {
+                        console.log('Using stored server:', storedServer.name);
+                        this.selectedServer = storedServer;
+                        await this.loadLibraries();
+                    } else {
+                        // Stored server no longer available, show selector
+                        console.log('Stored server not available, showing selector');
+                        this.showServerSelector = true;
+                    }
+                } else if (this.availableServers.length === 1) {
+                    // Auto-select if only one server
+                    console.log('Auto-selecting single server:', this.availableServers[0].name);
+                    await this.selectServer(this.availableServers[0]);
+                } else if (this.availableServers.length > 1) {
+                    // Show server selector if multiple servers
+                    console.log('Multiple servers found, showing selector');
+                    this.showServerSelector = true;
+                } else {
+                    console.log('No servers found');
+                    this.authError = 'No Plex servers found. Please ensure your server is online.';
+                }
+            } catch (error) {
+                console.error('Failed to load servers:', error);
+                console.error('Error details:', error.response || error.message);
+                this.authError = error.message || 'Failed to load Plex servers';
+            }
+        },
+        
+        selectServer: async function(server) {
+            this.selectedServer = {
+                name: server.name,
+                clientIdentifier: server.clientIdentifier,
+                uri: server.preferredConnection.uri
+            };
+            PlexAuth.storeSelectedServer(this.selectedServer);
+            this.showServerSelector = false;
+            await this.loadLibraries();
+        },
+        
+        loadLibraries: async function() {
+            const url = getLibraryListUrl();
+            if (!url) {
+                this.authError = 'No server selected';
+                return;
+            }
+            
+            try {
+                const response = await axios.get(url);
+                this.availableLibraries = parseLibraryList(response.data);
+                
+                if (this.debugMode) {
+                    console.log('*** DEBUG MODE ENABLED ***');
+                    console.log('Welcome to Medialytics!');
+                    console.log('Selected Server:', this.selectedServer);
+                    console.log('Authenticated User:', this.userInfo);
+                    console.log('Available Libraries:', this.availableLibraries);
+                }
+            } catch (error) {
+                console.error('Failed to load libraries:', error);
+                
+                // Clear libraries on error
+                this.availableLibraries = [];
+                this.selectedLibrary = '';
+                this.selectedLibraryKey = '';
+                
+                // Handle different error types
+                if (error.response && error.response.status === 401) {
+                    // Token is invalid, clear auth
+                    this.authError = 'Authentication failed. Please sign in again.';
+                    PlexAuth.clearAuth();
+                    this.isAuthenticated = false;
+                    this.userInfo = null;
+                    this.showAuthModal = true;
+                } else if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+                    // CORS or network connectivity issue
+                    this.authError = 'Cannot connect to server. The server may be inaccessible or behind a firewall. Please select a different server connection.';
+                    alert('Cannot connect to server. The server may be inaccessible or behind a firewall. Please select a different server connection.');
+                } else if (error.response) {
+                    // Other HTTP errors
+                    const errorMsg = `Server error: ${error.response.status} ${error.response.statusText}`;
+                    this.authError = errorMsg;
+                    alert(errorMsg);
+                } else {
+                    // Unknown error
+                    const errorMsg = 'Failed to load libraries from server. Please try again.';
+                    this.authError = errorMsg;
+                    alert(errorMsg);
+                }
+            }
+        },
+        
+        changeServer: function() {
+            this.showServerSelector = true;
+            this.selectedLibrary = '';
+            this.selectedLibraryKey = '';
+        },
+        
         // Generic rendering helper
         renderCategoricalChart: function(categoryName, chartType) {
             // Handle special case for contentRating to match HTML id
@@ -1413,7 +1380,7 @@ const app = new Vue({
             const rotated = false;
 
             if (categoryName === 'decade') {
-                list = decades;
+                list = this.selectedLibraryStats.decadesList;
                 counts = this.selectedLibraryStats.releaseDateCounts;
                 watchedCounts = this.selectedLibraryStats.decadesWatchedCounts;
                 unwatchedCounts = this.selectedLibraryStats.decadesUnwatchedCounts;
@@ -1465,47 +1432,8 @@ const app = new Vue({
                 console.error('Invalid chart type for renderCategoricalChart:', chartType);
             }
         },
-        // Specific rendering wrappers
-        renderGenreChart: function (type) {
-            const chartType = type || this.genreToggle;
-            this.renderCategoricalChart('genre', chartType);
-        },
-        renderCountryChart: function (type) {
-            const chartType = type || this.countryToggle;
-            this.renderCategoricalChart('country', chartType);
-        },
-        renderResolutionChart: function (type) {
-            const chartType = type || this.resolutionToggle;
-            this.renderCategoricalChart('resolution', chartType);
-        },
-        renderContainerChart: function (type) {
-            const chartType = type || this.containerToggle;
-            this.renderCategoricalChart('container', chartType);
-        },
-        renderDecadeChart: function (type) {
-            const chartType = type || this.decadeToggle;
-            this.renderCategoricalChart('decade', chartType);
-        },
-        renderStudioChart: function (type) {
-            const chartType = type || this.studioToggle;
-            this.renderCategoricalChart('studio', chartType);
-        },
-        renderDirectorChart: function (type) {
-            const chartType = type || this.directorToggle;
-            this.renderCategoricalChart('director', chartType);
-        },
-        renderActorChart: function (type) {
-            const chartType = type || this.actorToggle;
-            this.renderCategoricalChart('actor', chartType);
-        },
-        renderWriterChart: function (type) {
-            const chartType = type || this.writerToggle;
-            this.renderCategoricalChart('writer', chartType);
-        },
-        renderContentRatingChart: function (type) {
-            const chartType = type || this.contentRatingToggle;
-            this.renderCategoricalChart('contentRating', chartType);
-        },
+        // Chart rendering wrappers - dynamically generated
+        // These methods are created below using a factory pattern
         renderAddedOverTimeChart: function () {
             if (this.debugMode) {
                 console.log('rendering added over time chart: ', this.selectedLibraryStats.addedOverTimeDates, this.selectedLibraryStats.addedOverTimeCounts);
@@ -1700,7 +1628,7 @@ const app = new Vue({
             if (this.debugMode) { // Use this.
                 console.log('rendering ratings chart: ', ratingsList);
             }
-            let ratingsSuperset = type === 'movie' ? ratingsMovies : ratingsTV,
+            let ratingsSuperset = type === 'movie' ? ratingsData.movies : ratingsData.tv,
             layout = {
                 showlegend: false,
                 margin: {
@@ -2779,40 +2707,23 @@ const app = new Vue({
             // Set exporting flag
             this.exportingData = true;
 
-            // Helper function to escape CSV values
-            const escapeCSV = (value) => {
-                // Convert to string and check if it needs escaping
-                const str = String(value);
-                // Escape if contains comma, quote, or newline
-                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-                    // Escape quotes by doubling them
-                    return `"${str.replace(/"/g, '""')}"`;
-                }
-                return str;
-            };
-
             // Create CSV content
             let csvContent = `Library Data for ${this.selectedLibrary}\n`;
 
-            // Sort items by title
-            const sortedItems = [...this.libraryItems].sort((a, b) => {
-                const titleA = a.title.toLowerCase();
-                const titleB = b.title.toLowerCase();
-                if (titleA < titleB) return -1;
-                if (titleA > titleB) return 1;
-                return 0;
-            });
+            // Sort items by title using utility function
+            const sortedItems = [...this.libraryItems].sort(Utils.titleComparator);
 
             // Add each item with year
             sortedItems.forEach(item => {
                 const title = item.title;
                 const year = item.year || 'Unknown';
                 const fullEntry = `${title} (${year})`;
-                csvContent += escapeCSV(fullEntry) + '\n';
+                csvContent += Utils.escapeCSV(fullEntry) + '\n';
             });
 
-            // Create blob and download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            // Create blob and download with UTF-8 BOM for proper encoding
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
 
@@ -2845,107 +2756,6 @@ const app = new Vue({
 
             this.exportingData = true;
 
-            // Helper function to escape CSV values
-            const escapeCSV = (value) => {
-                if (value === null || value === undefined) {
-                    return '';
-                }
-                const str = String(value);
-                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-                    return `"${str.replace(/"/g, '""')}"`;
-                }
-                return str;
-            };
-
-            // Helper function to format dates
-            const formatDate = (timestamp) => {
-                if (!timestamp) return '';
-                const date = new Date(timestamp * 1000);
-                return date.toISOString().split('T')[0]; // YYYY-MM-DD format
-            };
-
-            // Helper function to get media attribute values
-            const getMediaAttribute = (item, attribute) => {
-                if (!item.Media || !item.Media[0]) return '';
-
-                const media = item.Media[0];
-                switch (attribute) {
-                    case 'bitrate':
-                        return media.bitrate || '';
-                    case 'height':
-                        return media.height || '';
-                    case 'width':
-                        return media.width || '';
-                    case 'aspectRatio':
-                        return media.aspectRatio || '';
-                    case 'audioCodec':
-                        return media.audioCodec || '';
-                    case 'videoCodec':
-                        return media.videoCodec || '';
-                    case 'videoResolution':
-                        return media.videoResolution || '';
-                    case 'container':
-                        return media.container || '';
-                    case 'videoFrameRate':
-                        return media.videoFrameRate || '';
-                    default:
-                        return '';
-                }
-            };
-
-            // Helper function to get attribute value from item
-            const getAttributeValue = (item, attribute) => {
-                switch (attribute) {
-                    case 'title':
-                        return item.title || '';
-                    case 'year':
-                        return item.year || '';
-                    case 'contentRating':
-                        return item.contentRating || '';
-                    case 'contentRatingAge':
-                        return item.contentRatingAge || '';
-                    case 'summary':
-                        return item.summary || '';
-                    case 'audienceRating':
-                        return item.audienceRating || '';
-                    case 'tagline':
-                        return item.tagline || '';
-                    case 'duration':
-                        return item.duration ? Math.round(item.duration / 60000) : ''; // Convert to minutes
-                    case 'originallyAvailableAt':
-                        return item.originallyAvailableAt || '';
-                    case 'addedAt':
-                        return item.addedAt ? formatDate(item.addedAt) : '';
-                    case 'updatedAt':
-                        return item.updatedAt ? formatDate(item.updatedAt) : '';
-                    case 'lastViewedAt':
-                        return item.lastViewedAt ? formatDate(item.lastViewedAt) : '';
-                    case 'childCount':
-                        return item.childCount || '';
-                    case 'leafCount':
-                        return item.leafCount || '';
-                    case 'viewedLeafCount':
-                        return item.viewedLeafCount || '';
-                    case 'viewCount':
-                        return item.viewCount || '';
-                    case 'skipCount':
-                        return item.skipCount || '';
-                    // Movie-specific attributes from Media array
-                    case 'bitrate':
-                    case 'height':
-                    case 'width':
-                    case 'aspectRatio':
-                    case 'audioCodec':
-                    case 'videoCodec':
-                    case 'videoResolution':
-                    case 'container':
-                    case 'videoFrameRate':
-                        return getMediaAttribute(item, attribute);
-                    default:
-                        return '';
-                }
-            };
-
             // Create CSV header
             const headers = this.selectedAttributes.map(attr => {
                 const attrObj = [...this.commonAttributes, ...this.movieAttributes, ...this.tvAttributes]
@@ -2953,25 +2763,22 @@ const app = new Vue({
                 return attrObj ? attrObj.label : attr;
             });
 
-            let csvContent = headers.map(escapeCSV).join(',') + '\n';
+            let csvContent = headers.map(Utils.escapeCSV).join(',') + '\n';
 
-            // Sort items by title
-            const sortedItems = [...this.libraryItems].sort((a, b) => {
-                const titleA = (a.title || '').toLowerCase();
-                const titleB = (b.title || '').toLowerCase();
-                return titleA.localeCompare(titleB);
-            });
+            // Sort items by title using utility function
+            const sortedItems = [...this.libraryItems].sort(Utils.titleComparator);
 
             // Add data rows
             sortedItems.forEach(item => {
                 const row = this.selectedAttributes.map(attr => {
-                    return escapeCSV(getAttributeValue(item, attr));
+                    return Utils.escapeCSV(Utils.getAttributeValue(item, attr));
                 });
                 csvContent += row.join(',') + '\n';
             });
 
-            // Create and download file
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            // Create and download file with UTF-8 BOM for proper encoding
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
 
@@ -3293,22 +3100,11 @@ const app = new Vue({
                 return;
             }
 
-            // Helper function to escape CSV values
-            const escapeCSV = (value) => {
-                if (value === null || value === undefined) {
-                    return '';
-                }
-                const str = String(value);
-                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-                    return `"${str.replace(/"/g, '""')}"`;
-                }
-                return str;
-            };
-
             // Create CSV header
             const headers = [
                 'Title',
                 'Year',
+                'Director',
                 'Height',
                 'Width',
                 'Dimensions',
@@ -3320,13 +3116,20 @@ const app = new Vue({
                 'Bitrate',
                 'File Size'
             ];
-            let csvContent = headers.map(escapeCSV).join(',') + '\n';
+            let csvContent = headers.map(Utils.escapeCSV).join(',') + '\n';
 
             // Add data rows
             this.sortedMovies.forEach(movie => {
+                // Get director(s) from the movie object
+                let director = '';
+                if (movie.Director && Array.isArray(movie.Director)) {
+                    director = movie.Director.map(d => d.tag).join('; ');
+                }
+                
                 const row = [
                     movie.title,
                     movie.year || 'Unknown',
+                    director || 'Unknown',
                     movie.height ? (movie.height + 'px') : 'Unknown',
                     movie.width ? (movie.width + 'px') : 'Unknown',
                     movie.dimensions || 'Unknown',
@@ -3338,11 +3141,12 @@ const app = new Vue({
                     movie.bitrate ? (movie.bitrate + ' kbps') : 'Unknown',
                     this.formatMovieFileSize(movie.fileSize)
                 ];
-                csvContent += row.map(escapeCSV).join(',') + '\n';
+                csvContent += row.map(Utils.escapeCSV).join(',') + '\n';
             });
 
-            // Create and download file
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            // Create and download file with UTF-8 BOM for proper encoding
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
 
@@ -3370,3 +3174,22 @@ const app = new Vue({
         }
     }
 });
+
+// Dynamically generate chart rendering methods using factory pattern
+// This eliminates ~85 lines of repetitive wrapper functions
+(function() {
+    const chartCategories = [
+        'genre', 'country', 'resolution', 'container',
+        'decade', 'studio', 'director', 'actor', 'writer', 'contentRating'
+    ];
+    
+    chartCategories.forEach(category => {
+        const methodName = `render${category.charAt(0).toUpperCase() + category.slice(1)}Chart`;
+        const toggleName = `${category}Toggle`;
+        
+        app[methodName] = function(type) {
+            const chartType = type || this[toggleName];
+            this.renderCategoricalChart(category, chartType);
+        };
+    });
+})();

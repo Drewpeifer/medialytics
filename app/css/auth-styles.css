@@ -1,0 +1,436 @@
+/**
+ * Authentication UI Styles
+ * Styles for login modal, authentication status, and related components
+ */
+
+/* Authentication Modal Overlay */
+.auth-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Authentication Modal Content */
+.auth-modal {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease-out;
+    position: relative;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.auth-modal-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-modal-header h2 {
+    color: #ffffff;
+    font-size: 28px;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+}
+
+.auth-modal-header p {
+    color: #aaaaaa;
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.auth-modal-body {
+    margin-bottom: 30px;
+}
+
+.auth-modal-body p {
+    color: #cccccc;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* Plex Logo in Modal */
+.plex-logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    display: block;
+}
+
+/* Sign In Button */
+.sign-in-button {
+    width: 100%;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #e5a00d 0%, #f9c74f 100%);
+    color: #1a1a1a !important;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(229, 160, 13, 0.3);
+}
+
+.sign-in-button strong {
+    color: #1a1a1a !important;
+}
+
+.sign-in-button small {
+    color: #2d2d2d !important;
+}
+
+.sign-in-button:hover {
+    background: linear-gradient(135deg, #f9c74f 0%, #e5a00d 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(229, 160, 13, 0.4);
+}
+
+.sign-in-button:active {
+    transform: translateY(0);
+}
+
+.sign-in-button:disabled {
+    background: #555555;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Loading Spinner */
+.auth-loading {
+    text-align: center;
+    padding: 20px;
+}
+
+.auth-spinner {
+    border: 3px solid #333333;
+    border-top: 3px solid #e5a00d;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.auth-loading p {
+    color: #aaaaaa;
+    font-size: 14px;
+}
+
+/* Error Message */
+.auth-error {
+    background-color: rgba(214, 40, 40, 0.2);
+    border: 1px solid #d62828;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+    color: #ff6b6b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.auth-error strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #ff4444;
+}
+
+/* Success Message */
+.auth-success {
+    background-color: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4caf50;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+    color: #81c784;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Authentication Status Bar */
+.auth-status-bar {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.auth-status-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.auth-status-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e5a00d 0%, #f9c74f 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000000;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.auth-status-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.auth-status-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-status-label {
+    color: #888888;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.auth-status-username {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.auth-status-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.logout-button {
+    padding: 8px 20px;
+    background-color: transparent;
+    color: #ff6b6b;
+    border: 1px solid #ff6b6b;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #ff6b6b;
+    color: #ffffff;
+}
+
+/* Compact Login Button (for header) */
+.compact-login-button {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #e5a00d 0%, #f9c74f 100%);
+    color: #000000;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.compact-login-button:hover {
+    background: linear-gradient(135deg, #f9c74f 0%, #e5a00d 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(229, 160, 13, 0.3);
+}
+
+/* Polling Method Specific Styles */
+.pin-display {
+    background-color: #1a1a1a;
+    border: 2px solid #e5a00d;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.pin-code {
+    font-size: 48px;
+    font-weight: 700;
+    color: #e5a00d;
+    letter-spacing: 8px;
+    margin: 20px 0;
+    font-family: 'Courier New', monospace;
+}
+
+.pin-instructions {
+    color: #aaaaaa;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 15px;
+}
+
+.pin-instructions a {
+    color: #e5a00d;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.pin-instructions a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .auth-modal {
+        padding: 30px 20px;
+        width: 95%;
+    }
+    
+    .auth-modal-header h2 {
+        font-size: 24px;
+    }
+    
+    .auth-status-bar {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .auth-status-info {
+        flex-direction: column;
+    }
+    
+    .pin-code {
+        font-size: 36px;
+        letter-spacing: 4px;
+    }
+}
+
+/* Animation for status changes */
+.auth-status-bar.authenticated {
+    animation: slideInFromTop 0.5s ease-out;
+}
+
+@keyframes slideInFromTop {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Close button for modal */
+.auth-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: #888888;
+    font-size: 28px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+    line-height: 1;
+}
+
+.auth-modal-close:hover {
+    color: #ffffff;
+}
+
+/* Info icon styling */
+.auth-info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #e5a00d;
+    color: #000000;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 5px;
+    cursor: help;
+}
+
+/* Tooltip for additional info */
+.auth-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.auth-tooltip .auth-tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333333;
+    color: #ffffff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.auth-tooltip:hover .auth-tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Made with Bob */

@@ -1,0 +1,48 @@
+{
+  "name": "medialytics",
+  "version": "2.6.1",
+  "description": "A free analytics tool for Plex server content",
+  "main": "app/index.html",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drewpeifer/medialytics"
+  },
+  "keywords": [
+    "plex",
+    "analytics",
+    "media",
+    "statistics",
+    "visualization"
+  ],
+  "author": "Drew Peifer",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.3.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "app/js/constants.js",
+      "app/js/dataStructures.js",
+      "app/js/chartHelpers.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    }
+  }
+}
