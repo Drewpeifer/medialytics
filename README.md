@@ -46,69 +46,54 @@ longer this call may take**. The response is then parsed, stats are aggregated, 
 Version 2.0 was rebuilt with [Vue 2](https://v2.vuejs.org/), [Axios](https://axios-http.com/docs/api_intro) for API calls,
 and charts are built with [D3](https://d3js.org/) and [plotly.js](https://plotly.com/javascript/).
 
-# SECURITY WARNING:
-This application relies upon using the private Plex token of your server, which you do **not** want to share
-with anyone (a malicious user can leverage it to access your server as an administrator). This is a limitation due to the way Plex leverages the token itself,
-there is no "read-only" option.
+# SECURITY NOTE:
+Medialytics now uses **Plex OAuth authentication**, which means you authenticate directly with your Plex account without needing to manually find or share your authentication token. This is more secure and user-friendly than the previous token-based method.
 
-I am not liable for any damages or inconvenience caused by the improper sharing of your token, **it is your responsibility to ensure it is never shared with anyone**.
-Additionally, **you should not host your copy of Medialytics anywhere that is publicly accessible**, as the token itself is sent as part of the API request. Medialytics
-is only recommended for local usage at this time (just drag the html file into your browser, no server needed), but you are welcome to host it securely if you have the knowledge base
-to do so safely (at your own risk).
+When you authenticate, Medialytics will:
+- Request access to your Plex account via the official Plex authentication flow
+- Store your authentication token securely in your browser's local storage
+- Automatically discover your available Plex servers
+- Use your token only for API requests to your own Plex servers
+
+**Important**: Your authentication token is stored locally in your browser and is never transmitted to any third-party servers. However, you should still be cautious about where you host Medialytics if you choose to deploy it publicly.
 
 # Getting Started
-Clone the repository to a local directory on your computer, or download the repository as a zip file and extract the contents. Open the contents in a text editor and do the following option:
 
-## Within the Application
-1. At the top of `scripts.js`, set the `serverIp` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
-1. At the top of `scripts.js`, set the `serverToken` variable equal to your **PRIVATE** plex token. **Do not share this value with anyone!** If compromised, generate a new one ([instructions on locating and generating a token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
-1. Drag `index.html` into a browser
-1. You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
+## Quick Start (Recommended)
+1. Clone the repository or download as a zip file and extract the contents
+1. Open `index.html` in your web browser (or use Docker - see below)
+1. Click the "Sign in with Plex" button
+1. Authenticate with your Plex account in the popup window
+1. Select your Plex server from the available servers
+1. Start exploring your library statistics!
+
+No manual configuration required - the app will automatically discover your servers after authentication.
 
 ## With Docker
 
-There are 2 ways, you likely want the first set of instructions.
-
 ### Simple Installation with Docker Compose
 
-Set up:
-
-1. Copy .env.sample from the repository as .env
-1. Set the `SERVER_IP` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
-1. Set the `SERVER_TOKEN` variable equal to your **PRIVATE** plex token. **Do not share this value with anyone!** If compromised, generate a new one ([instructions on locating and generating a token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
-
-This assumes you followed the instructions and have a `.env` file in the same repo as a `docker-compose.yml` file with the following:
-
-```
-services:
-  medialytics:
-    image: ghcr.io/drewpeifer/medialytics:latest
-    container_name: medialytics
-    environment:
-      - SERVER_IP=${SERVER_IP}
-      - SERVER_TOKEN=${SERVER_TOKEN}
-    ports:
-      - "8088:80"
-```
-
-Finally run with:
-
-1. Run the image
+1. Clone the repository
+1. Run the Docker container:
     ```bash
     docker compose up -d
     ```
-1. Go to http://localhost:8088/ You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
+1. Open your browser and go to http://localhost:8088/
+1. Click "Sign in with Plex" and authenticate with your Plex account
+1. Select your server and start analyzing your libraries!
+
+No environment variables or manual configuration needed - authentication is handled through the Plex OAuth flow.
 
 ### Run and Build Locally with Docker
 
-1. Copy .env.sample from the repository as .env
-1. Set the `SERVER_IP` variable equal to your Plex server's public IP (found in Plex Settings > Remote Access)
-1. Set the `SERVER_TOKEN` variable equal to your **PRIVATE** plex token. **Do not share this value with anyone!** If compromised, generate a new one ([instructions on locating and generating a token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
-1. Run the image
+1. Clone the repository
+1. Build and run the container:
     ```bash
     docker compose up -d
     ```
-1. Go to http://localhost:8088/ You should now see your server IP in the "Targeted Server" section of the page, and links to any available libraries on that server (Movie and TV only).
+1. Go to http://localhost:8088/
+1. Authenticate with your Plex account when prompted
+1. Select your server and enjoy!
 
 If you know HTML/CSS/JS you can edit the code to your liking. All the application logic and parsing is done in `scripts.js`, styling is in `styles.css`, and the page elements are
 in `index.html`.
@@ -118,12 +103,33 @@ in `index.html`.
 ## Troubleshooting / FAQ
 *Medialytics is not designed for libraries with non-video content (e.g. music, photos, or audiobook functionality is untested). Only Movie and TV libraries will be parsed by default.*
 
-If your libraries do not automatically load after following the instructions above, you may need to refer to the documentation for [Plex XML interactions](https://support.plex.tv/articles/201638786-plex-media-server-url-commands/). The following steps should help clear up any basic issues:
+### Authentication Issues
 
-1. Confirm that you have entered the correct values for your (public) `serverIp` and (very **private**) `serverToken` at the top of the `medialytics/js/scripts.js` file.
-1. Confirm that your public IP (found in Plex web Settings > Remote Access) is correct and resolves in a local browser
-1. Confirm that you are using the correct / most current plex token ([related documentation](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
-1. Near the top of `scripts.js`, set the `debugMode` variable equal to `true`. Now return to the browser, refresh the page, and there should be a message saying that debug mode is enabled. Press F12 or ctrl+click to open the developer tools for your browser, and navigate to the console. You should see information printed about your server's available libraries, and if you select a library in the UI more info will be displayed in the console.
+If you're having trouble authenticating or accessing your servers:
+
+1. **Clear your browser's local storage**: Open Developer Tools (F12), go to Application/Storage tab, and clear local storage for the Medialytics site
+1. **Try authenticating again**: Click "Sign in with Plex" and complete the authentication flow
+1. **Check browser console**: Press F12 to open Developer Tools and check the Console tab for any error messages
+1. **Verify Plex account**: Make sure you can log in to [plex.tv](https://plex.tv) with your account
+1. **Check server status**: Ensure your Plex server is online and accessible
+
+### Server Not Appearing
+
+If your server doesn't appear in the server list after authentication:
+
+1. Verify your Plex server is running and online
+1. Check that your server is accessible from your network
+1. Try refreshing the page and authenticating again
+1. Check the browser console for any error messages
+
+### Debug Mode
+
+For detailed troubleshooting information:
+
+1. Near the top of `scripts.js`, set the `debugMode` variable equal to `true`
+1. Refresh the page in your browser
+1. Open Developer Tools (F12) and check the Console tab
+1. You should see detailed information about authentication status, server discovery, and library loading
 
 ### How recent is this data?
 Data is retrieved from Plex in real time. When you load the page or select a library, you are making a fresh request to the targeted server each time.
@@ -155,8 +161,8 @@ Resolution, or Container information since that could be specific to each episod
 ### Related documentation
 For anyone who wishes to fork and modify this repo, here are some links you may find useful:
 
+1. [Plex OAuth Authentication](https://forums.plex.tv/t/authenticating-with-plex/609370) (for authentication flow)
 1. [Plex XML docs](https://support.plex.tv/articles/201638786-plex-media-server-url-commands/) (for retrieving and parsing data)
-1. [Plex token docs](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/) (for token management)
 1. [Vue 2 docs](https://v2.vuejs.org/) (for general app logic and architecture)
 1. [Axios docs](https://axios-http.com/docs/api_intro) (for API calls)
 1. [D3.js](https://d3js.org/) / [plotly.js](https://plotly.com/javascript/) for editing charts
