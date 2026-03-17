@@ -1,10 +1,7 @@
 FROM nginx:alpine
 
-ARG SERVER_TOKEN
-ENV SERVER_TOKEN=${SERVER_TOKEN}
-
-ARG SERVER_IP
-ENV SERVER_IP=${SERVER_IP}
+# OAuth authentication handles all configuration automatically
+# No environment variables needed
 
 COPY app /usr/share/nginx/html
 
