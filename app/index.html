@@ -17,6 +17,7 @@
     <!-- fonts and styling -->
     <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/auth-styles.css">
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
 </head>
 <body>
@@ -55,17 +56,96 @@
             <h3>This tool is not associated with Plex, and is intended only for private and non-commercial use</h3>
         </div>
         <div id="app">
-            <div class="warning" v-if="serverIp === 'SERVER_IP' || serverToken === 'SERVER_TOKEN'">
-                <h3>
-                    Credentials unset. Please edit scripts.js to set your server IP and token.
-                    Please consult the README for more information on how to locate these values.
-                </h3>
+            <!-- Authentication Modal -->
+            <div v-if="showAuthModal" class="auth-modal-overlay" v-on:click="closeAuthModal">
+                <div class="auth-modal" v-on:click.stop>
+                    <button class="auth-modal-close" v-on:click="closeAuthModal">&times;</button>
+                    <div class="auth-modal-header">
+                        <h2>Sign in to Plex</h2>
+                        <p>Authenticate with your Plex account to access your media libraries</p>
+                    </div>
+                    
+                    <!-- Error Message -->
+                    <div v-if="authError" class="auth-error">
+                        <strong>Authentication Error</strong>
+                        {{ authError }}
+                    </div>
+                    
+                    <!-- PIN Display -->
+                    <div v-if="showPinDisplay && authPin" class="pin-display">
+                        <p><strong>Your Authentication PIN:</strong></p>
+                        <div class="pin-code">{{ authPin }}</div>
+                        <div class="pin-instructions">
+                            <p>A new tab has opened to <a href="https://plex.tv/link" target="_blank">plex.tv/link</a></p>
+                            <p>Enter this PIN code to complete authentication.</p>
+                            <p v-if="authLoading" style="color: #e5a00d; margin-top: 15px;">
+                                <strong>⏳ Waiting for you to enter the PIN...</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div v-if="authLoading && !showPinDisplay" class="auth-loading">
+                        <div class="auth-spinner"></div>
+                        <p>{{ authLoadingMessage }}</p>
+                    </div>
+                    
+                    <!-- Login Button -->
+                    <div v-if="!authLoading && !showPinDisplay" class="auth-modal-body">
+                        <p>Click the button below to sign in with your Plex account. A new tab will open where you'll enter a PIN code.</p>
+                        <button class="sign-in-button" v-on:click="initiateLogin" :disabled="authLoading">
+                            Sign in with Plex
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            <!-- Authentication Status Bar -->
+            <div v-if="isAuthenticated" class="auth-status-bar authenticated">
+                <div class="auth-status-info">
+                    <div class="auth-status-avatar">
+                        <img v-if="userInfo && userInfo.thumb" :src="userInfo.thumb" :alt="userInfo.username">
+                        <span v-else>{{ userInitial }}</span>
+                    </div>
+                    <div class="auth-status-details">
+                        <span class="auth-status-label">Signed in as</span>
+                        <span class="auth-status-username">{{ userInfo ? userInfo.username : 'User' }}</span>
+                    </div>
+                </div>
+                <div class="auth-status-actions">
+                    <button class="logout-button" v-on:click="handleLogout">Sign Out</button>
+                </div>
+            </div>
+
+            <!-- Unauthenticated State -->
+            <div v-if="!isAuthenticated && !authLoading" class="warning">
+                <h3>
+                    Please sign in with your Plex account to access your media libraries.
+                </h3>
+                <button class="compact-login-button" v-on:click="openAuthModal">
+                    Sign in with Plex
+                </button>
+            </div>
+
             <div class="warning" v-if="debugMode">
                 <p>Debug mode enabled, open developer tools (F12) for more info</p>
             </div>
-            <p>Targeted Server:</p>
-            <p class="ip-address"><a target="_blank" v-bind:href="serverIp">{{ serverIp }}</a></p>
+            
+            <!-- Only show server info when authenticated and server selected -->
+            <div v-if="isAuthenticated && selectedServer">
+                <p>Selected Server:</p>
+                <p class="ip-address">
+                    <strong>{{ selectedServer.name }}</strong>
+                    <br>
+                    <a target="_blank" v-bind:href="selectedServer.uri">{{ selectedServer.uri }}</a>
+                    <button v-if="availableServers.length > 1"
+                            v-on:click="changeServer"
+                            class="compact-login-button"
+                            style="margin-left: 10px; padding: 5px 15px; font-size: 12px;">
+                        Change Server
+                    </button>
+                </p>
+            </div>
             <div v-if="selectedLibrary.length > 0 && !libraryStatsLoading" class="export-button-container">
                 <button
                     class="export-button"
@@ -73,6 +153,35 @@
                     title="Export library data as a CSV file with selected attributes">
                     Export Title List
                 </button>
+            </div>
+
+            <!-- Server Selector Modal -->
+            <div v-if="showServerSelector" class="auth-modal-overlay" v-on:click="showServerSelector = false">
+                <div class="auth-modal" v-on:click.stop>
+                    <button class="auth-modal-close" v-on:click="showServerSelector = false">&times;</button>
+                    <div class="auth-modal-header">
+                        <h2>Select Plex Server</h2>
+                        <p>Choose which Plex server you want to analyze</p>
+                    </div>
+                    <div class="auth-modal-body">
+                        <div v-if="availableServers.length === 0" class="auth-loading">
+                            <div class="auth-spinner"></div>
+                            <p>Loading servers...</p>
+                        </div>
+                        <div v-else style="display: flex; flex-direction: column; gap: 10px;">
+                            <button
+                                v-for="server in availableServers"
+                                :key="server.clientIdentifier"
+                                class="sign-in-button"
+                                v-on:click="selectServer(server)"
+                                style="text-align: left; padding: 15px 20px;">
+                                <strong>{{ server.name }}</strong>
+                                <br>
+                                <small style="opacity: 0.8;">{{ server.preferredConnection.uri }}</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Export Modal -->
@@ -937,6 +1046,12 @@
                 </div>
             </div>
         </div>
+        <!-- Refactored modules for better code organization -->
+        <script type="text/javascript" src="js/constants.js"></script>
+        <script type="text/javascript" src="js/dataStructures.js"></script>
+        <script type="text/javascript" src="js/chartHelpers.js"></script>
+        <script type="text/javascript" src="js/utils.js"></script>
+        <script type="text/javascript" src="js/auth.js"></script>
         <script type="text/javascript" src="js/scripts.js"></script>
     </div>
 </body>
