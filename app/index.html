@@ -483,7 +483,7 @@
                             </div>
                             <div class="row shows-rating-legend">
                                 <div class="gradient-legend">
-                                    <span class="legend-label">Audience Rating (TMDB)</span>
+                                    <span class="legend-label">Audience Rating</span>
                                     <div class="gradient-bar"></div>
                                     <div class="gradient-labels">
                                         <span>Low</span>
@@ -639,11 +639,20 @@
                     <!-- items by decade chart -->
                     <div class="card half">
                         <div class="header">
-                            <p>{{ selectedLibraryStats.type }}s per Decade</p>
+                            <p v-if="!decadeDrilldown.active">{{ selectedLibraryStats.type }}s per Decade</p>
+                            <p v-else>{{ selectedLibraryStats.type }}s in {{ decadeDrilldown.decade }}</p>
                         </div>
                         <div v-if="libraryStatsLoading" class="loader"></div>
                         <div class="content">
-                            <div class="row">
+                            <!-- Breadcrumb shown when in drilldown mode -->
+                            <div class="row" v-if="decadeDrilldown.active">
+                                <p class="drilldown-breadcrumb">
+                                    <a href="javascript:void(0);" @click="exitDecadeDrilldown">← All Decades</a>
+                                    &rsaquo; {{ decadeDrilldown.decade }}
+                                </p>
+                            </div>
+                            <!-- Normal controls (hidden in drilldown mode) -->
+                            <div class="row" v-show="!decadeDrilldown.active">
                                 <p><strong>Total Decades:</strong> {{ selectedLibraryStats.totalDecadeCount }}</p>
                                 <div class="chart-toggle">
                                     <input type="checkbox"
@@ -665,6 +674,10 @@
                                     <button v-on:click="updateLimit('decade', newDecadeLimit)">Update</button>
                                 </div>
                                 <p><strong>Top Decade:</strong> {{ selectedLibraryStats.topDecade }} ({{ selectedLibraryStats.topDecadeCount }})</p>
+                            </div>
+                            <div class="row">
+                                <p class="note" v-if="!decadeDrilldown.active">(Click a bar to drill into individual years)</p>
+                                <p class="note" v-else>(Click any bar to return to decade view)</p>
                             </div>
                             <div class="row">
                                 <div id="items-by-decade" class="chart items-by-decade"></div>

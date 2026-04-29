@@ -702,6 +702,9 @@ const getLibraryData = async (libraryKey) => {
     // Reset movie comparison data when switching libraries
     app.resetComparisonData();
 
+    // Reset decade drilldown state when switching libraries
+    app.decadeDrilldown = { active: false, decade: '', decadePrefix: '' };
+
     // Store the raw library items for export
     app.libraryItems = libraryResponse.data.MediaContainer.Metadata || [];
 
@@ -938,7 +941,6 @@ const parseMediaPayload = (data) => {
                 ratingsLowest = ratingsObj;
             }
         }
-        /////////////////////////////////
         /////////////////////////////////
         // begin aggregating library-type-specific data
         const mediaSpecificResult = processMediaSpecificData(item, type, durationSum, longestDuration, longestTitle, seasonSum, episodeSum);
@@ -1336,7 +1338,9 @@ const app = new Vue({
         sortField: '',
         sortDirection: 'asc',
         currentPage: 1,
-        itemsPerPage: 25
+        itemsPerPage: 25,
+        // Decade drilldown state
+        decadeDrilldown: { active: false, decade: '', decadePrefix: '' }
     },
     computed: {
         watchedPercentage: function() {
@@ -1410,7 +1414,7 @@ const app = new Vue({
         // Total pages
         totalPages: function() {
             return Math.ceil(this.sortedMovies.length / this.itemsPerPage);
-        }
+        },
     },
     mounted: function () {
         axios.get(libraryListUrl).then((response) => {
@@ -1508,6 +1512,87 @@ const app = new Vue({
         renderDecadeChart: function (type) {
             const chartType = type || this.decadeToggle;
             this.renderCategoricalChart('decade', chartType);
+            // Attach click handler for bar chart drilldown (only when not in drilldown mode)
+            if (chartType === 'bar' && !this.decadeDrilldown.active) {
+                this.$nextTick(() => {
+                    this.attachChartClickHandler('items-by-decade', (data) => this.handleDecadeBarClick(data));
+                });
+            }
+        },
+        // Reusable chart click handler - attaches a plotly_click listener to any rendered chart element.
+        // Since Plotly.newPlot fully reinitializes the chart element, prior listeners are cleared automatically,
+        // so we simply attach fresh ones here. This is the foundation for all future chart drilldowns.
+        attachChartClickHandler: function(selector, callback) {
+            const element = document.getElementById(selector);
+            if (element && typeof element.on === 'function') {
+                element.on('plotly_click', callback);
+            }
+        },
+        // Handles a click event on the decade bar chart.
+        // - If not in drilldown mode: enters drilldown for the clicked decade.
+        // - If in drilldown mode: exits back to the decade view (any bar click exits).
+        handleDecadeBarClick: function(eventData) {
+            if (!eventData || !eventData.points || !eventData.points.length) return;
+            if (this.decadeDrilldown.active) {
+                // Clicking any bar while in drilldown exits back to decades view
+                this.exitDecadeDrilldown();
+            } else {
+                // Extract the decade label (x value for vertical bars)
+                const clickedLabel = String(eventData.points[0].x || eventData.points[0].label || '');
+                if (!clickedLabel) return;
+                // Parse the decade prefix from the label (e.g. "1970s" → "197")
+                const decadeYear = parseInt(clickedLabel);
+                if (isNaN(decadeYear)) return;
+                const decadePrefix = String(decadeYear).substring(0, 3);
+                this.decadeDrilldown.active = true;
+                this.decadeDrilldown.decade = clickedLabel;
+                this.decadeDrilldown.decadePrefix = decadePrefix;
+                this.$nextTick(() => {
+                    this.renderDecadeYearDrilldown(decadePrefix);
+                });
+            }
+        },
+        // Renders a bar chart of individual years within the selected decade.
+        // After rendering, attaches a click handler to exit the drilldown on any bar click.
+        renderDecadeYearDrilldown: function(decadePrefix) {
+            const yearsInDecade = {};
+            const watchedYearsInDecade = {};
+
+            releaseDateData.list.forEach(year => {
+                const yearStr = String(year);
+                if (yearStr.startsWith(decadePrefix)) {
+                    yearsInDecade[year] = (yearsInDecade[year] || 0) + 1;
+                    if (!watchedYearsInDecade[year]) watchedYearsInDecade[year] = 0;
+                }
+            });
+
+            releaseDateData.watchedList.forEach(year => {
+                const yearStr = String(year);
+                if (yearStr.startsWith(decadePrefix)) {
+                    watchedYearsInDecade[year] = (watchedYearsInDecade[year] || 0) + 1;
+                }
+            });
+
+            const sortedYears = Object.keys(yearsInDecade).map(Number).sort((a, b) => a - b);
+            const yearLabels = sortedYears.map(String);
+            const yearCounts = sortedYears.map(y => yearsInDecade[y]);
+            const yearWatched = sortedYears.map(y => watchedYearsInDecade[y] || 0);
+            const yearUnwatched = sortedYears.map((y, i) => yearCounts[i] - (watchedYearsInDecade[y] || 0));
+
+            this.renderBarChart('items-by-decade', yearWatched, yearLabels, false, yearUnwatched, true);
+
+            this.$nextTick(() => {
+                this.attachChartClickHandler('items-by-decade', (data) => this.handleDecadeBarClick(data));
+            });
+        },
+        // Exits the decade drilldown and restores the top-level decade view.
+        exitDecadeDrilldown: function() {
+            this.decadeDrilldown.active = false;
+            this.decadeDrilldown.decade = '';
+            this.decadeDrilldown.decadePrefix = '';
+            this.$nextTick(() => {
+                this.renderDecadeChart();
+            });
         },
         renderStudioChart: function (type) {
             const chartType = type || this.studioToggle;
@@ -1738,7 +1823,7 @@ const app = new Vue({
                     categoryorder: 'array',
                 },
                 yaxis: {
-                    title: 'Audience Rating (TMDB)',
+                    title: 'Audience Rating',
                     range: [0, 11],
                     gridcolor: "#888",
                     showgrid: true,

@@ -23,7 +23,7 @@ runs in the browser and generates statistics specifically about the content of y
 * Movie Analysis tool to compare media attributes like container, codec, resolution, bitmap, file size, and more **(new!)**
 * Multiple methods of CSV export
 * Bar + pie charts for collections, genre, country, decade, studio, content rating, resolution*, container* (file type), actor, writer*, and director* analysis
-* Scatter chart of audience rating (TMDB) vs content rating
+* Scatter chart of audience rating vs content rating
 * Line chart for additions over time
 * Statistics for size and duration of entire library, as well as items: longest (duration), oldest (release date), and earliest / latest additions (to library)
 * Watched/unwatched comparison across entire library and within most charts
