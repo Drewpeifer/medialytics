@@ -149,6 +149,9 @@ let collectionsData = {
 };
 let collectionsLoading = false;
 
+// Per-collection watched/unwatched counts aggregated from library items
+let collectionWatchStats = {};
+
 // Chart limits
 let countryLimit = 20, newCountryLimit = 20;
 let genreLimit = 20, newGenreLimit = 20;
@@ -237,6 +240,7 @@ const resetLibraryStats = () => {
     lastAddedDate = "";
     unmatchedItems = [];
     watchedCount = 0;
+    collectionWatchStats = {};
 }
 
 /////////////////////////////////
@@ -741,9 +745,11 @@ const parseCollectionsPayload = (response) => {
 
     // Process each collection
     collections.forEach((collection) => {
-        // The collections endpoint returns childCount (total items) and viewedLeafCount (watched items)
+        // Use item-level aggregation from collectionWatchStats for accurate watched/unwatched counts,
+        // since the collections endpoint's viewedLeafCount is unreliable.
         const totalCount = collection.childCount || 0;
-        const watchedCount = collection.viewedLeafCount || 0;
+        const watchStats = collectionWatchStats[collection.title] || { total: 0, watched: 0 };
+        const watchedCount = watchStats.watched;
         const unwatchedCount = totalCount - watchedCount;
         const watchedPercentage = totalCount > 0 ? Math.round((watchedCount / totalCount) * 100) : 0;
 
@@ -861,6 +867,22 @@ const parseMediaPayload = (data) => {
             }
         }
 
+        /////////////////////////////////
+        // track which collections this item belongs to, and whether it's watched
+        if (item.Collection) {
+            const itemCollections = Array.isArray(item.Collection) ? item.Collection : [item.Collection];
+            itemCollections.forEach(col => {
+                if (col.tag) {
+                    if (!collectionWatchStats[col.tag]) {
+                        collectionWatchStats[col.tag] = { total: 0, watched: 0 };
+                    }
+                    collectionWatchStats[col.tag].total++;
+                    if (item.lastViewedAt) {
+                        collectionWatchStats[col.tag].watched++;
+                    }
+                }
+            });
+        }
         /////////////////////////////////
         // track studio, genres, countries, actors, content ratings
         processItemCounts(item, studioData, 'studio', true);
@@ -1744,7 +1766,7 @@ const app = new Vue({
 
             Plotly.newPlot(selector, ratingsList, layout, config);
         },
-        renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = [], shortLabels = false) {
+        renderBarChart: function (selector, dataColumns, categories, rotated = true, stackGroup = [], shortLabels = false, showLegend = false) {
             if (debugMode) {
                 console.log('rendering chart: ', selector, dataColumns, categories, rotated, stackGroup)
             }
@@ -1770,9 +1792,8 @@ const app = new Vue({
                 hoverinfo: 'text',
                 textposition: 'none',// this prevents the text from being shown on the bars
                 text: totalColumns.map((total, index) => {
-                    // if this is the collections chart, just show the count
                     if (selector === 'collections-chart') {
-                        return `${categories[index]}<br />${dataColumns[index]} Items`;
+                        return `${categories[index]}<br />${dataColumns[index]} Watched (${total} Total)`;
                     } else {
                         return `${categories[index]}<br />${dataColumns[index]} / ${total} Watched`
                     }
@@ -1791,9 +1812,8 @@ const app = new Vue({
                 hoverinfo: 'text',
                 textposition: 'none',// this prevents the text from being shown on the bars
                 text: totalColumns.map((total, index) => {
-                    // if this is the collections chart, just show the count
                     if (selector === 'collections-chart') {
-                        return `${categories[index]}<br />${stackGroup[index]} Items`;
+                        return `${categories[index]}<br />${stackGroup[index]} Unwatched (${total} Total)`;
                     } else {
                         return `${categories[index]}<br />${stackGroup[index]} / ${total} Unwatched`
                     }
@@ -1804,7 +1824,7 @@ const app = new Vue({
 
             let layout = {
                 barmode: 'stack',
-                showlegend: false,
+                showlegend: showLegend,
                 margin: {
                     pad: 10,
                 },
@@ -1883,14 +1903,15 @@ const app = new Vue({
                 return;
             }
 
-            // Use horizontal bar chart for collections
+            // Use vertical bar chart for collections, with legend to distinguish watched vs unwatched
             this.renderBarChart(
                 'collections-chart',
                 this.collectionsData.collectionWatchedCounts,
                 this.collectionsData.collectionNames,
                 false, // vertical
                 this.collectionsData.collectionUnwatchedCounts,
-                false // shortLabels
+                false, // shortLabels
+                true   // showLegend
             );
         },
         updateTreemapChart: function() {
