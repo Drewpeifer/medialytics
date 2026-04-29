@@ -1252,6 +1252,7 @@ const app = new Vue({
         selectedAttributes: [],
         commonAttributes: [
             { key: 'title', label: 'Title' },
+            { key: 'titleSort', label: 'Sort Title' },
             { key: 'year', label: 'Year' },
             { key: 'contentRating', label: 'Content Rating' },
             { key: 'contentRatingAge', label: 'Content Rating Age' },
@@ -2898,6 +2899,8 @@ const app = new Vue({
                 switch (attribute) {
                     case 'title':
                         return item.title || '';
+                    case 'titleSort':
+                        return item.titleSort || '';
                     case 'year':
                         return item.year || '';
                     case 'contentRating':
